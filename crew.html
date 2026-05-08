@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>✈ 비행기방</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F0F4FF;
+  --surface: #FFFFFF;
+  --border: #DDEAFF;
+  --text: #111827;
+  --text2: #6B7280;
+  --text3: #B0BBCF;
+  --primary: #1A6BFF;
+  --primary-dark: #0052D4;
+  --grad: linear-gradient(135deg, #1A6BFF 0%, #0EA5E9 50%, #38BDF8 100%);
+  --grad2: linear-gradient(135deg, #6366F1 0%, #1A6BFF 50%, #0EA5E9 100%);
+  --green: #059669;
+  --green-bg: #ECFDF5;
+  --amber: #D97706;
+  --amber-bg: #FFFBEB;
+  --red: #DC2626;
+  --red-bg: #FEF2F2;
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 430px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.page { display: none; min-height: 100vh; flex-direction: column; overflow-y: auto; overflow-x: hidden; }
+.page.active { display: flex; }
+
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 50;
+}
+.topbar-logo {
+  font-size: 20px; font-weight: 800; letter-spacing: -0.5px;
+  background: var(--grad);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+.topbar-user { font-size: 13px; font-weight: 600; color: var(--text2); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  font-family: inherit; font-size: 14px; font-weight: 600;
+  padding: 10px 20px; border-radius: var(--radius-sm);
+  border: none; cursor: pointer; transition: all .15s; width: 100%;
+}
+.btn:active { transform: scale(0.97); }
+.btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-grad { background: var(--grad); color: #fff; border: none; }
+.btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.btn-green { background: var(--green); color: #fff; }
+.btn-red { background: var(--red); color: #fff; }
+.btn-sm { padding: 6px 14px; font-size: 12px; width: auto; border-radius: 6px; }
+.btn-xs { padding: 4px 10px; font-size: 11px; width: auto; border-radius: 5px; font-weight: 700; }
+
+.field { margin-bottom: 14px; }
+.field:last-child { margin-bottom: 0; }
+.field-label { font-size: 12px; font-weight: 700; color: var(--text2); margin-bottom: 5px; display: block; }
+.input {
+  width: 100%; padding: 11px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px; font-family: inherit;
+  background: var(--surface); color: var(--text);
+  outline: none; transition: border-color .15s;
+}
+.input:focus { border-color: var(--primary); }
+.input::placeholder { color: var(--text3); }
+
+.badge {
+  display: inline-flex; align-items: center;
+  font-size: 11px; font-weight: 700;
+  padding: 3px 8px; border-radius: 20px; white-space: nowrap;
+}
+.badge-green  { background: var(--green-bg);  color: var(--green); }
+.badge-amber  { background: var(--amber-bg);  color: var(--amber); }
+.badge-red    { background: var(--red-bg);    color: var(--red); }
+.badge-blue   { background: #EFF9FF; color: var(--primary); }
+.badge-gray   { background: #F5F5F5; color: var(--text2); }
+
+.tag {
+  display: inline-flex; font-size: 11px; font-weight: 600;
+  padding: 3px 8px; border-radius: 20px;
+  background: #F0F0F0; color: var(--text2); margin: 2px;
+}
+
+.banner { padding: 12px 14px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 14px; display: none; }
+.banner.show { display: block; }
+.banner-warn  { background: var(--amber-bg); color: var(--amber); border: 1px solid #FFD580; }
+.banner-error { background: var(--red-bg);   color: var(--red);   border: 1px solid #F7C5CA; }
+.banner-ok    { background: var(--green-bg); color: var(--green); border: 1px solid #A3E4C9; }
+
+.spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; display: inline-block; }
+.spinner-dark { border-color: var(--border); border-top-color: var(--primary); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 12px; }
+.card-body { padding: 16px; }
+
+.room-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+  margin-bottom: 10px;
+  transition: all .15s;
+  position: relative; overflow: hidden;
+}
+.room-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--grad2);
+}
+.room-card.clickable { cursor: pointer; }
+.room-card.clickable:active { transform: scale(0.98); background: var(--bg); }
+.room-card-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.room-card-meta { font-size: 12px; color: var(--text2); margin-bottom: 8px; }
+
+.p-list { max-height: 260px; overflow-y: auto; }
+.p-list::-webkit-scrollbar { width: 3px; }
+.p-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.p-row { display: flex; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--border); }
+.p-row:last-child { border-bottom: none; }
+.avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; flex-shrink: 0;
+  background: var(--grad); color: #fff;
+}
+.p-info { flex: 1; margin-left: 10px; }
+.p-name { font-size: 13px; font-weight: 600; }
+.p-insta { font-size: 11px; color: var(--text3); }
+
+.my-section { border-top: 1px solid var(--border); padding: 16px; background: var(--surface); }
+.my-label { font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 10px; }
+.my-block { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 8px; }
+.my-block:last-child { margin-bottom: 0; }
+.my-row { padding: 12px 14px; display: flex; align-items: flex-start; justify-content: space-between; border-bottom: 1px solid var(--border); }
+.my-row:last-child { border-bottom: none; }
+.my-row-label { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.my-row-sub { font-size: 11px; color: var(--text3); }
+.link-box { font-size: 12px; color: var(--primary); word-break: break-all; padding: 8px 10px; background: #EFF9FF; border-radius: 6px; margin-top: 6px; }
+
+.empty { text-align: center; padding: 48px 20px; color: var(--text3); font-size: 13px; }
+
+.warn-top { background: var(--amber-bg); border-bottom: 1px solid #FFD580; padding: 10px 16px; font-size: 12px; color: var(--amber); font-weight: 600; display: none; }
+.warn-top.show { display: block; }
+
+.content { flex: 1; padding: 16px; overflow-y: auto; }
+
+/* 로그인 */
+.login-wrap {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 40px 24px;
+}
+.login-logo-wrap { text-align: center; margin-bottom: 32px; }
+.plane-anim {
+  font-size: 56px; display: block;
+  animation: flyPlane 3s ease-in-out infinite;
+  margin-bottom: 12px;
+}
+@keyframes flyPlane {
+  0%   { transform: translateX(-8px) rotate(-5deg); }
+  50%  { transform: translateX(8px) rotate(5deg); }
+  100% { transform: translateX(-8px) rotate(-5deg); }
+}
+.login-title {
+  font-size: 28px; font-weight: 800; letter-spacing: -1px;
+  background: var(--grad);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.login-sub { font-size: 13px; color: var(--text2); margin-top: 4px; }
+.login-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; width: 100%; max-width: 360px; }
+.login-note { font-size: 12px; color: var(--text3); text-align: center; margin-top: 14px; }
+
+.clouds { position: fixed; top: 0; left: 0; right: 0; height: 100vh; pointer-events: none; z-index: 0; overflow: hidden; }
+.cloud {
+  position: absolute; font-size: 40px; opacity: 0.08;
+  animation: floatCloud linear infinite;
+}
+.cloud:nth-child(1) { top: 10%; animation-duration: 20s; animation-delay: 0s; font-size: 50px; }
+.cloud:nth-child(2) { top: 30%; animation-duration: 25s; animation-delay: -8s; font-size: 35px; }
+.cloud:nth-child(3) { top: 60%; animation-duration: 18s; animation-delay: -4s; font-size: 45px; }
+.cloud:nth-child(4) { top: 80%; animation-duration: 22s; animation-delay: -12s; font-size: 30px; }
+@keyframes floatCloud {
+  from { transform: translateX(-100px); }
+  to   { transform: translateX(calc(100vw + 100px)); }
+}
+
+.fly-plane {
+  position: fixed; top: 30%; left: -80px; font-size: 40px; z-index: 999;
+  animation: flyAcross 1.2s ease-in-out forwards;
+  pointer-events: none; display: none;
+}
+@keyframes flyAcross {
+  from { left: -80px; top: 30%; opacity: 1; }
+  to   { left: calc(100vw + 80px); top: 10%; opacity: 0.5; }
+}
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.fade-up { animation: fadeUp .25s ease both; }
+</style>
+</head>
+<body>
+
+<div class="clouds">
+  <div class="cloud">☁️</div>
+  <div class="cloud">☁️</div>
+  <div class="cloud">☁️</div>
+  <div class="cloud">☁️</div>
+</div>
+
+<div class="fly-plane" id="fly-plane">✈️</div>
+
+<!-- ══ 로그인 ══ -->
+<div class="page active" id="page-login">
+  <div class="login-wrap">
+    <div class="login-logo-wrap">
+      <span class="plane-anim">✈️</span>
+      <div class="login-title">비행기방</div>
+      <div class="login-sub">@jjoycrew_official</div>
+    </div>
+
+    <div class="login-card">
+      <div id="login-warn" class="banner banner-warn" style="display:none">⚠️ 경고 상태입니다. 익일 09:00까지 해제하지 않으면 잠깁니다.</div>
+      <div id="login-error" class="banner banner-error" style="display:none"></div>
+      <div class="field">
+        <label class="field-label">닉네임</label>
+        <input class="input" id="inp-nickname" placeholder="닉네임 입력" autocomplete="off">
+      </div>
+      <div class="field">
+        <label class="field-label">인스타 아이디 (@ 제외)</label>
+        <input class="input" id="inp-insta" placeholder="instagram_id" autocomplete="off" autocapitalize="none">
+      </div>
+      <button class="btn btn-grad" id="btn-login" onclick="doLogin()">입장하기 ✈</button>
+    </div>
+    <p class="login-note">계정 등록은 관리자에게 문의하세요</p>
+  </div>
+</div>
+
+<!-- ══ 룸 목록 ══ -->
+<div class="page" id="page-rooms">
+  <div class="topbar">
+    <div class="topbar-logo">✈ 비행기방</div>
+    <div class="topbar-right">
+      <span id="rooms-user-badge" class="topbar-user"></span>
+      <button class="btn btn-outline btn-sm" onclick="doLogout()">로그아웃</button>
+    </div>
+  </div>
+  <div id="warn-top-rooms" class="warn-top">⚠️ 경고 상태입니다.</div>
+  <div class="content">
+    <div id="rooms-error" class="banner banner-error"></div>
+    <div id="rooms-list">
+      <div class="empty"><span class="spinner spinner-dark" style="width:24px;height:24px"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 티켓 화면 ══ -->
+<div class="page" id="page-ticket">
+  <div class="topbar">
+    <button class="btn btn-outline btn-sm" style="width:auto" onclick="goRooms()">← 목록</button>
+    <div id="ticket-title" style="font-size:15px;font-weight:700"></div>
+    <span id="ticket-badge" class="badge"></span>
+  </div>
+  <div id="warn-top-ticket" class="warn-top">⚠️ 경고 상태입니다.</div>
+
+  <div style="padding:0">
+    <div style="padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border)">
+      <div id="ticket-time" style="font-size:12px;color:var(--text2);margin-bottom:6px"></div>
+      <div id="ticket-items"></div>
+    </div>
+
+    <div style="padding:9px 16px;display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-bottom:1px solid var(--border)">
+      <span id="p-count" style="font-size:12px;font-weight:700;color:var(--text2)">참여자 목록</span>
+      <button class="btn btn-outline btn-sm" onclick="copyAll()">전체 복사</button>
+    </div>
+
+    <div class="p-list" id="p-list" style="background:var(--surface)">
+      <div class="empty" style="padding:20px"><span class="spinner spinner-dark" style="width:20px;height:20px"></span></div>
+    </div>
+
+    <div class="my-section">
+      <div class="my-label">내 참여</div>
+      <div id="my-part"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbyAy0HHa-4c_ouX_Wion6ZvEmyEu7XbuUaKHg-2F55jhvzkZd0uBVPokihZH_MgnNY/exec';
+const SESSION_KEY = 'plane_crew_session';
+
+let me = null;
+let currentRoom = null;
+let participants = [];
+
+function saveSession(member) {
+  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(member)); } catch(e) {}
+}
+function loadSession() {
+  try { return JSON.parse(sessionStorage.getItem(SESSION_KEY)); } catch(e) { return null; }
+}
+function clearSession() {
+  try { sessionStorage.removeItem(SESSION_KEY); } catch(e) {}
+}
+
+window.addEventListener('load', () => {
+  // 키 이벤트 등록
+  document.getElementById('inp-nickname').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  document.getElementById('inp-insta').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+  const saved = loadSession();
+  if (saved) {
+    me = saved;
+    goRooms();
+  }
+});
+
+async function api(action, body = {}) {
+  const r = await fetch(API, {
+    method: 'POST',
+    body: JSON.stringify({ action, ...body }),
+  });
+  return r.json();
+}
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function showBanner(id, msg, type = 'error') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = `banner banner-${type} show`;
+  el.style.display = 'block';
+  el.textContent = msg;
+}
+function hideBanner(id) {
+  const el = document.getElementById(id);
+  if (el) { el.classList.remove('show'); el.style.display = 'none'; }
+}
+function letter(n) { return n ? n.charAt(0) : '?'; }
+function fmt(s) {
+  if (!s || s === '-') return '-';
+  var str = String(s);
+  if (/^\d{1,2}\/\d{1,2} \d{2}:\d{2}$/.test(str)) return str;
+  try {
+    var d = new Date(str.replace(' ', 'T') + ':00+09:00');
+    if (isNaN(d.getTime())) return str.substring(0, 16);
+    return (d.getMonth()+1) + '/' + d.getDate() + ' ' + ('0'+d.getHours()).slice(-2) + ':' + ('0'+d.getMinutes()).slice(-2);
+  } catch(e) { return str.substring(0, 16); }
+}
+
+function flyEffect() {
+  const el = document.getElementById('fly-plane');
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 1300);
+}
+
+// ── 로그인 (수정: 버튼 텍스트 복원 개선)
+async function doLogin() {
+  const nickname = (document.getElementById('inp-nickname').value || '').trim();
+  const insta_id = (document.getElementById('inp-insta').value || '').trim();
+  hideBanner('login-error');
+  hideBanner('login-warn');
+
+  if (!nickname || !insta_id) {
+    showBanner('login-error', '닉네임과 인스타 아이디를 모두 입력해 주세요');
+    return;
+  }
+
+  const btn = document.getElementById('btn-login');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+
+  try {
+    const data = await api('login', { nickname, insta_id });
+    if (!data.ok) {
+      showBanner('login-error', data.error === 'locked' ? '🔒 ' + (data.message || '잠금 상태입니다') : (data.error || '등록되지 않은 계정입니다'));
+      return;
+    }
+    me = data.member;
+    saveSession(me);
+    if (me.is_warned) showBanner('login-warn', '⚠️ 경고 상태입니다. 익일 09:00까지 해제하지 않으면 잠깁니다.', 'warn');
+    flyEffect();
+    setTimeout(() => goRooms(), 400);
+  } catch(e) {
+    showBanner('login-error', '서버 연결에 실패했습니다');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '입장하기 ✈';
+  }
+}
+
+function doLogout() {
+  me = null; currentRoom = null; participants = [];
+  clearSession();
+  showPage('page-login');
+}
+
+// ── 룸 목록
+async function goRooms() {
+  showPage('page-rooms');
+  const warnTop = document.getElementById('warn-top-rooms');
+  if (me && me.is_warned) warnTop.classList.add('show'); else warnTop.classList.remove('show');
+  document.getElementById('rooms-user-badge').textContent = me ? `@${me.insta_id}` : '';
+  hideBanner('rooms-error');
+  document.getElementById('rooms-list').innerHTML =
+    '<div class="empty"><span class="spinner spinner-dark" style="width:24px;height:24px"></span></div>';
+
+  try {
+    const data = await api('get_rooms');
+    renderRooms(data.rooms || []);
+  } catch(e) {
+    showBanner('rooms-error', '룸 목록을 불러오지 못했습니다');
+    document.getElementById('rooms-list').innerHTML = '';
+  }
+}
+
+function renderRooms(rooms) {
+  const el = document.getElementById('rooms-list');
+  if (!rooms.length) {
+    el.innerHTML = `<div class="empty fade-up"><div style="font-size:40px;margin-bottom:12px">✈️</div>오늘 개설된 룸이 없습니다<br><span style="font-size:12px;margin-top:6px;display:block">잠시 후 다시 확인해 주세요</span></div>`;
+    return;
+  }
+  const now = new Date();
+  el.innerHTML = rooms.map(r => {
+    let ts, te, ls, le;
+    try {
+      ts = new Date((r.ticket_start||'').replace(' ','T') + ':00');
+      te = new Date((r.ticket_end||'').replace(' ','T') + ':00');
+      ls = new Date((r.land_start||'').replace(' ','T') + ':00');
+      le = new Date((r.land_end||'').replace(' ','T') + ':00');
+    } catch(e) { ts = te = ls = le = new Date(0); }
+
+    const beforeTicket = now < ts;
+    const inTicketing  = now >= ts && now < te;
+    const waitingLand  = now >= te && now < ls;
+    const inLanding    = now >= ls && now < le;
+
+    let badge, canEnter;
+    if      (beforeTicket) { badge = '<span class="badge badge-gray">입장 대기 ⏳</span>';  canEnter = false; }
+    else if (inTicketing)  { badge = '<span class="badge badge-green">🎫 티켓팅 중</span>'; canEnter = true; }
+    else if (waitingLand)  { badge = '<span class="badge badge-amber">착륙 대기 ⏳</span>'; canEnter = true; }
+    else if (inLanding)    { badge = '<span class="badge badge-blue">🛬 착륙 중</span>';    canEnter = true; }
+    else                   { badge = '<span class="badge badge-red">🔒 착륙 마감</span>';   canEnter = false; }
+
+    const tags = (r.items || '').split(',').map(t => `<span class="tag">${t.trim()}</span>`).join('');
+    const clickFn = canEnter ? `onclick="goTicket('${r.room_id}')"` : '';
+    const disabledStyle = !canEnter ? 'opacity:0.6;cursor:not-allowed;' : '';
+
+    return `
+      <div class="room-card${canEnter ? ' clickable' : ''}" ${clickFn} style="${disabledStyle}">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
+          <div class="room-card-title">${String(r.room_date).substring(0,10)} #${r.room_number}</div>
+          ${badge}
+        </div>
+        <div class="room-card-meta" style="font-size:11px">
+          🎫 ${r.ticket_start_fmt||fmt(r.ticket_start)} ~ ${r.ticket_end_fmt||fmt(r.ticket_end)}&nbsp;&nbsp;
+          🛬 ${r.land_start_fmt||fmt(r.land_start)} ~ ${r.land_end_fmt||fmt(r.land_end)}&nbsp;&nbsp;
+          👥 ${r.joined}/${r.max_members}명
+        </div>
+        <div>${tags}</div>
+        ${beforeTicket ? `<div style="font-size:11px;color:var(--text3);margin-top:6px">⏳ ${r.ticket_start_fmt||fmt(r.ticket_start)} 부터 입장 가능</div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+// ── 티켓 화면
+async function goTicket(roomId) {
+  showPage('page-ticket');
+  const warnTop = document.getElementById('warn-top-ticket');
+  if (me && me.is_warned) warnTop.classList.add('show'); else warnTop.classList.remove('show');
+  document.getElementById('ticket-title').textContent = '';
+  document.getElementById('ticket-items').innerHTML = '';
+  document.getElementById('p-list').innerHTML =
+    '<div class="empty" style="padding:20px"><span class="spinner spinner-dark" style="width:20px;height:20px"></span></div>';
+  document.getElementById('my-part').innerHTML = '';
+
+  try {
+    const data = await api('get_room_detail', { room_id: roomId, member_id: me?.member_id });
+    if (!data.ok) return;
+
+    currentRoom = data.room;
+    participants = data.participants || [];
+
+    document.getElementById('ticket-title').textContent =
+      `${String(currentRoom.room_date).substring(0,10)} #${currentRoom.room_number}`;
+
+    const now = new Date();
+    const ticketStart = new Date((currentRoom.ticket_start||'').replace(' ','T') + ':00');
+    const ticketEnd   = new Date((currentRoom.ticket_end||'').replace(' ','T') + ':00');
+    const landStart   = new Date((currentRoom.land_start||'').replace(' ','T') + ':00');
+    const landEnd     = new Date((currentRoom.land_end||'').replace(' ','T') + ':00');
+
+    const beforeTicket = now < ticketStart;
+    const inTicketing  = now >= ticketStart && now < ticketEnd;
+    const waitingLand  = now >= ticketEnd   && now < landStart;
+    const inLanding    = now >= landStart   && now < landEnd;
+    const afterAll     = now >= landEnd;
+
+    const badge = document.getElementById('ticket-badge');
+    if      (beforeTicket) { badge.className='badge badge-gray';  badge.textContent='입장 대기 ⏳'; }
+    else if (inTicketing)  { badge.className='badge badge-green'; badge.textContent='🎫 티켓팅 중'; }
+    else if (waitingLand)  { badge.className='badge badge-amber'; badge.textContent='착륙 대기 ⏳'; }
+    else if (inLanding)    { badge.className='badge badge-blue';  badge.textContent='🛬 착륙 중'; }
+    else                   { badge.className='badge badge-red';   badge.textContent='🔒 착륙 마감'; }
+
+    document.getElementById('ticket-time').innerHTML =
+      `<span style="color:var(--primary);font-weight:600">🎫 티켓팅</span> ${currentRoom.ticket_start_fmt||fmt(currentRoom.ticket_start)} ~ ${currentRoom.ticket_end_fmt||fmt(currentRoom.ticket_end)}&nbsp;&nbsp;` +
+      `<span style="color:var(--green);font-weight:600">🛬 착륙</span> ${currentRoom.land_start_fmt||fmt(currentRoom.land_start)} ~ ${currentRoom.land_end_fmt||fmt(currentRoom.land_end)}`;
+
+    document.getElementById('ticket-items').innerHTML =
+      (currentRoom.items || '').split(',').map(t => `<span class="tag">${t.trim()}</span>`).join('');
+
+    document.getElementById('p-count').textContent = `참여자 목록 (${participants.length}명)`;
+
+    renderParticipants(participants);
+    renderMyPart(beforeTicket, inTicketing, waitingLand, inLanding, afterAll);
+  } catch(e) { console.error(e); }
+}
+
+const GRAD_COLORS = [
+  ['#1A6BFF','#0EA5E9'],['#6366F1','#1A6BFF'],['#0EA5E9','#38BDF8'],
+  ['#3B82F6','#6366F1'],['#0052D4','#1A6BFF'],['#1A6BFF','#38BDF8'],
+];
+
+function renderParticipants(list) {
+  const el = document.getElementById('p-list');
+  if (!list.length) {
+    el.innerHTML = '<div class="empty" style="padding:20px;font-size:12px">아직 참여자가 없습니다</div>';
+    return;
+  }
+  el.innerHTML = list.map((p, i) => {
+    const [c1, c2] = GRAD_COLORS[i % GRAD_COLORS.length];
+    const isMe = me && p.nickname === me.nickname;
+    const sb = p.status === 'landed'
+      ? '<span class="badge badge-green" style="font-size:10px">착륙 ✓</span>'
+      : '<span class="badge badge-blue" style="font-size:10px">티켓팅</span>';
+    return `
+      <div class="p-row" style="${isMe ? 'background:#FFF9F0' : ''}">
+        <div class="avatar" style="background:linear-gradient(135deg,${c1},${c2})">${letter(p.nickname)}</div>
+        <div class="p-info">
+          <div class="p-name">${p.nickname}${isMe ? ' <span style="font-size:10px;color:var(--primary)">(나)</span>' : ''}</div>
+          <div class="p-insta">@${p.insta_id}</div>
+        </div>
+        ${sb}
+      </div>`;
+  }).join('');
+}
+
+function renderMyPart(beforeTicket, inTicketing, waitingLand, inLanding, afterAll) {
+  const el = document.getElementById('my-part');
+  if (!me) return;
+
+  const myPart = participants.find(p => p.nickname === me.nickname && p.member_id === me.member_id)
+    || participants.find(p => p.nickname === me.nickname);
+
+  if (myPart && myPart.status === 'landed') {
+    el.innerHTML = `
+      <div class="my-block">
+        <div class="my-row" style="background:var(--green-bg)">
+          <div><div class="my-row-label" style="color:var(--green)">✅ 착륙 완료</div>
+          <div class="my-row-sub">참여가 정상 기록되었습니다 · ${myPart.landed_at||''}</div></div>
+        </div>
+        <div class="my-row">
+          <div style="flex:1"><div class="my-row-label">내 링크</div>
+            ${myPart.post_url ? `<div class="link-box">${myPart.post_url}</div>` : '<div class="my-row-sub" style="margin-top:4px">링크 미등록</div>'}
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  if (afterAll) {
+    el.innerHTML = `
+      <div class="my-block">
+        <div class="my-row" style="background:#FEF2F2">
+          <div><div class="my-row-label" style="color:var(--red)">🔒 착륙 마감</div>
+          ${myPart ? '<div class="my-row-sub" style="color:var(--red)">착륙하지 않아 경고가 부여될 수 있습니다</div>' : '<div class="my-row-sub">참여하지 않은 룸입니다</div>'}</div>
+        </div>
+        ${myPart && myPart.post_url ? `<div class="my-row"><div style="flex:1"><div class="my-row-label">등록된 링크</div><div class="link-box">${myPart.post_url}</div></div></div>` : ''}
+      </div>`;
+    return;
+  }
+
+  if (myPart && myPart.status === 'ticketed') {
+    const linkSection = myPart.post_url
+      ? `<div class="link-box">${myPart.post_url}</div>
+         ${inTicketing ? `<div style="margin-top:8px;display:flex;gap:6px;align-items:center">
+           <input class="input" id="inp-link-edit" placeholder="새 링크로 수정..." style="flex:1;font-size:12px;padding:8px 10px" value="${myPart.post_url}">
+           <button class="btn btn-outline btn-sm" id="btn-link-edit" onclick="doUpdateLink()">수정</button>
+         </div><div class="my-row-sub" style="margin-top:4px">티켓팅 시간 내에만 수정 가능</div>` : ''}`
+      : inTicketing
+        ? `<div style="margin-top:8px;display:flex;gap:6px;align-items:center">
+             <input class="input" id="inp-link" placeholder="https://instagram.com/p/..." style="flex:1;font-size:12px;padding:8px 10px">
+             <button class="btn btn-primary btn-sm" id="btn-link" onclick="doRegisterLink()">등록</button>
+           </div><div class="my-row-sub" style="margin-top:4px">룸당 1개 · 티켓팅 시간 내 수정 가능</div>`
+        : `<div class="my-row-sub" style="margin-top:4px;color:var(--amber)">⚠ 티켓팅 종료 — 링크 등록/수정 불가</div>`;
+
+    el.innerHTML = `
+      <div class="my-block">
+        <div class="my-row"><div style="flex:1"><div class="my-row-label">내 링크</div>${linkSection}</div></div>
+        ${inLanding
+          ? `<div class="my-row" style="background:var(--green-bg)">
+               <div><div class="my-row-label">착륙 완료</div><div class="my-row-sub">모든 품앗이 완료 후 눌러주세요 · 1회만 가능</div></div>
+               <button class="btn btn-green btn-sm" id="btn-land" onclick="doLand()">착륙 ✓</button>
+             </div>`
+          : waitingLand
+            ? `<div class="my-row" style="background:#FFFBEB">
+                 <div class="my-row-label" style="color:var(--amber)">⏳ 착륙 시간 대기 중</div>
+                 <div class="my-row-sub">착륙 시작: ${currentRoom.land_start_fmt||fmt(currentRoom.land_start)}</div>
+               </div>`
+            : `<div class="my-row"><div class="my-row-sub">착륙 시간이 되면 착륙 버튼이 나타납니다</div></div>`}
+      </div>`;
+    return;
+  }
+
+  if (beforeTicket) {
+    el.innerHTML = `
+      <div class="my-block">
+        <div class="my-row" style="background:#F5F5F5">
+          <div><div class="my-row-label" style="color:var(--text3)">⏳ 티켓팅 시작 전</div>
+          <div class="my-row-sub">${currentRoom.ticket_start_fmt||fmt(currentRoom.ticket_start)} 부터 참여 가능</div></div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  if (inTicketing) {
+    el.innerHTML = `
+      <div class="my-block">
+        <div class="my-row">
+          <div><div class="my-row-label">티켓팅 참여</div><div class="my-row-sub">참여하면 취소 불가</div></div>
+          <button class="btn btn-grad btn-sm" id="btn-ticket" onclick="doTicket()" style="min-width:80px">참여하기</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="my-block">
+      <div class="my-row" style="background:#F5F5F5">
+        <div class="my-row-label" style="color:var(--text3)">🔒 티켓팅이 마감되었습니다</div>
+      </div>
+    </div>`;
+}
+
+async function doTicket() {
+  if (!me || !currentRoom) return;
+  if (!me.member_id) { alert('로그인 정보가 없습니다. 다시 로그인해 주세요.'); doLogout(); return; }
+  const btn = document.getElementById('btn-ticket');
+  if (btn) { btn.disabled = true; btn.textContent = '처리 중...'; }
+  try {
+    const data = await api('ticket', {
+      room_id: currentRoom.room_id,
+      member_id: me.member_id,
+      nickname: me.nickname,
+      insta_id: me.insta_id,
+    });
+    if (!data.ok) { alert(data.error || '티켓팅 실패'); if (btn) { btn.disabled = false; btn.innerHTML = '참여하기'; } return; }
+    flyEffect();
+    await goTicket(currentRoom.room_id);
+  } catch(e) {
+    alert('서버 오류');
+    if (btn) { btn.disabled = false; btn.innerHTML = '참여하기'; }
+  }
+}
+
+async function doRegisterLink() {
+  const url = (document.getElementById('inp-link')?.value || '').trim();
+  if (!url || !url.startsWith('http')) { alert('올바른 URL을 입력해 주세요'); return; }
+  const btn = document.getElementById('btn-link');
+  if (btn) { btn.disabled = true; btn.textContent = '등록 중...'; }
+  try {
+    const data = await api('register_link', { room_id: currentRoom.room_id, member_id: me.member_id, post_url: url });
+    if (!data.ok) { alert(data.error || '링크 등록 실패'); if (btn) { btn.disabled = false; btn.textContent = '등록'; } return; }
+    await goTicket(currentRoom.room_id);
+  } catch(e) { alert('서버 오류'); if (btn) { btn.disabled = false; btn.textContent = '등록'; } }
+}
+
+async function doUpdateLink() {
+  const url = (document.getElementById('inp-link-edit')?.value || '').trim();
+  if (!url || !url.startsWith('http')) { alert('올바른 URL을 입력해 주세요'); return; }
+  const btn = document.getElementById('btn-link-edit');
+  if (btn) { btn.disabled = true; btn.textContent = '수정 중...'; }
+  try {
+    const data = await api('update_link', { room_id: currentRoom.room_id, member_id: me.member_id, post_url: url });
+    if (!data.ok) { alert(data.error || '링크 수정 실패'); if (btn) { btn.disabled = false; btn.textContent = '수정'; } return; }
+    await goTicket(currentRoom.room_id);
+  } catch(e) { alert('서버 오류'); if (btn) { btn.disabled = false; btn.textContent = '수정'; } }
+}
+
+async function doLand() {
+  if (!confirm('착륙 완료 처리하시겠습니까? 1회만 가능합니다.')) return;
+  const btn = document.getElementById('btn-land');
+  if (btn) { btn.disabled = true; btn.textContent = '처리 중...'; }
+  try {
+    const data = await api('land', { room_id: currentRoom.room_id, member_id: me.member_id });
+    if (!data.ok) { alert(data.error || '착륙 실패'); if (btn) { btn.disabled = false; btn.textContent = '착륙 ✓'; } return; }
+    await goTicket(currentRoom.room_id);
+  } catch(e) { alert('서버 오류'); if (btn) { btn.disabled = false; btn.textContent = '착륙 ✓'; } }
+}
+
+function copyAll() {
+  if (!participants.length) { alert('참여자가 없습니다'); return; }
+  const text = participants.map(p => `${p.nickname} @${p.insta_id}${p.post_url ? ' ' + p.post_url : ''}`).join('\n');
+  navigator.clipboard.writeText(text)
+    .then(() => alert(`${participants.length}명 복사 완료!`))
+    .catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta);
+      alert(`${participants.length}명 복사 완료!`);
+    });
+}
+</script>
+</body>
+</html>
