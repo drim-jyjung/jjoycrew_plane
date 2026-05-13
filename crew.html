@@ -684,7 +684,7 @@ function renderMyPart(beforeTicket, inTicketing, waitingLand, inLanding, afterAl
           <div class="my-row-sub">참여가 정상 기록되었습니다 · ${myPart.landed_at||''}</div></div>
         </div>
         <div class="my-row">
-          <div style="flex:1"><div class="my-row-label">내 링크</div>
+          <div style="flex:1"><div class="my-row-label">🔗 내 링크</div>
             ${myPart.post_url ? `<div class="link-box">${myPart.post_url}</div>` : '<div class="my-row-sub" style="margin-top:4px">링크 미등록</div>'}
           </div>
         </div>
@@ -722,10 +722,10 @@ function renderMyPart(beforeTicket, inTicketing, waitingLand, inLanding, afterAl
         : `<div class="my-row-sub" style="margin-top:4px;color:var(--amber)">⚠ 티켓팅 마감 — 링크 등록 불가</div>`;
     el.innerHTML = `
       <div class="my-block">
-        <div class="my-row"><div style="flex:1"><div class="my-row-label">✅ 탑승 완료 — 내 링크</div>${linkSection}</div></div>
+        <div class="my-row"><div style="flex:1"><div class="my-row-label">🔗 내 링크</div>${linkSection}</div></div>
         ${inLanding
           ? `<div class="my-row" style="background:var(--green-bg)">
-               <div><div class="my-row-label">착륙 완료</div><div class="my-row-sub">모든 품앗이 완료 후 눌러주세요 · 1회만 가능</div></div>
+               <div><div class="my-row-label" style="color:var(--green)">착륙 시간이에요!</div><div class="my-row-sub">모든 품앗이 완료 후 눌러주세요 · 1회만 가능</div></div>
                <button class="btn btn-green btn-sm" id="btn-land" onclick="doLand()">착륙 ✓</button>
              </div>`
           : waitingLand
