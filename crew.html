@@ -284,7 +284,9 @@ body {
       <button class="btn btn-outline btn-sm" onclick="doLogout()">로그아웃</button>
     </div>
   </div>
-  <div id="warn-top-rooms" class="warn-top">⚠️ 경고 상태입니다. 익일 09:00까지 해제하지 않으면 잠깁니다.</div>
+  <div id="warn-top-rooms" class="warn-top"></div>
+  <!-- 우수/명예 보유 안내 -->
+  <div id="ticket-info-bar" style="display:none;padding:8px 16px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:4px"></div>
   <div class="content">
     <div id="rooms-error" class="banner banner-error"></div>
     <div id="rooms-list">
@@ -483,18 +485,38 @@ function doLogout() {
 // ── 룸 목록
 async function goRooms() {
   showPage('page-rooms');
-  const isWarned = !!(me && me.is_warned);
-  document.getElementById('warn-top-rooms').classList.toggle('show', isWarned);
-  // 경고 안내 메시지
-  const warnBanner = document.getElementById('warn-top-rooms');
-  if (isWarned) {
-    warnBanner.innerHTML = `⚠️ 경고 ${me.warning_count||1}회 보유 중 · 경고가 있으면 비행기 탑승이 불가합니다 · 만료 전까지 경고를 차감해야 합니다`;
-  }
   document.getElementById('rooms-user-badge').textContent = me ? `@${me.insta_id}` : '';
+
+  // 경고 배너
+  const warnBanner = document.getElementById('warn-top-rooms');
+  if (me && me.is_warned) {
+    warnBanner.className = 'warn-top show';
+    warnBanner.innerHTML = `⚠️ 경고 ${me.warning_count||1}회 보유 중 · 만료: ${me.warn_expires||'확인 필요'} · 경고 보유 시 탑승 불가`;
+  } else {
+    warnBanner.className = 'warn-top';
+  }
+
+  // 우수/명예 보유 안내
+  const infoBar = document.getElementById('ticket-info-bar');
+  const infos = [];
+  if (me && me.excellent_count > 0) {
+    const expDate = me.excellent_granted_at ? getExcellentExpiry(me.excellent_granted_at) : '확인 필요';
+    infos.push(`<div style="font-size:12px;color:var(--primary)">⭐ 우수 티켓 ${me.excellent_count}개 보유 · 만료: ${expDate}</div>`);
+  }
+  if (me && me.honorary_count > 0) {
+    const expDate = me.honorary_granted_at ? getHonoraryExpiry(me.honorary_granted_at) : '확인 필요';
+    infos.push(`<div style="font-size:12px;color:#7C3AED">🏅 명예 티켓 ${me.honorary_count}개 보유 · 만료: ${expDate}</div>`);
+  }
+  if (infos.length > 0) {
+    infoBar.style.display = 'flex';
+    infoBar.innerHTML = infos.join('');
+  } else {
+    infoBar.style.display = 'none';
+  }
+
   hideBanner('rooms-error');
   document.getElementById('rooms-list').innerHTML =
     '<div class="empty"><span class="spinner spinner-dark" style="width:24px;height:24px"></span></div>';
-
   try {
     const data = await api('get_rooms');
     renderRooms(data.rooms || []);
@@ -502,6 +524,28 @@ async function goRooms() {
     showBanner('rooms-error', '룸 목록을 불러오지 못했습니다');
     document.getElementById('rooms-list').innerHTML = '';
   }
+}
+
+// 우수 만료일 계산 (부여일 포함 2일)
+function getExcellentExpiry(grantedAt) {
+  try {
+    const d = new Date(String(grantedAt).substring(0,10) + 'T00:00:00+09:00');
+    d.setDate(d.getDate() + 1); // 부여일 포함 2일 = 다음날
+    d.setHours(10, 0, 0, 0);
+    return (d.getMonth()+1) + '/' + d.getDate() + ' 10:00';
+  } catch(e) { return grantedAt; }
+}
+
+// 명예 만료일 계산 (부여일 포함 7일, 일요일 22시)
+function getHonoraryExpiry(grantedAt) {
+  try {
+    const d = new Date(String(grantedAt).substring(0,10) + 'T00:00:00+09:00');
+    const day = d.getDay();
+    const toSun = day === 0 ? 0 : 7 - day;
+    d.setDate(d.getDate() + toSun);
+    d.setHours(22, 0, 0, 0);
+    return (d.getMonth()+1) + '/' + d.getDate() + ' 22:00';
+  } catch(e) { return grantedAt; }
 }
 
 function renderRooms(rooms) {
@@ -755,17 +799,28 @@ function renderMyPart(beforeTicket, inTicketing, waitingLand, inLanding, afterAl
   if (inTicketing) {
     const ec = me ? (me.excellent_count || 0) : 0;
     const hc = me ? (me.honorary_count || 0) : 0;
+
+    const ticketOptions = [
+      { type: 'normal',    label: '일반 탑승',   desc: '주 2회 카운트',         color: 'var(--primary)', always: true },
+      { type: 'staff',     label: '운영진 탑승',  desc: '주 2회 카운트 제외',     color: '#6B7280',        always: true },
+      { type: 'excellent', label: `⭐ 우수 탑승 (${ec}개)`, desc: '주 2회 카운트 제외 · 우수 1개 차감', color: 'var(--primary)', always: ec > 0 },
+      { type: 'honorary',  label: `🏅 명예 탑승 (${hc}개)`, desc: '주 2회 카운트 제외 · 명예 1개 차감', color: '#7C3AED',        always: hc > 0 },
+    ].filter(o => o.always);
+
     el.innerHTML = `
       <div class="my-block">
-        <div class="my-row" style="flex-direction:column;align-items:stretch;gap:10px;padding:14px 16px">
-          <div class="my-row-label">링크 입력 후 탑승하기</div>
-          <input class="input" id="inp-ticket-link" placeholder="https://instagram.com/p/..." style="font-size:12px" autocomplete="off">
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <button class="btn btn-grad" id="btn-ticket" onclick="doTicket('normal')" style="flex:1;min-width:100px">✈ 탑승하기</button>
-            ${ec > 0 ? `<button class="btn btn-outline btn-sm" onclick="doTicket('excellent')" style="color:var(--primary);border-color:var(--primary)">⭐ 우수(${ec})</button>` : ''}
-            ${hc > 0 ? `<button class="btn btn-outline btn-sm" onclick="doTicket('honorary')" style="color:#7C3AED;border-color:#7C3AED">🏅 명예(${hc})</button>` : ''}
+        <div style="padding:12px 16px;border-bottom:1px solid var(--border)">
+          <div class="my-row-label" style="margin-bottom:10px">탑승 유형 선택</div>
+          <input class="input" id="inp-ticket-link" placeholder="https://instagram.com/p/..." style="font-size:12px;margin-bottom:10px" autocomplete="off">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            ${ticketOptions.map(o => `
+              <button class="btn btn-outline" style="justify-content:flex-start;gap:10px;padding:10px 14px;border-color:${o.color};color:${o.color}"
+                onclick="doTicket('${o.type}')">
+                <span style="font-weight:700">${o.label}</span>
+                <span style="font-size:11px;opacity:0.7;font-weight:400">${o.desc}</span>
+              </button>`).join('')}
           </div>
-          <div class="my-row-sub">링크 등록 후 탑승 · 취소 불가 · 우수/명예는 주 2회 카운트 제외</div>
+          <div class="my-row-sub" style="margin-top:8px">링크 입력 후 탑승 유형 선택 · 취소 불가</div>
         </div>
       </div>`;
     return;
@@ -825,7 +880,7 @@ async function doTicket(ticket_type = 'normal') {
       post_url,
     });
 
-    // 우수/명예 세션 업데이트
+    // 우수/명예/운영진 세션 업데이트
     if (ticket_type === 'excellent') { me.excellent_count = Math.max(0, (me.excellent_count||0) - 1); saveSession(me); }
     if (ticket_type === 'honorary')  { me.honorary_count  = Math.max(0, (me.honorary_count||0)  - 1); saveSession(me); }
 
