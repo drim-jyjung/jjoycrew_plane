@@ -39,9 +39,11 @@ body {
   position: relative;
 }
 
+/* 페이지 전환 */
 .page { display: none; min-height: 100vh; flex-direction: column; overflow-y: auto; overflow-x: hidden; }
 .page.active { display: flex; }
 
+/* 탑바 */
 .topbar {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
@@ -57,6 +59,7 @@ body {
 .topbar-right { display: flex; align-items: center; gap: 8px; }
 .topbar-user { font-size: 13px; font-weight: 600; color: var(--text2); }
 
+/* 버튼 */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   font-family: inherit; font-size: 14px; font-weight: 600;
@@ -74,6 +77,7 @@ body {
 .btn-sm { padding: 6px 14px; font-size: 12px; width: auto; border-radius: 6px; }
 .btn-xs { padding: 4px 10px; font-size: 11px; width: auto; border-radius: 5px; font-weight: 700; }
 
+/* 입력 */
 .field { margin-bottom: 14px; }
 .field:last-child { margin-bottom: 0; }
 .field-label { font-size: 12px; font-weight: 700; color: var(--text2); margin-bottom: 5px; display: block; }
@@ -85,9 +89,10 @@ body {
   background: var(--surface); color: var(--text);
   outline: none; transition: border-color .15s;
 }
-.input:focus { border-color: var(--primary); }
+.input:focus { border-color: var(--text2); }
 .input::placeholder { color: var(--text3); }
 
+/* 배지 */
 .badge {
   display: inline-flex; align-items: center;
   font-size: 11px; font-weight: 700;
@@ -99,29 +104,34 @@ body {
 .badge-blue   { background: #EFF9FF; color: var(--primary); }
 .badge-gray   { background: #F5F5F5; color: var(--text2); }
 
+/* 태그 */
 .tag {
   display: inline-flex; font-size: 11px; font-weight: 600;
   padding: 3px 8px; border-radius: 20px;
   background: #F0F0F0; color: var(--text2); margin: 2px;
 }
 
+/* 배너 */
 .banner { padding: 12px 14px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 14px; display: none; }
 .banner.show { display: block; }
 .banner-warn  { background: var(--amber-bg); color: var(--amber); border: 1px solid #FFD580; }
 .banner-error { background: var(--red-bg);   color: var(--red);   border: 1px solid #F7C5CA; }
 .banner-ok    { background: var(--green-bg); color: var(--green); border: 1px solid #A3E4C9; }
 
+/* 스피너 */
 .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; display: inline-block; }
 .spinner-dark { border-color: var(--border); border-top-color: var(--primary); }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* 카드 */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 12px; }
 .card-body { padding: 16px; }
 
+/* 룸 카드 */
 .room-card {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 16px;
-  margin-bottom: 10px;
+  margin-bottom: 10px; cursor: pointer;
   transition: all .15s;
   position: relative; overflow: hidden;
 }
@@ -129,11 +139,11 @@ body {
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
   background: var(--grad2);
 }
-.room-card.clickable { cursor: pointer; }
-.room-card.clickable:active { transform: scale(0.98); background: var(--bg); }
+.room-card:active { transform: scale(0.98); background: var(--bg); }
 .room-card-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
 .room-card-meta { font-size: 12px; color: var(--text2); margin-bottom: 8px; }
 
+/* 참여자 목록 */
 .p-list { max-height: 260px; overflow-y: auto; }
 .p-list::-webkit-scrollbar { width: 3px; }
 .p-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
@@ -149,6 +159,7 @@ body {
 .p-name { font-size: 13px; font-weight: 600; }
 .p-insta { font-size: 11px; color: var(--text3); }
 
+/* 내 참여 섹션 */
 .my-section { border-top: 1px solid var(--border); padding: 16px; background: var(--surface); }
 .my-label { font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 10px; }
 .my-block { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 8px; }
@@ -159,14 +170,17 @@ body {
 .my-row-sub { font-size: 11px; color: var(--text3); }
 .link-box { font-size: 12px; color: var(--primary); word-break: break-all; padding: 8px 10px; background: #EFF9FF; border-radius: 6px; margin-top: 6px; }
 
+/* 빈 상태 */
 .empty { text-align: center; padding: 48px 20px; color: var(--text3); font-size: 13px; }
 
+/* 경고 탑배너 */
 .warn-top { background: var(--amber-bg); border-bottom: 1px solid #FFD580; padding: 10px 16px; font-size: 12px; color: var(--amber); font-weight: 600; display: none; }
 .warn-top.show { display: block; }
 
+/* 콘텐츠 */
 .content { flex: 1; padding: 16px; overflow-y: auto; }
 
-/* 로그인 */
+/* ── 로그인 화면 ── */
 .login-wrap {
   flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
@@ -192,6 +206,7 @@ body {
 .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; width: 100%; max-width: 360px; }
 .login-note { font-size: 12px; color: var(--text3); text-align: center; margin-top: 14px; }
 
+/* 구름 배경 효과 */
 .clouds { position: fixed; top: 0; left: 0; right: 0; height: 100vh; pointer-events: none; z-index: 0; overflow: hidden; }
 .cloud {
   position: absolute; font-size: 40px; opacity: 0.08;
@@ -206,6 +221,7 @@ body {
   to   { transform: translateX(calc(100vw + 100px)); }
 }
 
+/* 비행기 날기 효과 (로그인 성공 시) */
 .fly-plane {
   position: fixed; top: 30%; left: -80px; font-size: 40px; z-index: 999;
   animation: flyAcross 1.2s ease-in-out forwards;
@@ -222,6 +238,7 @@ body {
 </head>
 <body>
 
+<!-- 구름 배경 -->
 <div class="clouds">
   <div class="cloud">☁️</div>
   <div class="cloud">☁️</div>
@@ -229,6 +246,7 @@ body {
   <div class="cloud">☁️</div>
 </div>
 
+<!-- 비행기 날기 효과 -->
 <div class="fly-plane" id="fly-plane">✈️</div>
 
 <!-- ══ 로그인 ══ -->
@@ -241,8 +259,8 @@ body {
     </div>
 
     <div class="login-card">
-      <div id="login-warn" class="banner banner-warn" style="display:none">⚠️ 경고 상태입니다. 익일 09:00까지 해제하지 않으면 잠깁니다.</div>
-      <div id="login-error" class="banner banner-error" style="display:none"></div>
+      <div id="login-warn" class="banner banner-warn">⚠️ 경고 상태입니다. 익일 09:00까지 해제하지 않으면 잠깁니다.</div>
+      <div id="login-error" class="banner banner-error"></div>
       <div class="field">
         <label class="field-label">닉네임</label>
         <input class="input" id="inp-nickname" placeholder="닉네임 입력" autocomplete="off">
@@ -266,7 +284,7 @@ body {
       <button class="btn btn-outline btn-sm" onclick="doLogout()">로그아웃</button>
     </div>
   </div>
-  <div id="warn-top-rooms" class="warn-top">⚠️ 경고 상태입니다.</div>
+  <div id="warn-top-rooms" class="warn-top">⚠️ 경고 상태입니다. 익일 09:00까지 해제하지 않으면 잠깁니다.</div>
   <div class="content">
     <div id="rooms-error" class="banner banner-error"></div>
     <div id="rooms-list">
@@ -282,23 +300,28 @@ body {
     <div id="ticket-title" style="font-size:15px;font-weight:700"></div>
     <span id="ticket-badge" class="badge"></span>
   </div>
-  <div id="warn-top-ticket" class="warn-top">⚠️ 경고 상태입니다.</div>
+  <div id="warn-top-ticket" class="warn-top">⚠️ 경고 상태입니다. 익일 09:00까지 해제하지 않으면 잠깁니다.</div>
 
   <div style="padding:0">
+    <!-- 룸 정보 -->
     <div style="padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border)">
       <div id="ticket-time" style="font-size:12px;color:var(--text2);margin-bottom:6px"></div>
-      <div id="ticket-items"></div>
+      <div id="ticket-items" style="margin-bottom:8px"></div>
+      <div id="ticket-memo" style="font-size:12px;color:var(--text2);white-space:pre-line;background:var(--bg);border-radius:8px;padding:10px 12px;display:none;line-height:1.7"></div>
     </div>
 
+    <!-- 참여자 목록 헤더 -->
     <div style="padding:9px 16px;display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-bottom:1px solid var(--border)">
       <span id="p-count" style="font-size:12px;font-weight:700;color:var(--text2)">참여자 목록</span>
       <button class="btn btn-outline btn-sm" onclick="copyAll()">전체 복사</button>
     </div>
 
+    <!-- 참여자 목록 -->
     <div class="p-list" id="p-list" style="background:var(--surface)">
       <div class="empty" style="padding:20px"><span class="spinner spinner-dark" style="width:20px;height:20px"></span></div>
     </div>
 
+    <!-- 내 참여 -->
     <div class="my-section">
       <div class="my-label">내 참여</div>
       <div id="my-part"></div>
@@ -314,25 +337,39 @@ let me = null;
 let currentRoom = null;
 let participants = [];
 
+// ── 세션 저장/복원
 function saveSession(member) {
-  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(member)); } catch(e) {}
+  try {
+    // member_id 반드시 포함 확인
+    if (!member || !member.member_id) {
+      console.error('saveSession: member_id 없음', member);
+      return;
+    }
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(member));
+  } catch(e) { console.error('saveSession error:', e); }
 }
 function loadSession() {
-  try { return JSON.parse(sessionStorage.getItem(SESSION_KEY)); } catch(e) { return null; }
+  try {
+    const s = JSON.parse(sessionStorage.getItem(SESSION_KEY));
+    if (!s || !s.member_id) return null; // member_id 없으면 무효
+    return s;
+  } catch(e) { return null; }
 }
 function clearSession() {
-  try { sessionStorage.removeItem(SESSION_KEY); } catch(e) {}
+  try {
+    sessionStorage.removeItem(SESSION_KEY);
+    sessionStorage.clear(); // 완전 초기화
+  } catch(e) {}
 }
 
+// 페이지 로드 시 세션 복원
 window.addEventListener('load', () => {
-  // 키 이벤트 등록
-  document.getElementById('inp-nickname').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-  document.getElementById('inp-insta').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-
   const saved = loadSession();
-  if (saved) {
+  if (saved && saved.member_id) {
     me = saved;
     goRooms();
+  } else {
+    clearSession(); // 불완전한 세션 제거
   }
 });
 
@@ -354,14 +391,25 @@ function showBanner(id, msg, type = 'error') {
   const el = document.getElementById(id);
   if (!el) return;
   el.className = `banner banner-${type} show`;
-  el.style.display = 'block';
   el.textContent = msg;
 }
 function hideBanner(id) {
   const el = document.getElementById(id);
-  if (el) { el.classList.remove('show'); el.style.display = 'none'; }
+  if (el) el.classList.remove('show');
 }
 function letter(n) { return n ? n.charAt(0) : '?'; }
+// "yyyy-MM-dd HH:mm" → KST Date 객체 (파싱 정확히)
+function parseKST(str) {
+  if (!str) return new Date(0);
+  var s = String(str).trim();
+  // "yyyy-MM-dd HH:mm" 형태
+  var m = s.match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/);
+  if (m) return new Date(m[1]+'-'+m[2]+'-'+m[3]+'T'+m[4]+':'+m[5]+':00+09:00');
+  // fallback
+  return new Date(s);
+}
+
+// "yyyy-MM-dd HH:mm" → "M/D HH:mm" 표시용
 function fmt(s) {
   if (!s || s === '-') return '-';
   var str = String(s);
@@ -373,18 +421,18 @@ function fmt(s) {
   } catch(e) { return str.substring(0, 16); }
 }
 
+// 비행기 날기 효과
 function flyEffect() {
   const el = document.getElementById('fly-plane');
   el.style.display = 'block';
   setTimeout(() => { el.style.display = 'none'; }, 1300);
 }
 
-// ── 로그인 (수정: 버튼 텍스트 복원 개선)
+// ── 로그인
 async function doLogin() {
-  const nickname = (document.getElementById('inp-nickname').value || '').trim();
-  const insta_id = (document.getElementById('inp-insta').value || '').trim();
-  hideBanner('login-error');
-  hideBanner('login-warn');
+  const nickname = document.getElementById('inp-nickname').value.trim();
+  const insta_id = document.getElementById('inp-insta').value.trim();
+  hideBanner('login-error'); hideBanner('login-warn');
 
   if (!nickname || !insta_id) {
     showBanner('login-error', '닉네임과 인스타 아이디를 모두 입력해 주세요');
@@ -398,12 +446,18 @@ async function doLogin() {
   try {
     const data = await api('login', { nickname, insta_id });
     if (!data.ok) {
-      showBanner('login-error', data.error === 'locked' ? '🔒 ' + (data.message || '잠금 상태입니다') : (data.error || '등록되지 않은 계정입니다'));
+      showBanner('login-error', data.error === 'locked' ? '🔒 ' + data.message : data.error || '등록되지 않은 계정입니다');
       return;
     }
+    // 이전 세션 완전 초기화 후 새 세션 저장
+    clearSession();
     me = data.member;
+    if (!me.member_id) {
+      showBanner('login-error', '계정 정보 오류. 관리자에게 문의하세요.');
+      return;
+    }
     saveSession(me);
-    if (me.is_warned) showBanner('login-warn', '⚠️ 경고 상태입니다. 익일 09:00까지 해제하지 않으면 잠깁니다.', 'warn');
+    if (me.is_warned) document.getElementById('login-warn').classList.add('show');
     flyEffect();
     setTimeout(() => goRooms(), 400);
   } catch(e) {
@@ -420,11 +474,22 @@ function doLogout() {
   showPage('page-login');
 }
 
+['inp-nickname', 'inp-insta'].forEach(id =>
+  document.getElementById(id).addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  })
+);
+
 // ── 룸 목록
 async function goRooms() {
   showPage('page-rooms');
-  const warnTop = document.getElementById('warn-top-rooms');
-  if (me && me.is_warned) warnTop.classList.add('show'); else warnTop.classList.remove('show');
+  const isWarned = !!(me && me.is_warned);
+  document.getElementById('warn-top-rooms').classList.toggle('show', isWarned);
+  // 경고 안내 메시지
+  const warnBanner = document.getElementById('warn-top-rooms');
+  if (isWarned) {
+    warnBanner.innerHTML = `⚠️ 경고 ${me.warning_count||1}회 보유 중 · 경고가 있으면 비행기 탑승이 불가합니다 · 만료 전까지 경고를 차감해야 합니다`;
+  }
   document.getElementById('rooms-user-badge').textContent = me ? `@${me.insta_id}` : '';
   hideBanner('rooms-error');
   document.getElementById('rooms-list').innerHTML =
@@ -441,24 +506,24 @@ async function goRooms() {
 
 function renderRooms(rooms) {
   const el = document.getElementById('rooms-list');
+  const isWarned = !!(me && me.is_warned);
+
   if (!rooms.length) {
-    el.innerHTML = `<div class="empty fade-up"><div style="font-size:40px;margin-bottom:12px">✈️</div>오늘 개설된 룸이 없습니다<br><span style="font-size:12px;margin-top:6px;display:block">잠시 후 다시 확인해 주세요</span></div>`;
+    el.innerHTML = `<div class="empty fade-up"><div style="font-size:40px;margin-bottom:12px">✈️</div>오늘 개설된 비행기가 없습니다<br><span style="font-size:12px;margin-top:6px;display:block">잠시 후 다시 확인해 주세요</span></div>`;
     return;
   }
   const now = new Date();
   el.innerHTML = rooms.map(r => {
-    let ts, te, ls, le;
-    try {
-      ts = new Date((r.ticket_start||'').replace(' ','T') + ':00');
-      te = new Date((r.ticket_end||'').replace(' ','T') + ':00');
-      ls = new Date((r.land_start||'').replace(' ','T') + ':00');
-      le = new Date((r.land_end||'').replace(' ','T') + ':00');
-    } catch(e) { ts = te = ls = le = new Date(0); }
+    const ts = parseKST(r.ticket_start);
+    const te = parseKST(r.ticket_end);
+    const ls = parseKST(r.land_start);
+    const le = parseKST(r.land_end);
 
     const beforeTicket = now < ts;
     const inTicketing  = now >= ts && now < te;
     const waitingLand  = now >= te && now < ls;
     const inLanding    = now >= ls && now < le;
+    const afterAll     = now >= le;
 
     let badge, canEnter;
     if      (beforeTicket) { badge = '<span class="badge badge-gray">입장 대기 ⏳</span>';  canEnter = false; }
@@ -467,12 +532,16 @@ function renderRooms(rooms) {
     else if (inLanding)    { badge = '<span class="badge badge-blue">🛬 착륙 중</span>';    canEnter = true; }
     else                   { badge = '<span class="badge badge-red">🔒 착륙 마감</span>';   canEnter = false; }
 
+    // 경고 있으면 탑승 불가 (착륙 중인 사람은 착륙 버튼 위해 입장 가능)
+    if (isWarned && canEnter) canEnter = false;
+
     const tags = (r.items || '').split(',').map(t => `<span class="tag">${t.trim()}</span>`).join('');
     const clickFn = canEnter ? `onclick="goTicket('${r.room_id}')"` : '';
-    const disabledStyle = !canEnter ? 'opacity:0.6;cursor:not-allowed;' : '';
+    const disabledStyle = !canEnter && !isWarned ? 'opacity:0.6;cursor:not-allowed;' : '';
+    const warnedStyle = isWarned ? 'opacity:0.7;cursor:not-allowed;' : '';
 
     return `
-      <div class="room-card${canEnter ? ' clickable' : ''}" ${clickFn} style="${disabledStyle}">
+      <div class="room-card" ${clickFn} style="${disabledStyle}${warnedStyle}">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
           <div class="room-card-title">${String(r.room_date).substring(0,10)} #${r.room_number}</div>
           ${badge}
@@ -484,15 +553,25 @@ function renderRooms(rooms) {
         </div>
         <div>${tags}</div>
         ${beforeTicket ? `<div style="font-size:11px;color:var(--text3);margin-top:6px">⏳ ${r.ticket_start_fmt||fmt(r.ticket_start)} 부터 입장 가능</div>` : ''}
+        ${isWarned ? `<div style="font-size:11px;color:var(--red);margin-top:6px;font-weight:600">🚫 경고 보유 중 — 탑승 불가</div>` : ''}
       </div>`;
   }).join('');
 }
 
 // ── 티켓 화면
 async function goTicket(roomId) {
+  // 세션 재확인
+  if (!me) me = loadSession();
+  if (!me || !me.member_id) {
+    // 세션 만료 - 로그인 페이지로
+    alert('세션이 만료되었습니다. 다시 로그인해 주세요.');
+    clearSession();
+    me = null; currentRoom = null; participants = [];
+    showPage('page-login');
+    return;
+  }
   showPage('page-ticket');
-  const warnTop = document.getElementById('warn-top-ticket');
-  if (me && me.is_warned) warnTop.classList.add('show'); else warnTop.classList.remove('show');
+  document.getElementById('warn-top-ticket').classList.toggle('show', !!(me && me.is_warned));
   document.getElementById('ticket-title').textContent = '';
   document.getElementById('ticket-items').innerHTML = '';
   document.getElementById('p-list').innerHTML =
@@ -510,10 +589,10 @@ async function goTicket(roomId) {
       `${String(currentRoom.room_date).substring(0,10)} #${currentRoom.room_number}`;
 
     const now = new Date();
-    const ticketStart = new Date((currentRoom.ticket_start||'').replace(' ','T') + ':00');
-    const ticketEnd   = new Date((currentRoom.ticket_end||'').replace(' ','T') + ':00');
-    const landStart   = new Date((currentRoom.land_start||'').replace(' ','T') + ':00');
-    const landEnd     = new Date((currentRoom.land_end||'').replace(' ','T') + ':00');
+    const ticketStart = parseKST(currentRoom.ticket_start);
+    const ticketEnd   = parseKST(currentRoom.ticket_end);
+    const landStart   = parseKST(currentRoom.land_start);
+    const landEnd     = parseKST(currentRoom.land_end);
 
     const beforeTicket = now < ticketStart;
     const inTicketing  = now >= ticketStart && now < ticketEnd;
@@ -534,6 +613,15 @@ async function goTicket(roomId) {
 
     document.getElementById('ticket-items').innerHTML =
       (currentRoom.items || '').split(',').map(t => `<span class="tag">${t.trim()}</span>`).join('');
+
+    // 메모 표시
+    const memoEl = document.getElementById('ticket-memo');
+    if (currentRoom.memo) {
+      memoEl.textContent = currentRoom.memo;
+      memoEl.style.display = 'block';
+    } else {
+      memoEl.style.display = 'none';
+    }
 
     document.getElementById('p-count').textContent = `참여자 목록 (${participants.length}명)`;
 
@@ -558,15 +646,24 @@ function renderParticipants(list) {
     const isMe = me && p.nickname === me.nickname;
     const sb = p.status === 'landed'
       ? '<span class="badge badge-green" style="font-size:10px">착륙 ✓</span>'
-      : '<span class="badge badge-blue" style="font-size:10px">티켓팅</span>';
+      : '<span class="badge badge-blue" style="font-size:10px">탑승</span>';
+    const ttBadge = p.ticket_type === 'excellent'
+      ? '<span class="badge" style="font-size:9px;background:#EFF9FF;color:var(--primary)">⭐우수</span>'
+      : p.ticket_type === 'honorary'
+        ? '<span class="badge" style="font-size:9px;background:#F5F3FF;color:#7C3AED">🏅명예</span>' : '';
     return `
-      <div class="p-row" style="${isMe ? 'background:#FFF9F0' : ''}">
+      <div class="p-row" style="${isMe ? 'background:#F0F7FF' : ''}">
         <div class="avatar" style="background:linear-gradient(135deg,${c1},${c2})">${letter(p.nickname)}</div>
-        <div class="p-info">
-          <div class="p-name">${p.nickname}${isMe ? ' <span style="font-size:10px;color:var(--primary)">(나)</span>' : ''}</div>
+        <div class="p-info" style="flex:1;margin-left:10px;min-width:0">
+          <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
+            <span class="p-name">${p.nickname}${isMe ? ' <span style="font-size:10px;color:var(--primary)">(나)</span>' : ''}</span>
+            ${sb}${ttBadge}
+          </div>
           <div class="p-insta">@${p.insta_id}</div>
+          ${p.post_url
+            ? `<div style="margin-top:3px"><a href="${p.post_url}" target="_blank" style="font-size:11px;color:var(--primary);word-break:break-all;line-height:1.4">${p.post_url}</a></div>`
+            : `<div style="font-size:11px;color:var(--text3);margin-top:2px">링크 미등록</div>`}
         </div>
-        ${sb}
       </div>`;
   }).join('');
 }
@@ -578,6 +675,7 @@ function renderMyPart(beforeTicket, inTicketing, waitingLand, inLanding, afterAl
   const myPart = participants.find(p => p.nickname === me.nickname && p.member_id === me.member_id)
     || participants.find(p => p.nickname === me.nickname);
 
+  // ── 착륙 완료
   if (myPart && myPart.status === 'landed') {
     el.innerHTML = `
       <div class="my-block">
@@ -594,6 +692,7 @@ function renderMyPart(beforeTicket, inTicketing, waitingLand, inLanding, afterAl
     return;
   }
 
+  // ── 착륙 마감 후
   if (afterAll) {
     el.innerHTML = `
       <div class="my-block">
@@ -606,23 +705,24 @@ function renderMyPart(beforeTicket, inTicketing, waitingLand, inLanding, afterAl
     return;
   }
 
+  // ── 티켓팅 완료 상태
   if (myPart && myPart.status === 'ticketed') {
-    const linkSection = myPart.post_url
+    const hasLink = !!myPart.post_url;
+    const linkSection = hasLink
       ? `<div class="link-box">${myPart.post_url}</div>
-         ${inTicketing ? `<div style="margin-top:8px;display:flex;gap:6px;align-items:center">
+         ${inTicketing ? `<div style="margin-top:8px;display:flex;gap:6px">
            <input class="input" id="inp-link-edit" placeholder="새 링크로 수정..." style="flex:1;font-size:12px;padding:8px 10px" value="${myPart.post_url}">
            <button class="btn btn-outline btn-sm" id="btn-link-edit" onclick="doUpdateLink()">수정</button>
-         </div><div class="my-row-sub" style="margin-top:4px">티켓팅 시간 내에만 수정 가능</div>` : ''}`
+           </div><div class="my-row-sub" style="margin-top:4px">티켓팅 시간 내에만 수정 가능</div>` : ''}`
       : inTicketing
-        ? `<div style="margin-top:8px;display:flex;gap:6px;align-items:center">
+        ? `<div style="margin-top:8px;display:flex;gap:6px">
              <input class="input" id="inp-link" placeholder="https://instagram.com/p/..." style="flex:1;font-size:12px;padding:8px 10px">
              <button class="btn btn-primary btn-sm" id="btn-link" onclick="doRegisterLink()">등록</button>
-           </div><div class="my-row-sub" style="margin-top:4px">룸당 1개 · 티켓팅 시간 내 수정 가능</div>`
-        : `<div class="my-row-sub" style="margin-top:4px;color:var(--amber)">⚠ 티켓팅 종료 — 링크 등록/수정 불가</div>`;
-
+           </div><div class="my-row-sub" style="margin-top:4px">링크 등록 후 수정 가능</div>`
+        : `<div class="my-row-sub" style="margin-top:4px;color:var(--amber)">⚠ 티켓팅 마감 — 링크 등록 불가</div>`;
     el.innerHTML = `
       <div class="my-block">
-        <div class="my-row"><div style="flex:1"><div class="my-row-label">내 링크</div>${linkSection}</div></div>
+        <div class="my-row"><div style="flex:1"><div class="my-row-label">✅ 탑승 완료 — 내 링크</div>${linkSection}</div></div>
         ${inLanding
           ? `<div class="my-row" style="background:var(--green-bg)">
                <div><div class="my-row-label">착륙 완료</div><div class="my-row-sub">모든 품앗이 완료 후 눌러주세요 · 1회만 가능</div></div>
@@ -630,14 +730,16 @@ function renderMyPart(beforeTicket, inTicketing, waitingLand, inLanding, afterAl
              </div>`
           : waitingLand
             ? `<div class="my-row" style="background:#FFFBEB">
-                 <div class="my-row-label" style="color:var(--amber)">⏳ 착륙 시간 대기 중</div>
-                 <div class="my-row-sub">착륙 시작: ${currentRoom.land_start_fmt||fmt(currentRoom.land_start)}</div>
+                 <div><div class="my-row-label" style="color:var(--amber)">⏳ 착륙 대기 중</div>
+                 <div class="my-row-sub">착륙 시작: ${currentRoom.land_start_fmt||fmt(currentRoom.land_start)}</div></div>
                </div>`
             : `<div class="my-row"><div class="my-row-sub">착륙 시간이 되면 착륙 버튼이 나타납니다</div></div>`}
       </div>`;
     return;
   }
 
+
+  // ── 미참여 — 티켓팅 시작 전
   if (beforeTicket) {
     el.innerHTML = `
       <div class="my-block">
@@ -649,17 +751,27 @@ function renderMyPart(beforeTicket, inTicketing, waitingLand, inLanding, afterAl
     return;
   }
 
+  // ── 미참여 — 티켓팅 중
   if (inTicketing) {
+    const ec = me ? (me.excellent_count || 0) : 0;
+    const hc = me ? (me.honorary_count || 0) : 0;
     el.innerHTML = `
       <div class="my-block">
-        <div class="my-row">
-          <div><div class="my-row-label">티켓팅 참여</div><div class="my-row-sub">참여하면 취소 불가</div></div>
-          <button class="btn btn-grad btn-sm" id="btn-ticket" onclick="doTicket()" style="min-width:80px">참여하기</button>
+        <div class="my-row" style="flex-direction:column;align-items:stretch;gap:10px;padding:14px 16px">
+          <div class="my-row-label">링크 입력 후 탑승하기</div>
+          <input class="input" id="inp-ticket-link" placeholder="https://instagram.com/p/..." style="font-size:12px" autocomplete="off">
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-grad" id="btn-ticket" onclick="doTicket('normal')" style="flex:1;min-width:100px">✈ 탑승하기</button>
+            ${ec > 0 ? `<button class="btn btn-outline btn-sm" onclick="doTicket('excellent')" style="color:var(--primary);border-color:var(--primary)">⭐ 우수(${ec})</button>` : ''}
+            ${hc > 0 ? `<button class="btn btn-outline btn-sm" onclick="doTicket('honorary')" style="color:#7C3AED;border-color:#7C3AED">🏅 명예(${hc})</button>` : ''}
+          </div>
+          <div class="my-row-sub">링크 등록 후 탑승 · 취소 불가 · 우수/명예는 주 2회 카운트 제외</div>
         </div>
       </div>`;
     return;
   }
 
+  // ── 미참여 — 티켓팅 마감 이후 (착륙 대기 or 착륙 중)
   el.innerHTML = `
     <div class="my-block">
       <div class="my-row" style="background:#F5F5F5">
@@ -668,62 +780,121 @@ function renderMyPart(beforeTicket, inTicketing, waitingLand, inLanding, afterAl
     </div>`;
 }
 
-async function doTicket() {
-  if (!me || !currentRoom) return;
-  if (!me.member_id) { alert('로그인 정보가 없습니다. 다시 로그인해 주세요.'); doLogout(); return; }
-  const btn = document.getElementById('btn-ticket');
-  if (btn) { btn.disabled = true; btn.textContent = '처리 중...'; }
+// ── 티켓팅 (링크 입력 포함)
+async function doTicket(ticket_type = 'normal') {
+  // 세션 재확인
+  if (!me) me = loadSession();
+  if (!me || !me.member_id) {
+    alert('세션이 만료되었습니다. 다시 로그인해 주세요.');
+    clearSession(); me = null;
+    showPage('page-login'); return;
+  }
+
+  if (!currentRoom) return;
+
+  const linkInput = document.getElementById('inp-ticket-link');
+  const post_url = linkInput ? linkInput.value.trim() : '';
+  if (!post_url || !post_url.startsWith('http')) {
+    alert('인스타그램 링크를 먼저 입력해 주세요');
+    if (linkInput) linkInput.focus();
+    return;
+  }
+
+  const btns = ['btn-ticket'];
+  btns.forEach(id => { const b = document.getElementById(id); if(b){b.disabled=true;b.textContent='처리 중...';} });
+
   try {
-    const data = await api('ticket', {
+    // 1. 티켓팅
+    const ticketData = await api('ticket', {
       room_id: currentRoom.room_id,
-      member_id: me.member_id,
+      member_id: String(me.member_id),
       nickname: me.nickname,
       insta_id: me.insta_id,
+      ticket_type,
     });
-    if (!data.ok) { alert(data.error || '티켓팅 실패'); if (btn) { btn.disabled = false; btn.innerHTML = '참여하기'; } return; }
+    if (!ticketData.ok) {
+      alert(ticketData.error || '탑승 실패');
+      btns.forEach(id => { const b = document.getElementById(id); if(b){b.disabled=false;b.textContent='✈ 탑승하기';} });
+      return;
+    }
+
+    // 2. 링크 등록
+    await api('register_link', {
+      room_id: currentRoom.room_id,
+      member_id: String(me.member_id),
+      post_url,
+    });
+
+    // 우수/명예 세션 업데이트
+    if (ticket_type === 'excellent') { me.excellent_count = Math.max(0, (me.excellent_count||0) - 1); saveSession(me); }
+    if (ticket_type === 'honorary')  { me.honorary_count  = Math.max(0, (me.honorary_count||0)  - 1); saveSession(me); }
+
     flyEffect();
     await goTicket(currentRoom.room_id);
   } catch(e) {
-    alert('서버 오류');
-    if (btn) { btn.disabled = false; btn.innerHTML = '참여하기'; }
+    console.error('doTicket error:', e);
+    alert('서버 오류가 발생했습니다');
+    btns.forEach(id => { const b = document.getElementById(id); if(b){b.disabled=false;b.textContent='✈ 탑승하기';} });
   }
 }
 
+// ── 링크 등록
 async function doRegisterLink() {
   const url = (document.getElementById('inp-link')?.value || '').trim();
   if (!url || !url.startsWith('http')) { alert('올바른 URL을 입력해 주세요'); return; }
   const btn = document.getElementById('btn-link');
   if (btn) { btn.disabled = true; btn.textContent = '등록 중...'; }
   try {
-    const data = await api('register_link', { room_id: currentRoom.room_id, member_id: me.member_id, post_url: url });
+    const data = await api('register_link', {
+      room_id: currentRoom.room_id,
+      member_id: me.member_id,
+      post_url: url,
+    });
     if (!data.ok) { alert(data.error || '링크 등록 실패'); if (btn) { btn.disabled = false; btn.textContent = '등록'; } return; }
     await goTicket(currentRoom.room_id);
-  } catch(e) { alert('서버 오류'); if (btn) { btn.disabled = false; btn.textContent = '등록'; } }
+  } catch(e) {
+    alert('서버 오류');
+    if (btn) { btn.disabled = false; btn.textContent = '등록'; }
+  }
 }
 
+// ── 링크 수정
 async function doUpdateLink() {
   const url = (document.getElementById('inp-link-edit')?.value || '').trim();
   if (!url || !url.startsWith('http')) { alert('올바른 URL을 입력해 주세요'); return; }
   const btn = document.getElementById('btn-link-edit');
   if (btn) { btn.disabled = true; btn.textContent = '수정 중...'; }
   try {
-    const data = await api('update_link', { room_id: currentRoom.room_id, member_id: me.member_id, post_url: url });
+    const data = await api('update_link', {
+      room_id: currentRoom.room_id,
+      member_id: me.member_id,
+      post_url: url,
+    });
     if (!data.ok) { alert(data.error || '링크 수정 실패'); if (btn) { btn.disabled = false; btn.textContent = '수정'; } return; }
     await goTicket(currentRoom.room_id);
-  } catch(e) { alert('서버 오류'); if (btn) { btn.disabled = false; btn.textContent = '수정'; } }
+  } catch(e) {
+    alert('서버 오류');
+    if (btn) { btn.disabled = false; btn.textContent = '수정'; }
+  }
 }
-
 async function doLand() {
   if (!confirm('착륙 완료 처리하시겠습니까? 1회만 가능합니다.')) return;
   const btn = document.getElementById('btn-land');
   if (btn) { btn.disabled = true; btn.textContent = '처리 중...'; }
   try {
-    const data = await api('land', { room_id: currentRoom.room_id, member_id: me.member_id });
+    const data = await api('land', {
+      room_id: currentRoom.room_id,
+      member_id: me.member_id,
+    });
     if (!data.ok) { alert(data.error || '착륙 실패'); if (btn) { btn.disabled = false; btn.textContent = '착륙 ✓'; } return; }
     await goTicket(currentRoom.room_id);
-  } catch(e) { alert('서버 오류'); if (btn) { btn.disabled = false; btn.textContent = '착륙 ✓'; } }
+  } catch(e) {
+    alert('서버 오류');
+    if (btn) { btn.disabled = false; btn.textContent = '착륙 ✓'; }
+  }
 }
 
+// ── 전체 복사
 function copyAll() {
   if (!participants.length) { alert('참여자가 없습니다'); return; }
   const text = participants.map(p => `${p.nickname} @${p.insta_id}${p.post_url ? ' ' + p.post_url : ''}`).join('\n');
@@ -737,6 +908,7 @@ function copyAll() {
       alert(`${participants.length}명 복사 완료!`);
     });
 }
+
 </script>
 </body>
 </html>
