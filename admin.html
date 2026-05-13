@@ -498,12 +498,18 @@ function renderM(members){
   });
   el.innerHTML='<table class="tbl"><thead><tr><th>#</th><th>닉네임</th><th>아이디</th><th>상태</th><th>경고</th><th>우수⭐</th><th>명예🏅</th><th>마지막 로그인</th><th></th></tr></thead><tbody>'+rows.join('')+'</tbody></table>';
 }
-function chgWBtn(b){chgW(b.dataset.mid,Number(b.dataset.wc),Number(b.dataset.d));}
+function chgWBtn(b){
+  const mid=b.dataset.mid;
+  const m=am.find(x=>x.member_id===mid);
+  const cur=m?Number(m.warning_count)||0:Number(b.dataset.wc)||0;
+  chgW(mid,cur,Number(b.dataset.d));
+}
 function chgGBtn(b){chgG(b.dataset.mid,b.dataset.ga);}
 function chgEBtn(b){chgE(b.dataset.mid,Number(b.dataset.d));}
 function chgHBtn(b){chgH(b.dataset.mid,Number(b.dataset.d));}
 
 async function chgW(mid,cur,delta){
+  if(!mid||mid==='undefined'){showBnr('merr','멤버 ID를 찾을 수 없습니다. 목록을 새로고침 해주세요.');loadM();return;}
   if(delta>0&&!confirm('경고를 '+(cur)+'→'+(cur+1)+'로 변경?'))return;
   if(delta<0&&cur<=0){alert('경고 횟수가 이미 0입니다');return;}
   if(delta<0&&!confirm('경고를 '+(cur)+'→'+(cur-1)+'로 변경?'))return;
@@ -512,7 +518,6 @@ async function chgW(mid,cur,delta){
     : await api('adjust_warn',{member_id:mid,delta});
   if(d.ok){
     showBnr('mok',d.message,'ok');
-    // 즉시 am 배열 업데이트
     if(d.member){
       const idx=am.findIndex(x=>x.member_id===mid);
       if(idx>=0){
@@ -521,7 +526,7 @@ async function chgW(mid,cur,delta){
         am[idx].is_warned=d.member.is_warned;
       }
     }
-    loadM(); // 전체 재로드로 완전 반영
+    loadM();
   } else showBnr('merr',d.error||'실패');
 }
 
