@@ -319,7 +319,16 @@ function cs(){try{sessionStorage.removeItem(SK)}catch(e){}}
 
 window.addEventListener('load',()=>{const s=ls();if(s){ai=s;showD();init();}});
 
-async function api(a,b={}){const r=await fetch(API,{method:'POST',body:JSON.stringify({action:a,...b})});return r.json();}
+let _apiCount=0;
+function showLoading(msg){_apiCount++;const el=document.getElementById('g-loading');if(el){el.style.display='flex';const m=document.getElementById('g-loading-msg');if(m)m.textContent=msg||'처리 중...';}}
+function hideLoading(){_apiCount=Math.max(0,_apiCount-1);if(_apiCount===0){const el=document.getElementById('g-loading');if(el)el.style.display='none';}}
+async function api(a,b={}){
+  const silent=['get_rooms','get_all_rooms','get_room_detail','get_daily','get_members','get_logs','get_weekly','get_warnings','get_my_week_count','get_presets'];
+  const isSilent=silent.includes(a);
+  if(!isSilent)showLoading();
+  try{const r=await fetch(API,{method:'POST',body:JSON.stringify({action:a,...b})});return r.json();}
+  finally{if(!isSilent)hideLoading();}
+}
 
 function showD(){document.getElementById('pg-login').classList.add('hide');document.getElementById('pg-dash').classList.add('show');document.getElementById('admbdg').textContent='👤 '+ai.nickname;}
 function showBnr(id,msg,t='error'){const el=document.getElementById(id);if(!el)return;el.className='bnr bnr-'+(t==='ok'?'o':'e')+' show';el.textContent=msg;if(t==='ok')setTimeout(()=>el.classList.remove('show'),3000);}
@@ -343,6 +352,10 @@ document.getElementById('apw').addEventListener('keydown',e=>{if(e.key==='Enter'
 
 function init(){loadDash();loadM();loadTR();loadAR();}
 
+function swMon(roomId){
+  sw('monitor');
+  if(roomId) loadMon(roomId);
+}
 function sw(name){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
@@ -394,7 +407,7 @@ async function loadTR(){
     el.innerHTML=`<table class="tbl"><thead><tr><th>룸</th><th>품앗이</th><th>티켓팅</th><th>착륙</th><th>인원</th><th>상태</th><th></th></tr></thead><tbody>${rooms.map(r=>{
       const bd=r.status==='open'?'<span class="badge bdk">open</span>':r.status==='closed'?'<span class="badge bdg">closed</span>':'<span class="badge bdm">waiting</span>';
       const tg=(r.items||'').split(',').map(t=>'<span class="tag">'+t.trim()+'</span>').join('');
-      return`<tr><td style="font-weight:600;white-space:nowrap">${r.room_date} #${r.room_number}</td><td>${tg}</td><td style="font-size:11px;white-space:nowrap">${r.ticket_start_fmt||""} ~ ${r.ticket_end_fmt||""}</td><td style="font-size:11px;white-space:nowrap">${r.land_start_fmt||""} ~ ${r.land_end_fmt||""}</td><td>${r.joined}/${r.max_members}</td><td>${bd}</td><td style="display:flex;gap:3px"><button class="btn bo bsm" onclick="sw('monitor')">현황</button><button class="btn bo bsm" onclick="openERbyId('${r.room_id}')">수정</button><button class="btn bsm" style="color:var(--red);border:1px solid var(--red);background:transparent" onclick="doDR('${r.room_id}','${r.room_date}','${r.room_number}')">삭제</button></td></tr>`;
+      return`<tr><td style="font-weight:600;white-space:nowrap">${r.room_date} #${r.room_number}</td><td>${tg}</td><td style="font-size:11px;white-space:nowrap">${r.ticket_start_fmt||""} ~ ${r.ticket_end_fmt||""}</td><td style="font-size:11px;white-space:nowrap">${r.land_start_fmt||""} ~ ${r.land_end_fmt||""}</td><td>${r.joined}/${r.max_members}</td><td>${bd}</td><td style="display:flex;gap:3px"><button class="btn bo bsm" onclick="swMon('${r.room_id}')">현황</button><button class="btn bo bsm" onclick="openERbyId('${r.room_id}')">수정</button><button class="btn bsm" style="color:var(--red);border:1px solid var(--red);background:transparent" onclick="doDR('${r.room_id}','${r.room_date}','${r.room_number}')">삭제</button></td></tr>`;
     }).join('')}</tbody></table>`;}catch(e){el.innerHTML='<div class="empty">불러오기 실패</div>';}
 }
 async function loadAR(){
@@ -422,19 +435,46 @@ async function doUpdateRoom(){hideBnr('ererr');const rid=document.getElementById
 async function doDR(rid,date,num){if(!confirm(date+' #'+num+' 룸을 삭제하시겠습니까?'))return;const d=await api('delete_room',{room_id:rid});if(d.ok){showBnr('rok','룸 삭제 완료','ok');loadTR();loadAR();}else alert(d.error||'실패');}
 
 // MONITOR
-async function loadMon(){
-  const el=document.getElementById('mon-content');el.innerHTML='<div class="empty"><span class="sp spd" style="width:18px;height:18px"></span></div>';
-  try{const d=await api('get_daily');if(!d.ok){el.innerHTML='<div class="empty">불러오기 실패</div>';return;}const rs=d.room_stats||[];if(!rs.length){el.innerHTML='<div class="empty">오늘 생성된 룸이 없습니다</div>';return;}
+async function loadMon(filterRoomId){
+  const el=document.getElementById('mon-content');
+  el.innerHTML='<div class="empty"><span class="sp spd" style="width:18px;height:18px"></span></div>';
+  try{
+    const d=await api('get_daily');
+    if(!d.ok){el.innerHTML='<div class="empty">불러오기 실패</div>';return;}
+    let rs=d.room_stats||[];
+    if(!rs.length){
+      // get_daily에 없으면 get_all_rooms로 오늘 룸 확인
+      const rd=await api('get_all_rooms');
+      const todayRooms=(rd.rooms||[]).filter(r=>r.room_date===td());
+      if(!todayRooms.length){el.innerHTML='<div class="empty">오늘 생성된 비행기가 없습니다</div>';return;}
+      // 오늘 룸이 있는데 room_stats가 비어있으면 참여자 없는 것
+      rs=todayRooms.map(r=>({
+        room_id:r.room_id,room_number:r.room_number,room_date:r.room_date,
+        items:r.items,memo:r.memo||'',
+        ticket_start_fmt:r.ticket_start_fmt,ticket_end_fmt:r.ticket_end_fmt,
+        land_start_fmt:r.land_start_fmt,land_end_fmt:r.land_end_fmt,
+        is_land_closed:false,total:0,landed_count:0,
+        participants:[],no_land_list:[],
+      }));
+    }
+    // 특정 룸 필터링
+    if(filterRoomId) rs=rs.filter(r=>r.room_id===filterRoomId);
+    if(!rs.length){el.innerHTML='<div class="empty">해당 비행기를 찾을 수 없습니다</div>';return;}
     el.innerHTML=rs.map(r=>{
       const bd=r.is_land_closed?'<span class="badge bdr">착륙 마감</span>':'<span class="badge bdk">진행 중</span>';
       const tg=(r.items||'').split(',').map(t=>'<span class="tag">'+t.trim()+'</span>').join('');
       const parts=r.participants||[];
       const cpd=parts.map(p=>p.nickname+' @'+p.insta_id+(p.post_url?' '+p.post_url:'')).join('\n');
-      const prows=parts.map(p=>{const pb=p.status==='landed'?'<span class="badge bdk" style="font-size:10px">착륙✓</span>':'<span class="badge bdb" style="font-size:10px">티켓팅</span>';return`<div class="pr"><div class="av">${lt(p.nickname)}</div><div style="flex:1;margin-left:8px;min-width:0"><div style="font-size:12px;font-weight:600">${p.nickname} <span style="font-weight:400;color:var(--text3)">@${p.insta_id}</span></div>${p.post_url?'<div style="font-size:11px"><a href="'+p.post_url+'" target="_blank" style="color:var(--primary)">'+p.post_url+'</a></div>':'<div style="font-size:11px;color:var(--text3)">링크 미등록</div>'}</div>${pb}</div>`;}).join('');
+      const typeIcon={normal:'',excellent:'⭐',honorary:'🏅',staff:'🎖'};
+      const prows=parts.map(p=>{
+        const pb=p.status==='landed'?'<span class="badge bdk" style="font-size:10px">착륙✓</span>':'<span class="badge bdb" style="font-size:10px">탑승</span>';
+        const ti=typeIcon[p.ticket_type||'normal']||'';
+        return`<div class="pr"><div class="av">${lt(p.nickname)}</div><div style="flex:1;margin-left:8px;min-width:0"><div style="font-size:12px;font-weight:600">${p.nickname} ${ti}<span style="font-weight:400;color:var(--text3)"> @${p.insta_id}</span></div>${p.post_url?'<div style="font-size:11px"><a href="'+p.post_url+'" target="_blank" style="color:var(--primary)">'+p.post_url+'</a></div>':'<div style="font-size:11px;color:var(--text3)">링크 미등록</div>'}</div>${pb}</div>`;
+      }).join('');
       const nl=r.no_land_list||[];
-      return`<div class="rca"><div class="rcah"><div><div style="font-size:14px;font-weight:700">${r.room_date||''} #${r.room_number} ${bd}</div><div style="font-size:11px;color:var(--text2);margin-top:2px">티켓팅 ${r.ticket_start_fmt||''} ~ ${r.ticket_end_fmt||''} &nbsp; 착륙 ${r.land_start_fmt||''} ~ ${r.land_end_fmt||''}</div><div style="margin-top:4px">${tg}</div></div><div style="text-align:right"><div style="font-size:20px;font-weight:700">${r.landed_count}/${r.total}</div><div style="font-size:11px;color:var(--text3)">착륙/참여</div><button class="btn bo bsm" style="margin-top:6px" onclick="cpTxt('${cpd.replace(/'/g,"\'")}',${parts.length})">전체 복사</button></div></div><div style="max-height:220px;overflow-y:auto">${prows||'<div class="empty" style="padding:16px">참여자 없음</div>'}</div>${nl.length?'<div style="padding:10px 16px;background:var(--amber-bg);border-top:1px solid #FDE68A"><div style="font-size:12px;font-weight:700;color:var(--amber);margin-bottom:3px">착륙 미완료 ('+nl.length+'명)</div><div style="font-size:12px;color:var(--amber)">'+nl.map(p=>p.nickname).join(', ')+'</div></div>':''}</div>`;
+      return`<div class="rca"><div class="rcah"><div><div style="font-size:14px;font-weight:700">${r.room_date||''} #${r.room_number} ${bd}</div><div style="font-size:11px;color:var(--text2);margin-top:2px">티켓팅 ${r.ticket_start_fmt||''} ~ ${r.ticket_end_fmt||''} &nbsp; 착륙 ${r.land_start_fmt||''} ~ ${r.land_end_fmt||''}</div><div style="margin-top:4px">${tg}</div>${r.memo?'<div style="font-size:11px;color:var(--text3);margin-top:3px">'+r.memo.split('\n')[0]+'</div>':''}</div><div style="text-align:right"><div style="font-size:20px;font-weight:700">${r.landed_count}/${r.total}</div><div style="font-size:11px;color:var(--text3)">착륙/참여</div><button class="btn bo bsm" style="margin-top:6px" onclick="cpTxt('${cpd.replace(/'/g,"\'")}',${parts.length})">전체 복사</button></div></div><div style="max-height:220px;overflow-y:auto">${prows||'<div class="empty" style="padding:16px">참여자 없음</div>'}</div>${nl.length?'<div style="padding:10px 16px;background:var(--amber-bg);border-top:1px solid #FDE68A"><div style="font-size:12px;font-weight:700;color:var(--amber);margin-bottom:3px">착륙 미완료 ('+nl.length+'명)</div><div style="font-size:12px;color:var(--amber)">'+nl.map(p=>p.nickname).join(', ')+'</div></div>':''}</div>`;
     }).join('');
-  }catch(e){el.innerHTML='<div class="empty">불러오기 실패</div>';}
+  }catch(e){console.error(e);el.innerHTML='<div class="empty">불러오기 실패</div>';}
 }
 function cpTxt(txt,n){navigator.clipboard.writeText(txt).then(()=>alert(n+'명 복사 완료!')).catch(()=>{const t=document.createElement('textarea');t.value=txt;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);alert(n+'명 복사 완료!');});}
 
@@ -626,5 +666,11 @@ async function loadLogs(){
 }
 </script>
 
+
+<!-- 전역 로딩 오버레이 -->
+<div id="g-loading" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.35);align-items:center;justify-content:center;flex-direction:column;gap:12px">
+  <div style="width:44px;height:44px;border:4px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite"></div>
+  <div id="g-loading-msg" style="color:#fff;font-size:13px;font-weight:600;text-shadow:0 1px 4px rgba(0,0,0,.5)">처리 중...</div>
+</div>
 </body>
 </html>
