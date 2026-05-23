@@ -2,7 +2,8 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>✈ 비행기방</title>
 <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -144,7 +145,7 @@ body {
 .room-card-meta { font-size: 12px; color: var(--text2); margin-bottom: 8px; }
 
 /* 참여자 목록 */
-.p-list { max-height: 260px; overflow-y: auto; }
+.p-list { overflow-y: visible; }
 .p-list::-webkit-scrollbar { width: 3px; }
 .p-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 .p-row { display: flex; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--border); }
@@ -302,9 +303,10 @@ body {
     <div id="ticket-title" style="font-size:15px;font-weight:700"></div>
     <span id="ticket-badge" class="badge"></span>
   </div>
-  <div id="warn-top-ticket" class="warn-top">⚠️ 경고 상태입니다. 익일 09:00까지 해제하지 않으면 잠깁니다.</div>
+  <div id="warn-top-ticket" class="warn-top"></div>
 
-  <div style="padding:0">
+  <!-- 스크롤 가능한 콘텐츠 영역 -->
+  <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch">
     <!-- 룸 정보 -->
     <div style="padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border)">
       <div id="ticket-time" style="font-size:12px;color:var(--text2);margin-bottom:6px"></div>
@@ -318,7 +320,7 @@ body {
       <button class="btn btn-outline btn-sm" onclick="copyAll()">전체 복사</button>
     </div>
 
-    <!-- 참여자 목록 -->
+    <!-- 참여자 목록 (고정 높이 제거, 전체 노출) -->
     <div class="p-list" id="p-list" style="background:var(--surface)">
       <div class="empty" style="padding:20px"><span class="spinner spinner-dark" style="width:20px;height:20px"></span></div>
     </div>
@@ -334,6 +336,17 @@ body {
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbyAy0HHa-4c_ouX_Wion6ZvEmyEu7XbuUaKHg-2F55jhvzkZd0uBVPokihZH_MgnNY/exec';
 const SESSION_KEY = 'plane_crew_session';
+
+// iOS 키보드 올라올 때 입력창 스크롤
+if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+  window.addEventListener('focusin', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
+      setTimeout(() => {
+        e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 400);
+    }
+  });
+}
 
 let me = null;
 let currentRoom = null;
@@ -645,10 +658,24 @@ async function goTicket(roomId) {
     showPage('page-login');
     return;
   }
+
+  // 이전 데이터 즉시 초기화 (깜빡임 방지)
+  currentRoom = null;
+  participants = [];
+  document.getElementById('ticket-title').textContent = '';
+  document.getElementById('ticket-badge').textContent = '';
+  document.getElementById('ticket-badge').className = 'badge';
+  document.getElementById('ticket-time').textContent = '';
+  document.getElementById('ticket-items').innerHTML = '';
+  document.getElementById('ticket-memo').style.display = 'none';
+  document.getElementById('ticket-memo').textContent = '';
+  document.getElementById('p-count').textContent = '참여자 목록';
+  document.getElementById('p-list').innerHTML =
+    '<div class="empty" style="padding:20px"><span class="spinner spinner-dark" style="width:20px;height:20px"></span></div>';
+  document.getElementById('my-part').innerHTML = '';
+
   showPage('page-ticket');
   document.getElementById('warn-top-ticket').classList.toggle('show', !!(me && me.is_warned));
-  document.getElementById('ticket-title').textContent = '';
-  document.getElementById('ticket-items').innerHTML = '';
 
   // 주간 착륙 횟수 로드
   try {
@@ -862,7 +889,8 @@ function renderMyPart(beforeTicket, inTicketing, waitingLand, inLanding, afterAl
         <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px">
           <div>
             <div class="my-row-label" style="margin-bottom:6px">인스타그램 링크</div>
-            <input class="input" id="inp-ticket-link" placeholder="https://instagram.com/p/..." style="font-size:13px" autocomplete="off">
+            <input class="input" id="inp-ticket-link" placeholder="https://instagram.com/p/..." style="font-size:13px" autocomplete="off"
+              onfocus="setTimeout(()=>this.scrollIntoView({behavior:'smooth',block:'center'}),300)">
           </div>
           <div>
             <div class="my-row-label" style="margin-bottom:6px">탑승 유형</div>
