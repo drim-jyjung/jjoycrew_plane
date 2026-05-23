@@ -12,17 +12,14 @@ body{font-family:Pretendard,-apple-system,sans-serif;background:var(--bg);color:
 #pg-login{display:flex;align-items:center;justify-content:center;min-height:100vh}
 #pg-login.hide{display:none}
 .lb{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--sh);padding:36px 32px;width:360px}
-.ll{text-align:center;margin-bottom:28px}
-.ll .ico{font-size:40px;margin-bottom:8px}
-.ll .ttl{font-size:20px;font-weight:800}
-.ll .ttl span{color:var(--primary)}
+.ll{text-align:center;margin-bottom:28px}.ll .ico{font-size:40px;margin-bottom:8px}.ll .ttl{font-size:20px;font-weight:800}.ll .ttl span{color:var(--primary)}
 #pg-dash{display:none;min-height:100vh;flex-direction:column}
 #pg-dash.show{display:flex}
 .topbar{height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:30}
 .tl{font-size:15px;font-weight:800}.tl span{color:var(--primary)}
 .layout{display:flex;flex:1;min-height:calc(100vh - 52px)}
 .sidebar{width:200px;background:var(--surface);border-right:1px solid var(--border);padding:14px 10px;flex-shrink:0;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto}
-.ni{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--r-sm);font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;margin-bottom:2px}
+.ni{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--r-sm);font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;margin-bottom:2px;user-select:none}
 .ni:hover{background:var(--bg);color:var(--text)}.ni.on{background:var(--primary-light);color:var(--primary);font-weight:600}
 .main{flex:1;padding:20px;overflow-y:auto}
 .panel{display:none}.panel.active{display:block}
@@ -75,12 +72,38 @@ select.input{cursor:pointer}
 .mt{font-size:15px;font-weight:700;margin-bottom:16px}
 .empty{text-align:center;padding:32px;color:var(--text3);font-size:13px}
 .dv{height:1px;background:var(--border);margin:12px 0}
-.cbtn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:5px;border:1px solid var(--border2);font-size:14px;font-weight:700;cursor:pointer;background:var(--surface);color:var(--text);transition:all .15s;line-height:1}
+.cbtn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:5px;border:1px solid var(--border2);font-size:14px;font-weight:700;cursor:pointer;background:var(--surface);color:var(--text);transition:all .15s;line-height:1;font-family:inherit}
 .cbtn:hover{border-color:var(--primary);color:var(--primary)}
+.cbtn:disabled{opacity:.35;cursor:not-allowed}
 .cv{font-size:13px;font-weight:700;min-width:22px;text-align:center}
+/* 멤버 행 버튼 */
+.act-cell{display:flex;gap:3px;flex-wrap:nowrap;align-items:center}
+.btn-lock{color:var(--red);border:1px solid var(--red);background:transparent}
+.btn-unlock{background:var(--green);color:#fff;border:none}
+.btn-inact{color:var(--red);border:1px solid var(--red);background:transparent}
+.btn-act{background:var(--green);color:#fff;border:none}
+
+/* 인라인 확인 토스트 (confirm 대체) */
+.iconf{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:#1e2330;color:#fff;border-radius:10px;
+  padding:13px 18px;display:flex;align-items:center;gap:12px;
+  box-shadow:0 8px 32px rgba(0,0,0,.28);z-index:9000;
+  font-size:13px;font-weight:500;white-space:nowrap;
+  animation:slideUp .18s ease;
+}
+@keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.iconf-msg{flex:1}
+.iconf-yes{padding:5px 14px;border-radius:6px;font-size:12px;font-weight:700;border:none;cursor:pointer;background:var(--primary);color:#fff;}
+.iconf-yes.danger{background:var(--red);}
+.iconf-no{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,.25);cursor:pointer;background:transparent;color:#fff;}
+/* 행 처리 중 오버레이 */
+.row-loading td{opacity:.45;pointer-events:none;}
+.row-spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(0,0,0,.12);border-top-color:var(--primary);border-radius:50%;animation:spin .5s linear infinite;vertical-align:middle;margin-left:4px;}
 </style>
 </head>
 <body>
+
 <!-- LOGIN -->
 <div id="pg-login">
   <div class="lb">
@@ -88,22 +111,27 @@ select.input{cursor:pointer}
     <div id="lerr" class="bnr bnr-e"></div>
     <div class="field"><label class="fl">닉네임</label><input class="input" id="aid" placeholder="닉네임" autocomplete="off"></div>
     <div class="field"><label class="fl">인스타 아이디 (@ 제외)</label><input class="input" id="apw" placeholder="instagram_id" autocomplete="off" autocapitalize="none"></div>
-    <button class="btn bp bfl" id="btnLogin" onclick="doLogin()" style="margin-top:4px">로그인</button>
+    <button class="btn bp bfl" id="btnLogin" style="margin-top:4px">로그인</button>
   </div>
 </div>
+
 <!-- DASH -->
 <div id="pg-dash">
-  <div class="topbar"><div class="tl">✈ 비행기방 <span>관리자</span></div>
-    <div style="display:flex;align-items:center;gap:10px"><span id="admbdg" style="font-size:12px;color:var(--text2)"></span><button class="btn bo bsm" onclick="doLogout()">로그아웃</button></div>
+  <div class="topbar">
+    <div class="tl">✈ 비행기방 <span>관리자</span></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span id="admbdg" style="font-size:12px;color:var(--text2)"></span>
+      <button class="btn bo bsm" id="btnLogout">로그아웃</button>
+    </div>
   </div>
   <div class="layout">
     <div class="sidebar">
-      <div class="ni on" onclick="sw('dashboard')" id="nav-dashboard"><span>📊</span>대시보드</div>
-      <div class="ni" onclick="sw('rooms')" id="nav-rooms"><span>🏠</span>룸 관리</div>
-      <div class="ni" onclick="sw('monitor')" id="nav-monitor"><span>👥</span>참여 현황</div>
-      <div class="ni" onclick="sw('settle')" id="nav-settle"><span>📋</span>정산</div>
-      <div class="ni" onclick="sw('members')" id="nav-members"><span>👤</span>멤버 관리</div>
-      <div class="ni" onclick="sw('logs')" id="nav-logs"><span>📝</span>활동 로그</div>
+      <div class="ni on" data-panel="dashboard"><span>📊</span>대시보드</div>
+      <div class="ni" data-panel="rooms"><span>🏠</span>룸 관리</div>
+      <div class="ni" data-panel="monitor"><span>👥</span>참여 현황</div>
+      <div class="ni" data-panel="settle"><span>📋</span>정산</div>
+      <div class="ni" data-panel="members"><span>👤</span>멤버 관리</div>
+      <div class="ni" data-panel="logs"><span>📝</span>활동 로그</div>
     </div>
     <div class="main">
       <!-- DASHBOARD -->
@@ -112,7 +140,7 @@ select.input{cursor:pointer}
         <div id="dok" class="bnr bnr-o"></div><div id="derr" class="bnr bnr-e"></div>
         <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
           <span>📅 당일 현황 <span id="ddate" style="font-weight:400;color:var(--text3);font-size:12px"></span></span>
-          <button class="btn bo bsm" onclick="loadDash()">새로고침</button>
+          <button class="btn bo bsm" id="btnDashRefresh">새로고침</button>
         </div>
         <div class="sg sg4">
           <div class="sc"><div class="sn" id="ds-r">-</div><div class="sl">오늘 룸</div></div>
@@ -122,7 +150,7 @@ select.input{cursor:pointer}
         </div>
         <div class="card" id="wt-card" style="display:none">
           <div class="ch"><span class="ct">⚠ 착륙 미완료 — 경고 대상</span>
-            <button class="btn bam bsm" id="btn-daily-d" onclick="doDailyD()">일간 정산 실행</button></div>
+            <button class="btn bam bsm" id="btn-daily-d">일간 정산 실행</button></div>
           <div id="wt-list"></div>
         </div>
         <div class="dv"></div>
@@ -136,10 +164,11 @@ select.input{cursor:pointer}
         </div>
         <div class="card">
           <div class="ch"><span class="ct">주간 참여 현황</span>
-            <button class="btn bp bsm" onclick="doWeeklyD()">주간 정산 실행</button></div>
+            <button class="btn bp bsm" id="btn-weekly-d">주간 정산 실행</button></div>
           <div id="wkl"><div class="empty"><span class="sp spd" style="width:18px;height:18px"></span></div></div>
         </div>
       </div>
+
       <!-- ROOMS -->
       <div class="panel" id="panel-rooms">
         <div class="pt">룸 관리</div>
@@ -147,25 +176,32 @@ select.input{cursor:pointer}
         <div class="card">
           <div class="ch"><span class="ct">오늘의 비행기</span>
             <div style="display:flex;gap:5px;flex-wrap:wrap">
-              <button class="btn bp bsm" onclick="openCR()">+ 직접 생성</button>
-              <button class="btn bo bsm" id="btn-preset-all" onclick="doCreateAllPresets()">⚡ 오늘 프리셋 생성</button>
+              <button class="btn bp bsm" id="btnOpenCR">+ 직접 생성</button>
+              <button class="btn bo bsm" id="btn-preset-all">⚡ 오늘 프리셋 생성</button>
             </div>
           </div>
           <div id="today-rooms"><div class="empty"><span class="sp spd" style="width:18px;height:18px"></span></div></div>
         </div>
         <div class="card">
           <div class="ch"><span class="ct">전체 룸</span>
-            <div style="display:flex;gap:6px"><input type="date" class="input" id="rfd" style="width:150px" oninput="filterAR()"><button class="btn bo bsm" onclick="loadAR()">새로고침</button></div>
+            <div style="display:flex;gap:6px">
+              <input type="date" class="input" id="rfd" style="width:150px">
+              <button class="btn bo bsm" id="btnARRefresh">새로고침</button>
+            </div>
           </div>
           <div id="all-rooms"><div class="empty"><span class="sp spd" style="width:18px;height:18px"></span></div></div>
         </div>
       </div>
+
       <!-- MONITOR -->
       <div class="panel" id="panel-monitor">
         <div class="pt">참여 현황</div>
-        <div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button class="btn bo bsm" onclick="loadMon()">새로고침</button></div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+          <button class="btn bo bsm" id="btnMonRefresh">새로고침</button>
+        </div>
         <div id="mon-content"><div class="empty"><span class="sp spd" style="width:18px;height:18px"></span></div></div>
       </div>
+
       <!-- SETTLE -->
       <div class="panel" id="panel-settle">
         <div class="pt">정산</div>
@@ -173,45 +209,49 @@ select.input{cursor:pointer}
         <div class="card cb" style="margin-bottom:14px">
           <div id="sinfo" style="font-size:12px;color:var(--text2);margin-bottom:12px"></div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn bam" style="width:160px" id="btn-daily-s" onclick="doDailyS()">일간 정산 실행</button>
-            <button class="btn bp" style="width:160px" id="btn-weekly-s" onclick="doWeeklyS()">주간 정산 실행</button>
-            <button class="btn bo" style="width:180px" id="btn-init-rec" onclick="doInitWeeklyRecord()">📋 이번주 기록 초기화</button>
+            <button class="btn bam" style="width:160px" id="btn-daily-s">일간 정산 실행</button>
+            <button class="btn bp" style="width:160px" id="btn-weekly-s">주간 정산 실행</button>
+            <button class="btn bo" style="width:180px" id="btn-init-rec">📋 이번주 기록 초기화</button>
           </div>
           <div style="margin-top:6px;font-size:11px;color:var(--text3)">일간: 착륙 마감 룸 미착륙자 경고 · 주간: 착륙 2회 미달 경고 · 기록 초기화: 이번주 멤버 행 생성</div>
         </div>
         <div id="sresult"></div>
       </div>
+
       <!-- MEMBERS -->
       <div class="panel" id="panel-members">
         <div class="pt">멤버 관리</div>
         <div class="card">
           <div class="ch">
             <div style="display:flex;gap:8px">
-              <input class="input" id="msrch" placeholder="닉네임/아이디 검색" oninput="filterM()" style="width:200px">
-              <select class="input" id="msf" onchange="filterM()" style="width:100px">
-                <option value="">전체</option><option value="active">활성</option><option value="warned">경고</option><option value="locked">잠금</option>
+              <input class="input" id="msrch" placeholder="닉네임/아이디 검색" style="width:200px">
+              <select class="input" id="msf" style="width:100px">
+                <option value="">전체</option><option value="active">활성</option>
+                <option value="warned">경고</option><option value="locked">잠금</option>
               </select>
             </div>
-            <button class="btn bp bsm" onclick="openAM()">+ 등록</button>
+            <button class="btn bp bsm" id="btnOpenAM">+ 등록</button>
           </div>
           <div id="mok" class="bnr bnr-o" style="margin:10px 16px 0"></div>
           <div id="merr" class="bnr bnr-e" style="margin:10px 16px 0"></div>
           <div id="mtbl"><div class="empty"><span class="sp spd" style="width:18px;height:18px"></span></div></div>
         </div>
       </div>
+
       <!-- LOGS -->
       <div class="panel" id="panel-logs">
         <div class="pt">활동 로그</div>
         <div class="card cb" style="margin-bottom:14px">
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
             <div class="field" style="margin:0"><label class="fl">멤버</label>
-              <select class="input" id="logm" style="width:150px" onchange="loadLogs()"><option value="">전체</option></select></div>
+              <select class="input" id="logm" style="width:150px"><option value="">전체</option></select></div>
             <div class="field" style="margin:0"><label class="fl">액션</label>
-              <select class="input" id="loga" style="width:130px" onchange="loadLogs()">
+              <select class="input" id="loga" style="width:130px">
                 <option value="">전체</option><option value="ticket">티켓팅</option>
-                <option value="link_register">링크 등록</option><option value="link_update">링크 수정</option><option value="land">착륙</option>
+                <option value="link_register">링크 등록</option><option value="link_update">링크 수정</option>
+                <option value="land">착륙</option>
               </select></div>
-            <button class="btn bo bsm" onclick="loadLogs()">새로고침</button>
+            <button class="btn bo bsm" id="btnLogRefresh">새로고침</button>
           </div>
         </div>
         <div class="card"><div id="ltbl"><div class="empty"><span class="sp spd" style="width:18px;height:18px"></span></div></div></div>
@@ -219,9 +259,10 @@ select.input{cursor:pointer}
     </div>
   </div>
 </div>
+
 <!-- MODAL CREATE ROOM -->
-<div class="ov" id="mcr" onclick="cm('mcr')">
-  <div class="modal" onclick="event.stopPropagation()">
+<div class="ov" id="mcr">
+  <div class="modal">
     <div class="mt">룸 생성</div>
     <div id="crerr" class="bnr bnr-e"></div>
     <div class="r3" style="margin-bottom:12px">
@@ -233,33 +274,37 @@ select.input{cursor:pointer}
       <div style="font-size:12px;font-weight:700;margin-bottom:10px">시간 설정</div>
       <div style="display:grid;grid-template-columns:70px 1fr 14px 1fr;align-items:center;gap:6px;margin-bottom:8px">
         <span style="font-size:12px;font-weight:700;color:var(--primary)">티켓팅</span>
-        <input class="input" id="crts" type="time" value="10:00" style="text-align:center" oninput="pvt()">
+        <input class="input" id="crts" type="time" value="10:00" style="text-align:center">
         <span style="text-align:center;color:var(--text3);font-size:12px">~</span>
-        <input class="input" id="crte" type="time" value="22:00" style="text-align:center" oninput="pvt()">
+        <input class="input" id="crte" type="time" value="22:00" style="text-align:center">
       </div>
       <div style="display:grid;grid-template-columns:70px 1fr 14px 1fr;align-items:center;gap:6px">
         <span style="font-size:12px;font-weight:700;color:var(--green)">착륙</span>
-        <input class="input" id="crls" type="time" value="22:00" style="text-align:center" oninput="pvt()">
+        <input class="input" id="crls" type="time" value="22:00" style="text-align:center">
         <span style="text-align:center;color:var(--text3);font-size:12px">~</span>
-        <input class="input" id="crle" type="time" value="09:00" style="text-align:center" oninput="pvt()">
+        <input class="input" id="crle" type="time" value="09:00" style="text-align:center">
       </div>
       <div id="tpv" style="margin-top:8px;font-size:11px;color:var(--text2);background:#fff;border-radius:5px;padding:6px 8px;display:none"></div>
     </div>
     <div class="field">
       <label class="fl">품앗이 항목</label>
       <div class="chip-wrap" id="ichips">
-        <span class="chip" onclick="tc(this)">좋아요</span><span class="chip" onclick="tc(this)">댓글</span>
-        <span class="chip" onclick="tc(this)">저장</span><span class="chip" onclick="tc(this)">공유하기</span><span class="chip" onclick="tc(this)">리포스트</span>
+        <span class="chip">좋아요</span><span class="chip">댓글</span>
+        <span class="chip">저장</span><span class="chip">공유하기</span><span class="chip">리포스트</span>
       </div>
       <div style="margin-top:6px;font-size:12px;color:var(--text2)">선택: <span id="sitems" style="font-weight:600;color:var(--text)">없음</span></div>
     </div>
     <div class="field"><label class="fl">메모</label><input class="input" id="crmo" placeholder="메모 (선택)"></div>
-    <button class="btn bp bfl" id="btnCR" onclick="doCreateRoom()">룸 생성 완료</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn bp" style="flex:1" id="btnCR">룸 생성 완료</button>
+      <button class="btn bo" id="btnCRClose">취소</button>
+    </div>
   </div>
 </div>
+
 <!-- MODAL EDIT ROOM -->
-<div class="ov" id="mer" onclick="cm('mer')">
-  <div class="modal" onclick="event.stopPropagation()">
+<div class="ov" id="mer">
+  <div class="modal">
     <div class="mt">룸 수정</div>
     <div id="ererr" class="bnr bnr-e"></div>
     <input type="hidden" id="erid"><input type="hidden" id="erdate">
@@ -272,360 +317,73 @@ select.input{cursor:pointer}
       <div style="font-size:12px;font-weight:700;margin-bottom:10px">시간 수정</div>
       <div style="display:grid;grid-template-columns:70px 1fr 14px 1fr;align-items:center;gap:6px;margin-bottom:8px">
         <span style="font-size:12px;font-weight:700;color:var(--primary)">티켓팅</span>
-        <input class="input" id="erts" type="time" style="text-align:center"><span style="text-align:center;color:var(--text3)">~</span>
+        <input class="input" id="erts" type="time" style="text-align:center">
+        <span style="text-align:center;color:var(--text3)">~</span>
         <input class="input" id="erte" type="time" style="text-align:center">
       </div>
       <div style="display:grid;grid-template-columns:70px 1fr 14px 1fr;align-items:center;gap:6px">
         <span style="font-size:12px;font-weight:700;color:var(--green)">착륙</span>
-        <input class="input" id="erls" type="time" style="text-align:center"><span style="text-align:center;color:var(--text3)">~</span>
+        <input class="input" id="erls" type="time" style="text-align:center">
+        <span style="text-align:center;color:var(--text3)">~</span>
         <input class="input" id="erle" type="time" style="text-align:center">
       </div>
     </div>
     <div class="field"><label class="fl">품앗이 항목</label>
       <div class="chip-wrap" id="echips">
-        <span class="chip" onclick="etc(this)">좋아요</span><span class="chip" onclick="etc(this)">댓글</span>
-        <span class="chip" onclick="etc(this)">저장</span><span class="chip" onclick="etc(this)">공유하기</span><span class="chip" onclick="etc(this)">리포스트</span>
+        <span class="chip">좋아요</span><span class="chip">댓글</span>
+        <span class="chip">저장</span><span class="chip">공유하기</span><span class="chip">리포스트</span>
       </div>
     </div>
     <div class="field"><label class="fl">메모</label><input class="input" id="ermo"></div>
     <div style="display:flex;gap:8px">
-      <button class="btn bp" id="btnER" onclick="doUpdateRoom()">수정 완료</button>
-      <button class="btn bo" onclick="cm('mer')">취소</button>
+      <button class="btn bp" id="btnER">수정 완료</button>
+      <button class="btn bo" id="btnERClose">취소</button>
     </div>
   </div>
 </div>
+
 <!-- MODAL MEMBER -->
-<div class="ov" id="mmb" onclick="cm('mmb')">
-  <div class="modal" onclick="event.stopPropagation()">
+<div class="ov" id="mmb">
+  <div class="modal">
     <div id="mmbt" class="mt">멤버 등록</div>
     <div id="mberr" class="bnr bnr-e"></div>
-    <div class="r2" style="margin-bottom:12px">
-      <div class="field" style="margin:0"><label class="fl">닉네임</label><input class="input" id="amnk" placeholder="닉네임" autocomplete="off"></div>
-      <div class="field" style="margin:0"><label class="fl">인스타 아이디</label><input class="input" id="amin" placeholder="instagram_id" autocomplete="off" autocapitalize="none"></div>
+    <div id="mmb-reg-fields">
+      <div class="r2" style="margin-bottom:12px">
+        <div class="field" style="margin:0"><label class="fl">닉네임</label><input class="input" id="amnk" placeholder="닉네임" autocomplete="off"></div>
+        <div class="field" style="margin:0"><label class="fl">인스타 아이디</label><input class="input" id="amin" placeholder="instagram_id" autocomplete="off" autocapitalize="none"></div>
+      </div>
     </div>
     <div class="field"><label class="fl">메모</label><input class="input" id="ammo" placeholder="메모 (선택)"></div>
-    <button class="btn bp bfl" id="btnMB" onclick="subMB()">등록 완료</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn bp" style="flex:1" id="btnMB">등록 완료</button>
+      <button class="btn bo" id="btnMBClose">취소</button>
+    </div>
   </div>
+</div>
+
+<!-- 전역 로딩 오버레이 -->
+<div id="g-loading" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.35);align-items:center;justify-content:center;flex-direction:column;gap:12px">
+  <div style="width:44px;height:44px;border:4px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite"></div>
+  <div id="g-loading-msg" style="color:#fff;font-size:13px;font-weight:600">처리 중...</div>
 </div>
 
 <script>
-const API='https://script.google.com/macros/s/AKfycbyAy0HHa-4c_ouX_Wion6ZvEmyEu7XbuUaKHg-2F55jhvzkZd0uBVPokihZH_MgnNY/exec';
-const SK='plane_admin_session';
-let ai=null,am=[],ard=[],emid=null;
+// =====================================================================
+// 상수 / 전역 상태
+// =====================================================================
+const API = 'https://script.google.com/macros/s/AKfycbyAy0HHa-4c_ouX_Wion6ZvEmyEu7XbuUaKHg-2F55jhvzkZd0uBVPokihZH_MgnNY/exec';
+const SK  = 'plane_admin_session';
 
-function ss(d){try{sessionStorage.setItem(SK,JSON.stringify(d))}catch(e){}}
-function ls(){try{return JSON.parse(sessionStorage.getItem(SK))}catch(e){return null}}
-function cs(){try{sessionStorage.removeItem(SK)}catch(e){}}
+let adminInfo  = null;   // 로그인한 관리자
+let memberList = [];     // 멤버 캐시 (전체 목록)
+let roomCache  = [];     // 전체 룸 캐시
+let monStats   = [];     // 참여현황 캐시 (복사 기능용)
+let editMemberId = null; // 멤버 모달 편집 대상
 
-window.addEventListener('load',()=>{const s=ls();if(s){ai=s;showD();init();}});
+// 패널별 최초 로드 여부
+const panelLoaded = { dashboard:false, rooms:false, monitor:false, settle:false, members:false, logs:false };
 
-let _apiCount=0;
-function showLoading(msg){_apiCount++;const el=document.getElementById('g-loading');if(el){el.style.display='flex';const m=document.getElementById('g-loading-msg');if(m)m.textContent=msg||'처리 중...';}}
-function hideLoading(){_apiCount=Math.max(0,_apiCount-1);if(_apiCount===0){const el=document.getElementById('g-loading');if(el)el.style.display='none';}}
-async function api(a,b={}){
-  const silent=['get_rooms','get_all_rooms','get_room_detail','get_daily','get_members','get_logs','get_weekly','get_warnings','get_my_week_count','get_presets'];
-  const isSilent=silent.includes(a);
-  if(!isSilent)showLoading();
-  try{const r=await fetch(API,{method:'POST',body:JSON.stringify({action:a,...b})});return r.json();}
-  finally{if(!isSilent)hideLoading();}
-}
-
-function showD(){document.getElementById('pg-login').classList.add('hide');document.getElementById('pg-dash').classList.add('show');document.getElementById('admbdg').textContent='👤 '+ai.nickname;}
-function showBnr(id,msg,t='error'){const el=document.getElementById(id);if(!el)return;el.className='bnr bnr-'+(t==='ok'?'o':'e')+' show';el.textContent=msg;if(t==='ok')setTimeout(()=>el.classList.remove('show'),3000);}
-function hideBnr(id){const el=document.getElementById(id);if(el)el.classList.remove('show');}
-function om(id){document.getElementById(id).classList.add('show');}
-function cm(id){document.getElementById(id).classList.remove('show');}
-function lt(n){return n?n.charAt(0):'?';}
-function td(){return new Date().toISOString().substring(0,10);}
-function sl(id,on,lb=''){const el=document.getElementById(id);if(!el)return;el.disabled=on;if(on){el._o=el.textContent;el.innerHTML='<span class="sp"></span>';}else el.textContent=lb||el._o||el.textContent;}
-function nd(d){const x=new Date(d);x.setDate(x.getDate()+1);return x.toISOString().substring(0,10);}
-
-async function doLogin(){
-  const nick=document.getElementById('aid').value.trim(),insta=document.getElementById('apw').value.trim();
-  hideBnr('lerr');if(!nick||!insta){showBnr('lerr','닉네임과 인스타 아이디를 입력해 주세요');return;}
-  sl('btnLogin',true);
-  try{const d=await api('admin_login',{nickname:nick,insta_id:insta});if(!d.ok){showBnr('lerr',d.error||'실패');return;}ai=d.admin;ss(ai);showD();init();}
-  catch(e){showBnr('lerr','서버 연결 실패');}finally{sl('btnLogin',false,'로그인');}
-}
-function doLogout(){ai=null;am=[];cs();document.getElementById('pg-login').classList.remove('hide');document.getElementById('pg-dash').classList.remove('show');}
-document.getElementById('apw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-
-function init(){loadDash();loadM();loadTR();loadAR();}
-
-function swMon(roomId){
-  sw('monitor');
-  if(roomId) loadMon(roomId);
-}
-function sw(name){
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
-  document.getElementById('panel-'+name).classList.add('active');
-  document.getElementById('nav-'+name).classList.add('on');
-  if(name==='dashboard')loadDash();
-  if(name==='rooms'){loadTR();loadAR();}
-  if(name==='monitor')loadMon();
-  if(name==='settle')loadSI();
-  if(name==='members')loadM();
-  if(name==='logs'){updLogM();loadLogs();}
-}
-
-// DASHBOARD
-async function loadDash(){
-  try{
-    const d=await api('get_daily');if(!d.ok)return;
-    document.getElementById('ddate').textContent=d.date;
-    document.getElementById('dwrange').textContent=d.week_range||'';
-    const rs=d.room_stats||[],wt=d.warn_targets||[],ws=d.week_stats||[];
-    document.getElementById('ds-r').textContent=rs.length;
-    document.getElementById('ds-j').textContent=rs.reduce((s,r)=>s+r.total,0);
-    document.getElementById('ds-l').textContent=rs.reduce((s,r)=>s+r.landed_count,0);
-    document.getElementById('ds-w').textContent=wt.length;
-    const wtc=document.getElementById('wt-card'),wtl=document.getElementById('wt-list');
-    if(wt.length){wtc.style.display='';wtl.innerHTML=wt.map(p=>`<div class="pr"><div class="av">${lt(p.nickname)}</div><div style="flex:1;margin-left:8px"><div style="font-size:12px;font-weight:600">${p.nickname}</div><div style="font-size:11px;color:var(--text3)">@${p.insta_id}</div></div><span class="badge bdm">착륙 미완료</span></div>`).join('');}
-    else wtc.style.display='none';
-    const wpass=ws.filter(m=>m.is_pass).length,wfail=ws.filter(m=>!m.is_pass).length,ww=ws.filter(m=>m.is_warned).length;
-    document.getElementById('ds-wp').textContent=wpass;
-    document.getElementById('ds-wf').textContent=wfail;
-    document.getElementById('ds-ww').textContent=ww;
-    document.getElementById('wkl').innerHTML=ws.map(m=>{
-      const pct=Math.min(100,Math.round((m.week_land/2)*100));
-      const bc=m.is_pass?'var(--green)':m.week_land>0?'var(--amber)':'var(--red)';
-      const bd=m.is_pass?'<span class="badge bdk">통과</span>':'<span class="badge bdm">미달</span>';
-      const bw=m.is_warned?'<span class="badge bdr">경고</span>':'';
-      const bg=m.grade==='excellent'?'<span class="badge bdb">우수</span>':m.grade==='honorary'?'<span class="badge bdp">명예</span>':'';
-      return`<div style="display:flex;align-items:center;padding:8px 16px;border-bottom:1px solid var(--border)"><div style="min-width:90px;font-size:12px;font-weight:600">${m.nickname}</div><div style="min-width:100px;font-size:11px;color:var(--text3)">@${m.insta_id}</div><div class="wb" style="margin:0 8px"><div class="wbi" style="width:${pct}%;background:${bc}"></div></div><div style="font-size:12px;font-weight:700;min-width:28px;text-align:right">${m.week_land}회</div><div style="margin-left:6px;display:flex;gap:3px">${bd}${bw}${bg}</div></div>`;
-    }).join('');
-  }catch(e){console.error(e);}
-}
-async function doDailyD(){if(!confirm('일간 정산을 실행하시겠습니까?'))return;const d=await api('run_daily',{admin_id:ai.admin_id});if(d.ok){showBnr('dok','일간 정산 완료 — 경고 '+d.warned+'명','ok');loadDash();}else showBnr('derr',d.error||'실패');}
-async function doWeeklyD(){if(!confirm('주간 정산을 실행하시겠습니까?'))return;const d=await api('run_weekly',{admin_id:ai.admin_id});if(d.ok){showBnr('dok','주간 정산 완료 — 통과 '+d.passed+'명 · 경고 '+d.warned+'명','ok');loadDash();}else showBnr('derr',d.error||'실패');}
-
-// ROOMS
-async function loadTR(){
-  const el=document.getElementById('today-rooms');el.innerHTML='<div class="empty"><span class="sp spd" style="width:18px;height:18px"></span></div>';
-  try{const d=await api('get_rooms');const rooms=d.rooms||[];if(!rooms.length){el.innerHTML='<div class="empty">오늘 생성된 룸이 없습니다</div>';return;}
-    el.innerHTML=`<table class="tbl"><thead><tr><th>룸</th><th>품앗이</th><th>티켓팅</th><th>착륙</th><th>인원</th><th>상태</th><th></th></tr></thead><tbody>${rooms.map(r=>{
-      const bd=r.status==='open'?'<span class="badge bdk">open</span>':r.status==='closed'?'<span class="badge bdg">closed</span>':'<span class="badge bdm">waiting</span>';
-      const tg=(r.items||'').split(',').map(t=>'<span class="tag">'+t.trim()+'</span>').join('');
-      return`<tr><td style="font-weight:600;white-space:nowrap">${r.room_date} #${r.room_number}</td><td>${tg}</td><td style="font-size:11px;white-space:nowrap">${r.ticket_start_fmt||""} ~ ${r.ticket_end_fmt||""}</td><td style="font-size:11px;white-space:nowrap">${r.land_start_fmt||""} ~ ${r.land_end_fmt||""}</td><td>${r.joined}/${r.max_members}</td><td>${bd}</td><td style="display:flex;gap:3px"><button class="btn bo bsm" onclick="swMon('${r.room_id}')">현황</button><button class="btn bo bsm" onclick="openERbyId('${r.room_id}')">수정</button><button class="btn bsm" style="color:var(--red);border:1px solid var(--red);background:transparent" onclick="doDR('${r.room_id}','${r.room_date}','${r.room_number}')">삭제</button></td></tr>`;
-    }).join('')}</tbody></table>`;}catch(e){el.innerHTML='<div class="empty">불러오기 실패</div>';}
-}
-async function loadAR(){
-  const el=document.getElementById('all-rooms');el.innerHTML='<div class="empty"><span class="sp spd" style="width:18px;height:18px"></span></div>';
-  try{const d=await api('get_all_rooms');ard=d.rooms||[];filterAR();}catch(e){el.innerHTML='<div class="empty">불러오기 실패</div>';}
-}
-function filterAR(){const df=document.getElementById('rfd')?.value||'';renderAR(df?ard.filter(r=>r.room_date===df):ard);}
-function renderAR(rooms){
-  const el=document.getElementById('all-rooms');if(!rooms.length){el.innerHTML='<div class="empty">룸이 없습니다</div>';return;}
-  el.innerHTML=`<table class="tbl"><thead><tr><th>날짜</th><th>#</th><th>품앗이</th><th>티켓팅</th><th>착륙</th><th>인원</th><th>상태</th><th>메모</th><th></th></tr></thead><tbody>${rooms.map(r=>{
-    const bd=r.status==='open'?'<span class="badge bdk">open</span>':r.status==='closed'?'<span class="badge bdg">closed</span>':'<span class="badge bdm">waiting</span>';
-    const tg=(r.items||'').split(',').map(t=>'<span class="tag">'+t.trim()+'</span>').join('');
-    return`<tr><td style="font-weight:600;white-space:nowrap">${r.room_date}</td><td>#${r.room_number}</td><td>${tg}</td><td style="font-size:11px;white-space:nowrap">${r.ticket_start_fmt||""} ~ ${r.ticket_end_fmt||""}</td><td style="font-size:11px;white-space:nowrap">${r.land_start_fmt||""} ~ ${r.land_end_fmt||""}</td><td>${r.joined}/${r.max_members}</td><td>${bd}</td><td style="font-size:11px;color:var(--text2);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.memo||""}</td><td style="display:flex;gap:3px;white-space:nowrap"><button class="btn bo bsm" onclick="openERbyId('${r.room_id}')">수정</button><button class="btn bsm" style="color:var(--red);border:1px solid var(--red);background:transparent" onclick="doDR('${r.room_id}','${r.room_date}','${r.room_number}')">삭제</button></td></tr>`;
-  }).join('')}</tbody></table>`;}
-
-function openCR(){document.getElementById('crd').value=td();document.getElementById('crn').value=ard.filter(r=>r.room_date===td()).length+1;document.querySelectorAll('#ichips .chip').forEach(c=>c.classList.remove('on'));document.getElementById('sitems').textContent='없음';document.getElementById('crmo').value='';hideBnr('crerr');document.getElementById('tpv').style.display='none';om('mcr');}
-function tc(el){el.classList.toggle('on');document.getElementById('sitems').textContent=[...document.querySelectorAll('#ichips .chip.on')].map(c=>c.textContent).join(',')||'없음';}
-function pvt(){const d=document.getElementById('crd').value,ts=document.getElementById('crts').value,te=document.getElementById('crte').value,ls=document.getElementById('crls').value,le=document.getElementById('crle').value,pv=document.getElementById('tpv');if(!d||!ts||!te||!ls||!le){pv.style.display='none';return;}const teD=te<=ts?nd(d):d,lsD=ls<ts?nd(d):d,leD=le<=ls?nd(lsD):lsD;pv.style.display='block';pv.innerHTML='🎫 '+d+' '+ts+' ~ '+teD+' '+te+' &nbsp;| 🛬 '+lsD+' '+ls+' ~ '+leD+' '+le;}
-async function doCreateRoom(){hideBnr('crerr');const date=document.getElementById('crd').value,num=document.getElementById('crn').value,ts=document.getElementById('crts').value,te=document.getElementById('crte').value,ls=document.getElementById('crls').value,le=document.getElementById('crle').value,max=document.getElementById('crm').value,items=[...document.querySelectorAll('#ichips .chip.on')].map(c=>c.textContent).join(','),memo=document.getElementById('crmo').value;if(!date||!ts||!te||!ls||!le){showBnr('crerr','날짜와 시간을 입력해 주세요');return;}if(!items){showBnr('crerr','품앗이 항목을 선택해 주세요');return;}const teD=te<=ts?nd(date):date,lsD=ls<ts?nd(date):date,leD=le<=ls?nd(lsD):lsD,le_dt=leD+' '+le;if(new Date(le_dt.replace(' ','T')+':00')<=new Date()){alert('착륙 종료 시간이 현재보다 이전입니다');return;}sl('btnCR',true);try{const d=await api('create_room',{admin_id:ai.admin_id,room_date:date,room_number:Number(num),items,max_members:Number(max),ticket_start:date+' '+ts,ticket_end:teD+' '+te,land_start:lsD+' '+ls,land_end:le_dt,memo});if(!d.ok){showBnr('crerr',d.error||'실패');return;}cm('mcr');showBnr('rok','룸 생성 완료','ok');loadTR();loadAR();}catch(e){showBnr('crerr','서버 오류');}finally{sl('btnCR',false,'룸 생성 완료');}}
-
-function openER(r){document.getElementById('erid').value=r.room_id;document.getElementById('erdate').value=r.room_date;document.getElementById('ermax').value=r.max_members;document.getElementById('erst').value=r.status||'open';document.getElementById('ermo').value=r.memo||'';const to=s=>s?String(s).replace(/.*(\d{2}:\d{2})$/,'$1'):'';document.getElementById('erts').value=to(r.ticket_start);document.getElementById('erte').value=to(r.ticket_end);document.getElementById('erls').value=to(r.land_start);document.getElementById('erle').value=to(r.land_end);const sel=(r.items||'').split(',').map(s=>s.trim());document.querySelectorAll('#echips .chip').forEach(c=>c.classList.toggle('on',sel.includes(c.textContent.trim())));hideBnr('ererr');om('mer');}
-function openERbyId(rid){const r=ard.find(x=>x.room_id===rid);if(r){openER(r);}else{api('get_all_rooms').then(d=>{ard=d.rooms||[];const ro=ard.find(x=>x.room_id===rid);if(ro)openER(ro);});}}
-function etc(el){el.classList.toggle('on');}
-async function doUpdateRoom(){hideBnr('ererr');const rid=document.getElementById('erid').value,date=document.getElementById('erdate').value,max=document.getElementById('ermax').value,st=document.getElementById('erst').value,memo=document.getElementById('ermo').value,items=[...document.querySelectorAll('#echips .chip.on')].map(c=>c.textContent).join(','),ts=document.getElementById('erts').value,te=document.getElementById('erte').value,ls=document.getElementById('erls').value,le=document.getElementById('erle').value;if(!items){showBnr('ererr','품앗이 항목을 선택해 주세요');return;}const teD=te<=ts?nd(date):date,lsD=ls<ts?nd(date):date,leD=le<=ls?nd(lsD):lsD;sl('btnER',true);try{const d=await api('update_room',{room_id:rid,items,max_members:Number(max),memo,status:st,ticket_start:date+' '+ts,ticket_end:teD+' '+te,land_start:lsD+' '+ls,land_end:leD+' '+le});if(!d.ok){showBnr('ererr',d.error||'실패');return;}cm('mer');showBnr('rok','룸 수정 완료','ok');loadTR();loadAR();}catch(e){showBnr('ererr','서버 오류');}finally{sl('btnER',false,'수정 완료');}}
-async function doDR(rid,date,num){if(!confirm(date+' #'+num+' 룸을 삭제하시겠습니까?'))return;const d=await api('delete_room',{room_id:rid});if(d.ok){showBnr('rok','룸 삭제 완료','ok');loadTR();loadAR();}else alert(d.error||'실패');}
-
-// MONITOR
-async function loadMon(filterRoomId){
-  const el=document.getElementById('mon-content');
-  el.innerHTML='<div class="empty"><span class="sp spd" style="width:18px;height:18px"></span></div>';
-  try{
-    const d=await api('get_daily');
-    if(!d.ok){el.innerHTML='<div class="empty">불러오기 실패</div>';return;}
-    let rs=d.room_stats||[];
-    if(!rs.length){
-      // get_daily에 없으면 get_all_rooms로 오늘 룸 확인
-      const rd=await api('get_all_rooms');
-      const todayRooms=(rd.rooms||[]).filter(r=>r.room_date===td());
-      if(!todayRooms.length){el.innerHTML='<div class="empty">오늘 생성된 비행기가 없습니다</div>';return;}
-      // 오늘 룸이 있는데 room_stats가 비어있으면 참여자 없는 것
-      rs=todayRooms.map(r=>({
-        room_id:r.room_id,room_number:r.room_number,room_date:r.room_date,
-        items:r.items,memo:r.memo||'',
-        ticket_start_fmt:r.ticket_start_fmt,ticket_end_fmt:r.ticket_end_fmt,
-        land_start_fmt:r.land_start_fmt,land_end_fmt:r.land_end_fmt,
-        is_land_closed:false,total:0,landed_count:0,
-        participants:[],no_land_list:[],
-      }));
-    }
-    // 특정 룸 필터링
-    if(filterRoomId) rs=rs.filter(r=>r.room_id===filterRoomId);
-    if(!rs.length){el.innerHTML='<div class="empty">해당 비행기를 찾을 수 없습니다</div>';return;}
-    el.innerHTML=rs.map(r=>{
-      const bd=r.is_land_closed?'<span class="badge bdr">착륙 마감</span>':'<span class="badge bdk">진행 중</span>';
-      const tg=(r.items||'').split(',').map(t=>'<span class="tag">'+t.trim()+'</span>').join('');
-      const parts=r.participants||[];
-      const cpd=parts.map(p=>p.nickname+' @'+p.insta_id+(p.post_url?' '+p.post_url:'')).join('\n');
-      const typeIcon={normal:'',excellent:'⭐',honorary:'🏅',staff:'🎖'};
-      const prows=parts.map(p=>{
-        const pb=p.status==='landed'?'<span class="badge bdk" style="font-size:10px">착륙✓</span>':'<span class="badge bdb" style="font-size:10px">탑승</span>';
-        const ti=typeIcon[p.ticket_type||'normal']||'';
-        return`<div class="pr"><div class="av">${lt(p.nickname)}</div><div style="flex:1;margin-left:8px;min-width:0"><div style="font-size:12px;font-weight:600">${p.nickname} ${ti}<span style="font-weight:400;color:var(--text3)"> @${p.insta_id}</span></div>${p.post_url?'<div style="font-size:11px"><a href="'+p.post_url+'" target="_blank" style="color:var(--primary)">'+p.post_url+'</a></div>':'<div style="font-size:11px;color:var(--text3)">링크 미등록</div>'}</div>${pb}</div>`;
-      }).join('');
-      const nl=r.no_land_list||[];
-      return`<div class="rca"><div class="rcah"><div><div style="font-size:14px;font-weight:700">${r.room_date||''} #${r.room_number} ${bd}</div><div style="font-size:11px;color:var(--text2);margin-top:2px">티켓팅 ${r.ticket_start_fmt||''} ~ ${r.ticket_end_fmt||''} &nbsp; 착륙 ${r.land_start_fmt||''} ~ ${r.land_end_fmt||''}</div><div style="margin-top:4px">${tg}</div>${r.memo?'<div style="font-size:11px;color:var(--text3);margin-top:3px">'+r.memo.split('\n')[0]+'</div>':''}</div><div style="text-align:right"><div style="font-size:20px;font-weight:700">${r.landed_count}/${r.total}</div><div style="font-size:11px;color:var(--text3)">착륙/참여</div><button class="btn bo bsm" style="margin-top:6px" onclick="cpTxt('${cpd.replace(/'/g,"\'")}',${parts.length})">전체 복사</button></div></div><div style="max-height:220px;overflow-y:auto">${prows||'<div class="empty" style="padding:16px">참여자 없음</div>'}</div>${nl.length?'<div style="padding:10px 16px;background:var(--amber-bg);border-top:1px solid #FDE68A"><div style="font-size:12px;font-weight:700;color:var(--amber);margin-bottom:3px">착륙 미완료 ('+nl.length+'명)</div><div style="font-size:12px;color:var(--amber)">'+nl.map(p=>p.nickname).join(', ')+'</div></div>':''}</div>`;
-    }).join('');
-  }catch(e){console.error(e);el.innerHTML='<div class="empty">불러오기 실패</div>';}
-}
-function cpTxt(txt,n){navigator.clipboard.writeText(txt).then(()=>alert(n+'명 복사 완료!')).catch(()=>{const t=document.createElement('textarea');t.value=txt;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);alert(n+'명 복사 완료!');});}
-
-// SETTLE
-function loadSI(){const now=new Date(),d=now.getDay(),tm=d===0?-6:1-d,mon=new Date(now);mon.setDate(now.getDate()+tm);mon.setHours(10,0,0,0);const sun=new Date(mon);sun.setDate(mon.getDate()+6);sun.setHours(22,0,0,0);const f=d=>(d.getMonth()+1)+'/'+d.getDate()+' '+('0'+d.getHours()).slice(-2)+':00';document.getElementById('sinfo').innerHTML='주간: <strong>'+f(mon)+' ~ '+f(sun)+'</strong> · 필참 2회<br>일간: 당일 11:00 ~ 익일 10:00';}
-async function doDailyS(){if(!confirm('일간 정산을 실행하시겠습니까?'))return;sl('btn-daily-s',true);const d=await api('run_daily',{admin_id:ai.admin_id});sl('btn-daily-s',false,'일간 정산 실행');if(d.ok)showBnr('sok','일간 정산 완료 — 경고 '+d.warned+'명: '+(d.warned_list||[]).join(', ')||'없음','ok');else showBnr('serr',d.error||'실패');}
-async function doWeeklyS(){if(!confirm('주간 정산을 실행하시겠습니까?'))return;sl('btn-weekly-s',true);const d=await api('run_weekly',{admin_id:ai.admin_id});sl('btn-weekly-s',false,'주간 정산 실행');if(d.ok){showBnr('sok','주간 정산 완료 — 통과 '+d.passed+'명 · 경고 '+d.warned+'명','ok');const r=document.getElementById('sresult');const st=(await api('get_weekly',{week_key:d.week_key})).stats||[];r.innerHTML='<div class="card"><div class="ch"><span class="ct">'+d.week_key+' 결과</span></div><table class="tbl"><thead><tr><th>닉네임</th><th>아이디</th><th>참여</th><th>착륙</th><th>진행률</th><th>결과</th></tr></thead><tbody>'+st.map(s=>{const pct=Math.min(100,Math.round((s.land_count/2)*100));const bc=s.is_pass?'var(--green)':s.land_count>0?'var(--amber)':'var(--red)';return'<tr><td style="font-weight:600">'+s.nickname+'</td><td>@'+s.insta_id+'</td><td style="text-align:center">'+s.participate_count+'</td><td style="text-align:center;font-weight:700">'+s.land_count+'</td><td><div style="display:flex;align-items:center;gap:6px"><div class="wb"><div class="wbi" style="width:'+pct+'%;background:'+bc+'"></div></div><span style="font-size:11px">'+pct+'%</span></div></td><td>'+(s.is_pass?'<span class="badge bdk">통과</span>':'<span class="badge bdm">경고</span>')+'</td></tr>';}).join('')+'</tbody></table></div>';}else showBnr('serr',d.error||'실패');}
-
-async function doInitWeeklyRecord(){
-  if(!confirm('이번 주 멤버 기록을 초기화하시겠습니까?\n(이미 있는 멤버는 건너뛰고, 없는 멤버만 추가됩니다)'))return;
-  sl('btn-init-rec',true);
-  const d=await api('init_weekly_record',{admin_id:ai.admin_id});
-  sl('btn-init-rec',false,'📋 이번주 기록 초기화');
-  if(d.ok) showBnr('sok',d.message,'ok');
-  else showBnr('serr',d.error||'실패');
-}
-
-// MEMBERS
-async function loadM(){try{const d=await api('get_members');am=d.members||[];filterM();updLogM();}catch(e){showBnr('merr','멤버 조회 실패');}}
-function updLogM(){const s=document.getElementById('logm');if(s)s.innerHTML='<option value="">전체</option>'+am.map(m=>'<option value="'+m.member_id+'">'+m.nickname+'</option>').join('');}
-function filterM(){const q=document.getElementById('msrch')?.value.toLowerCase()||'',st=document.getElementById('msf')?.value||'';renderM(am.filter(m=>(!st||m.status===st)&&(m.nickname.toLowerCase().includes(q)||m.insta_id.toLowerCase().includes(q))));}
-function renderM(members){
-  const el=document.getElementById('mtbl');
-  if(!members.length){el.innerHTML='<div class="empty">멤버가 없습니다</div>';return;}
-  const rows=members.map((m,i)=>{
-    const wc=Number(m.warning_count)||0;
-    const ec=Number(m.excellent_count)||0;
-    const hc=Number(m.honorary_count)||0;
-    const sb=m.status==='locked'?'<span class="badge bdr">잠금</span>':m.status==='warned'?'<span class="badge bdm">경고</span>':m.status==='inactive'?'<span class="badge bdg">비활성</span>':'<span class="badge bdk">활성</span>';
-    const mid=m.member_id;
-    return [
-      `<tr><td style="color:var(--text3)">${i+1}</td>`,
-      `<td style="font-weight:600">${m.nickname}</td><td style="font-size:12px">@${m.insta_id}</td>`,
-      `<td>${sb}</td>`,
-      `<td><div style="display:flex;align-items:center;gap:4px">`,
-        `<button class="cbtn" data-mid="${mid}" data-wc="${wc}" data-d="-1" onclick="chgWBtn(this)">−</button>`,
-        `<span class="cv" style="${wc>0?'color:var(--red)':''}">${wc}</span>`,
-        `<button class="cbtn" data-mid="${mid}" data-wc="${wc}" data-d="1" onclick="chgWBtn(this)">+</button>`,
-      `</div></td>`,
-      `<td><div style="display:flex;align-items:center;gap:4px">`,
-        `<button class="cbtn" data-mid="${mid}" data-d="-1" onclick="chgEBtn(this)">−</button>`,
-        `<span class="cv" style="${ec>0?'color:var(--primary)':''}" title="우수 티켓">⭐${ec}</span>`,
-        `<button class="cbtn" data-mid="${mid}" data-d="1" onclick="chgEBtn(this)">+</button>`,
-      `</div></td>`,
-      `<td><div style="display:flex;align-items:center;gap:4px">`,
-        `<button class="cbtn" data-mid="${mid}" data-d="-1" onclick="chgHBtn(this)">−</button>`,
-        `<span class="cv" style="${hc>0?'color:var(--purple)':''}" title="명예 티켓">🏅${hc}</span>`,
-        `<button class="cbtn" data-mid="${mid}" data-d="1" onclick="chgHBtn(this)">+</button>`,
-      `</div></td>`,
-      `<td style="font-size:11px;color:var(--text2)">${m.last_login_at||'-'}</td>`,
-      `<td style="display:flex;gap:3px">`,
-        `<button class="btn bo bsm" data-mid="${mid}" onclick="openEMbyId(this.dataset.mid)">수정</button>`,
-        m.status==='inactive'?
-          `<button class="btn bgg bsm" data-mid="${mid}" onclick="togAct(this.dataset.mid,'active')">활성화</button>`:
-          `<button class="btn bsm" style="color:var(--red);border:1px solid var(--red);background:transparent" data-mid="${mid}" onclick="togAct(this.dataset.mid,'inactive')">비활성</button>`,
-        m.status==='locked'?
-          `<button class="btn bgg bsm" data-mid="${mid}" onclick="togLk(this.dataset.mid,'unlock')">잠금해제</button>`:
-          `<button class="btn bsm" style="color:var(--red);border:1px solid var(--red);background:transparent" data-mid="${mid}" onclick="togLk(this.dataset.mid,'lock')">잠금</button>`,
-      `</td></tr>`
-    ].join('');
-  });
-  el.innerHTML='<table class="tbl"><thead><tr><th>#</th><th>닉네임</th><th>아이디</th><th>상태</th><th>경고</th><th>우수⭐</th><th>명예🏅</th><th>마지막 로그인</th><th></th></tr></thead><tbody>'+rows.join('')+'</tbody></table>';
-}
-function chgWBtn(b){
-  const mid=b.dataset.mid;
-  const m=am.find(x=>x.member_id===mid);
-  const cur=m?Number(m.warning_count)||0:Number(b.dataset.wc)||0;
-  chgW(mid,cur,Number(b.dataset.d));
-}
-function chgGBtn(b){chgG(b.dataset.mid,b.dataset.ga);}
-function chgEBtn(b){chgE(b.dataset.mid,Number(b.dataset.d));}
-function chgHBtn(b){chgH(b.dataset.mid,Number(b.dataset.d));}
-
-async function chgW(mid,cur,delta){
-  if(!mid||mid==='undefined'){showBnr('merr','멤버 ID를 찾을 수 없습니다. 목록을 새로고침 해주세요.');loadM();return;}
-  if(delta>0&&!confirm('경고를 '+(cur)+'→'+(cur+1)+'로 변경?'))return;
-  if(delta<0&&cur<=0){alert('경고 횟수가 이미 0입니다');return;}
-  if(delta<0&&!confirm('경고를 '+(cur)+'→'+(cur-1)+'로 변경?'))return;
-  const d=delta>0
-    ? await api('manual_warn',{member_id:mid,admin_nickname:ai.nickname,reason:'관리자 수동 경고 +1'})
-    : await api('adjust_warn',{member_id:mid,delta});
-  if(d.ok){
-    showBnr('mok',d.message,'ok');
-    if(d.member){
-      const idx=am.findIndex(x=>x.member_id===mid);
-      if(idx>=0){
-        am[idx].warning_count=d.member.warning_count;
-        am[idx].status=d.member.status;
-        am[idx].is_warned=d.member.is_warned;
-      }
-    }
-    loadM();
-  } else showBnr('merr',d.error||'실패');
-}
-
-async function chgE(mid,delta){
-  const m=am.find(x=>x.member_id===mid);if(!m)return;
-  const cur=Number(m.excellent_count)||0;
-  if(delta<0&&cur<=0){alert('우수 티켓이 0입니다');return;}
-  if(!confirm('우수 티켓 '+cur+' → '+Math.max(0,cur+delta)+'로 변경?'))return;
-  const d=await api('adjust_excellent',{member_id:mid,delta});
-  if(d.ok){
-    showBnr('mok',d.message,'ok');
-    if(d.member){
-      const idx=am.findIndex(x=>x.member_id===mid);
-      if(idx>=0) am[idx].excellent_count=d.member.excellent_count;
-    }
-    loadM();
-  } else showBnr('merr',d.error||'실패');
-}
-
-async function chgH(mid,delta){
-  const m=am.find(x=>x.member_id===mid);if(!m)return;
-  const cur=Number(m.honorary_count)||0;
-  if(delta<0&&cur<=0){alert('명예 티켓이 0입니다');return;}
-  if(!confirm('명예 티켓 '+cur+' → '+Math.max(0,cur+delta)+'로 변경?'))return;
-  const d=await api('adjust_honorary',{member_id:mid,delta});
-  if(d.ok){
-    showBnr('mok',d.message,'ok');
-    if(d.member){
-      const idx=am.findIndex(x=>x.member_id===mid);
-      if(idx>=0) am[idx].honorary_count=d.member.honorary_count;
-    }
-    loadM();
-  } else showBnr('merr',d.error||'실패');
-}async function togLk(mid,action){if(!confirm(action==='lock'?'잠금 처리?':'잠금 해제?'))return;const d=await api('toggle_lock',{member_id:mid,action});if(d.ok){showBnr('mok',d.message,'ok');loadM();}else showBnr('merr',d.error||'실패');}
-async function togAct(mid,status){if(!confirm(status==='inactive'?'비활성 처리?':'활성화?'))return;const d=await api('update_member',{member_id:mid,status});if(d.ok){showBnr('mok','처리 완료','ok');loadM();}else showBnr('merr',d.error||'실패');}
-function openAM(){emid=null;document.getElementById('mmbt').textContent='멤버 등록';document.getElementById('btnMB').textContent='등록 완료';['amnk','amin','ammo'].forEach(id=>document.getElementById(id).value='');hideBnr('mberr');om('mmb');}
-function openEMbyId(mid){const m=am.find(x=>x.member_id===mid);if(m)openEM(m);}
-function openEM(m){emid=m.member_id;document.getElementById('mmbt').textContent='멤버 수정';document.getElementById('btnMB').textContent='수정 완료';document.getElementById('amnk').value=m.nickname;document.getElementById('amin').value=m.insta_id;document.getElementById('ammo').value=m.memo||'';hideBnr('mberr');om('mmb');}
-async function subMB(){hideBnr('mberr');const nick=document.getElementById('amnk').value.trim(),insta=document.getElementById('amin').value.trim(),memo=document.getElementById('ammo').value;if(!nick||!insta){showBnr('mberr','닉네임과 인스타 아이디는 필수');return;}sl('btnMB',true);try{const d=emid?await api('update_member',{member_id:emid,nickname:nick,insta_id:insta,memo}):await api('add_member',{nickname:nick,insta_id:insta,memo});if(!d.ok){showBnr('mberr',d.error||'실패');return;}cm('mmb');showBnr('mok',emid?'수정 완료':'등록 완료','ok');loadM();}catch(e){showBnr('mberr','서버 오류');}finally{sl('btnMB',false,emid?'수정 완료':'등록 완료');}}
-
-async function chgE(mid,delta){
-  const m=am.find(x=>x.member_id===mid);if(!m)return;
-  const cur=Number(m.excellent_count)||0;
-  if(delta<0&&cur<=0){alert('우수 티켓이 0입니다');return;}
-  if(!confirm(`우수 티켓 ${cur} → ${Math.max(0,cur+delta)}로 변경?`))return;
-  const d=await api('adjust_excellent',{member_id:mid,delta});
-  if(d.ok){showBnr('mok',d.message,'ok');loadM();}else showBnr('merr',d.error||'실패');
-}
-async function chgH(mid,delta){
-  const m=am.find(x=>x.member_id===mid);if(!m)return;
-  const cur=Number(m.honorary_count)||0;
-  if(delta<0&&cur<=0){alert('명예 티켓이 0입니다');return;}
-  if(!confirm(`명예 티켓 ${cur} → ${Math.max(0,cur+delta)}로 변경?`))return;
-  const d=await api('adjust_honorary',{member_id:mid,delta});
-  if(d.ok){showBnr('mok',d.message,'ok');loadM();}else showBnr('merr',d.error||'실패');
-}
-
-// ── 프리셋 생성 모달
-const PRESETS=[
+const PRESETS = [
   {num:1,label:'[좋아요+리포스트] 정원 20명',items:'좋아요,리포스트',max:20,ts:'12:00',te:'15:00',ls:'15:01',le:'18:00',nextDay:false},
   {num:2,label:'[좋아요+저장+공유] 정원 20명',items:'좋아요,저장,공유하기',max:20,ts:'12:00',te:'15:00',ls:'15:01',le:'18:00',nextDay:false},
   {num:3,label:'[좋아요] 정원 무제한',items:'좋아요',max:9999,ts:'11:00',te:'22:00',ls:'22:01',le:'10:00',nextDay:true},
@@ -634,43 +392,872 @@ const PRESETS=[
   {num:6,label:'[무한공유] 정원 무제한',items:'공유하기',max:9999,ts:'11:00',te:'20:00',ls:'20:01',le:'23:00',nextDay:false},
 ];
 
-async function doCreateAllPresets(){
-  if(!confirm(`오늘(${td()}) 비행기 6종을 한번에 생성할까요?\n이미 생성된 프리셋은 건너뜁니다.`))return;
-  const btn=document.getElementById('btn-preset-all');
+// =====================================================================
+// 세션 / 유틸
+// =====================================================================
+const saveSession = d => { try { sessionStorage.setItem(SK, JSON.stringify(d)); } catch(e){} };
+const loadSession = ()=> { try { return JSON.parse(sessionStorage.getItem(SK)); } catch(e){ return null; } };
+const clearSession= ()=> { try { sessionStorage.removeItem(SK); } catch(e){} };
+
+const td  = () => new Date().toISOString().substring(0,10);
+const lt  = n  => n ? n.charAt(0) : '?';
+const nd  = d  => { const x=new Date(d); x.setDate(x.getDate()+1); return x.toISOString().substring(0,10); };
+
+function sl(id, on, lb='') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.disabled = on;
+  if (on) { el._orig = el.textContent; el.innerHTML = '<span class="sp"></span>'; }
+  else el.textContent = lb || el._orig || el.textContent;
+}
+
+let _apiCount = 0;
+function showLoading(msg) { _apiCount++; const el=document.getElementById('g-loading'); if(el){ el.style.display='flex'; document.getElementById('g-loading-msg').textContent=msg||'처리 중...'; } }
+function hideLoading()    { _apiCount=Math.max(0,_apiCount-1); if(_apiCount===0){ const el=document.getElementById('g-loading'); if(el) el.style.display='none'; } }
+
+const SILENT_ACTIONS = new Set(['get_rooms','get_all_rooms','get_room_detail','get_daily','get_members','get_logs','get_weekly','get_warnings','get_my_week_count','get_presets']);
+async function api(action, body={}) {
+  const isSilent = SILENT_ACTIONS.has(action);
+  if (!isSilent) showLoading();
+  try {
+    const r = await fetch(API, { method:'POST', body: JSON.stringify(Object.assign({}, body, {action})) });
+    return r.json();
+  } finally {
+    if (!isSilent) hideLoading();
+  }
+}
+
+function showBnr(id, msg, t='error') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = 'bnr bnr-' + (t==='ok' ? 'o' : 'e') + ' show';
+  el.textContent = msg;
+  if (t==='ok') setTimeout(() => el.classList.remove('show'), 3500);
+}
+function hideBnr(id) { const el=document.getElementById(id); if(el) el.classList.remove('show'); }
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+
+// 모달 배경 클릭 닫기 (이벤트 위임)
+document.querySelectorAll('.ov').forEach(ov => {
+  ov.addEventListener('click', e => { if (e.target === ov) closeModal(ov.id); });
+});
+
+// =====================================================================
+// 네비게이션 (이벤트 위임 + 패널 캐시)
+// =====================================================================
+document.querySelector('.sidebar').addEventListener('click', e => {
+  const ni = e.target.closest('.ni');
+  if (!ni) return;
+  const name = ni.dataset.panel;
+  switchPanel(name);
+});
+
+function switchPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('on'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.querySelector(`.ni[data-panel="${name}"]`).classList.add('on');
+
+  // 패널별 데이터 로드 (최초 1회 or 명시적 새로고침)
+  if (name === 'dashboard')  { loadDash(); }
+  if (name === 'rooms')      { loadTR(); if (!panelLoaded.rooms) loadAR(); }
+  if (name === 'monitor')    { if (!panelLoaded.monitor) loadMon(); }
+  if (name === 'settle')     { loadSI(); }
+  if (name === 'members')    { if (!panelLoaded.members) loadM(); }
+  if (name === 'logs')       { updLogM(); if (!panelLoaded.logs) loadLogs(); }
+
+  panelLoaded[name] = true;
+}
+
+function swMon(roomId) {
+  switchPanel('monitor');
+  loadMon(roomId);
+}
+
+// =====================================================================
+// 인증
+// =====================================================================
+document.getElementById('btnLogin').addEventListener('click', doLogin);
+document.getElementById('apw').addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
+document.getElementById('btnLogout').addEventListener('click', doLogout);
+
+async function doLogin() {
+  const nick  = document.getElementById('aid').value.trim();
+  const insta = document.getElementById('apw').value.trim();
+  hideBnr('lerr');
+  if (!nick || !insta) { showBnr('lerr','닉네임과 인스타 아이디를 입력해 주세요'); return; }
+  sl('btnLogin', true);
+  try {
+    const d = await api('admin_login', {nickname:nick, insta_id:insta});
+    if (!d.ok) { showBnr('lerr', d.error||'실패'); return; }
+    adminInfo = d.admin;
+    saveSession(adminInfo);
+    showDash();
+    init();
+  } catch(e) { showBnr('lerr','서버 연결 실패'); }
+  finally { sl('btnLogin', false, '로그인'); }
+}
+
+function doLogout() {
+  adminInfo = null; memberList = []; roomCache = [];
+  clearSession();
+  Object.keys(panelLoaded).forEach(k => panelLoaded[k] = false);
+  document.getElementById('pg-login').classList.remove('hide');
+  document.getElementById('pg-dash').classList.remove('show');
+}
+
+function showDash() {
+  document.getElementById('pg-login').classList.add('hide');
+  document.getElementById('pg-dash').classList.add('show');
+  document.getElementById('admbdg').textContent = '👤 ' + adminInfo.nickname;
+}
+
+function init() {
+  loadDash();
+  loadM();    // 멤버는 미리 로드 (로그 셀렉트에 필요)
+  loadTR();
+  loadAR();
+}
+
+// =====================================================================
+// DASHBOARD
+// =====================================================================
+document.getElementById('btnDashRefresh').addEventListener('click', loadDash);
+document.getElementById('btn-daily-d').addEventListener('click', doDailyD);
+document.getElementById('btn-weekly-d').addEventListener('click', doWeeklyD);
+
+async function loadDash() {
+  try {
+    const d = await api('get_daily');
+    if (!d.ok) return;
+    document.getElementById('ddate').textContent   = d.date;
+    document.getElementById('dwrange').textContent = d.week_range || '';
+    const rs=d.room_stats||[], wt=d.warn_targets||[], ws=d.week_stats||[];
+    document.getElementById('ds-r').textContent = rs.length;
+    document.getElementById('ds-j').textContent = rs.reduce((s,r)=>s+r.total,0);
+    document.getElementById('ds-l').textContent = rs.reduce((s,r)=>s+r.landed_count,0);
+    document.getElementById('ds-w').textContent = wt.length;
+
+    const wtc = document.getElementById('wt-card');
+    const wtl = document.getElementById('wt-list');
+    if (wt.length) {
+      wtc.style.display = '';
+      wtl.innerHTML = wt.map(p=>`<div class="pr"><div class="av">${lt(p.nickname)}</div><div style="flex:1;margin-left:8px"><div style="font-size:12px;font-weight:600">${p.nickname}</div><div style="font-size:11px;color:var(--text3)">@${p.insta_id}</div></div><span class="badge bdm">착륙 미완료</span></div>`).join('');
+    } else { wtc.style.display = 'none'; }
+
+    const wpass=ws.filter(m=>m.is_pass).length, wfail=ws.filter(m=>!m.is_pass).length, ww=ws.filter(m=>m.is_warned).length;
+    document.getElementById('ds-wp').textContent = wpass;
+    document.getElementById('ds-wf').textContent = wfail;
+    document.getElementById('ds-ww').textContent = ww;
+
+    const renderRow = m => {
+      const pct = Math.min(100, Math.round((m.week_land/2)*100));
+      const bc  = m.is_pass ? 'var(--green)' : m.week_land>0 ? 'var(--amber)' : 'var(--red)';
+      const bd  = m.is_pass ? '<span class="badge bdk">통과</span>' : '<span class="badge bdm">미달</span>';
+      const bw  = m.is_warned ? '<span class="badge bdr">경고</span>' : '';
+      const bg  = m.grade==='excellent' ? '<span class="badge bdb">우수</span>' : m.grade==='honorary' ? '<span class="badge bdp">명예</span>' : '';
+      return `<div style="display:flex;align-items:center;padding:8px 16px;border-bottom:1px solid var(--border)"><div style="min-width:90px;font-size:12px;font-weight:600">${m.nickname}</div><div style="min-width:100px;font-size:11px;color:var(--text3)">@${m.insta_id}</div><div class="wb" style="margin:0 8px"><div class="wbi" style="width:${pct}%;background:${bc}"></div></div><div style="font-size:12px;font-weight:700;min-width:28px;text-align:right">${m.week_land}회</div><div style="margin-left:6px;display:flex;gap:3px">${bd}${bw}${bg}</div></div>`;
+    };
+    const participated    = ws.filter(m=>m.week_participate>0);
+    const notParticipated = ws.filter(m=>m.week_participate===0);
+    document.getElementById('wkl').innerHTML =
+      participated.map(renderRow).join('') +
+      (notParticipated.length ? `
+        <div style="padding:10px 16px;background:var(--bg);border-top:2px solid var(--border);cursor:pointer;font-size:12px;color:var(--text2);text-align:center" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.textContent=this.textContent.includes('▼')?'미참여 ${notParticipated.length}명 접기 ▲':'미참여 ${notParticipated.length}명 펼치기 ▼'">
+          미참여 ${notParticipated.length}명 펼치기 ▼
+        </div>
+        <div style="display:none">${notParticipated.map(renderRow).join('')}</div>` : '');
+  } catch(e) { console.error('loadDash:', e); }
+}
+
+async function doDailyD() {
+  if (!await iconfirm('일간 정산을 실행할까요?')) return;
+  const d = await api('run_daily', {admin_id: adminInfo.admin_id});
+  if (d.ok) { showBnr('dok','일간 정산 완료 — 경고 '+d.warned+'명','ok'); loadDash(); }
+  else showBnr('derr', d.error||'실패');
+}
+async function doWeeklyD() {
+  if (!await iconfirm('주간 정산을 실행할까요? (경고·초기화·이월 일괄 처리)')) return;
+  const d = await api('run_weekly', {admin_id: adminInfo.admin_id});
+  if (d.ok) { showBnr('dok',`주간 정산 완료 — 통과 ${d.passed}명 · 경고 ${d.warned}명 · 우수초기화 ${d.reset_excellent||0}명 · 명예초기화 ${d.reset_honorary||0}명 · 경고이월 ${d.carry_over_warns||0}명`,'ok'); loadDash(); }
+  else showBnr('derr', d.error||'실패');
+}
+
+// =====================================================================
+// ROOMS
+// =====================================================================
+document.getElementById('btnARRefresh').addEventListener('click', loadAR);
+document.getElementById('rfd').addEventListener('input', filterAR);
+document.getElementById('btn-preset-all').addEventListener('click', doCreateAllPresets);
+document.getElementById('btnOpenCR').addEventListener('click', openCR);
+
+async function loadTR() {
+  const el = document.getElementById('today-rooms');
+  el.innerHTML = '<div class="empty"><span class="sp spd" style="width:18px;height:18px"></span></div>';
+  try {
+    const d = await api('get_rooms');
+    const rooms = d.rooms || [];
+    if (!rooms.length) { el.innerHTML='<div class="empty">오늘 생성된 룸이 없습니다</div>'; return; }
+    el.innerHTML = '<table class="tbl"><thead><tr><th>룸</th><th>품앗이</th><th>티켓팅</th><th>착륙</th><th>인원</th><th>상태</th><th></th></tr></thead><tbody>'
+      + rooms.map(r => {
+          const bd = r.status==='open' ? '<span class="badge bdk">open</span>' : r.status==='closed' ? '<span class="badge bdg">closed</span>' : '<span class="badge bdm">waiting</span>';
+          const tg = (r.items||'').split(',').map(t=>'<span class="tag">'+t.trim()+'</span>').join('');
+          return `<tr><td style="font-weight:600;white-space:nowrap">${r.room_date} #${r.room_number}</td><td>${tg}</td><td style="font-size:11px;white-space:nowrap">${r.ticket_start_fmt||''} ~ ${r.ticket_end_fmt||''}</td><td style="font-size:11px;white-space:nowrap">${r.land_start_fmt||''} ~ ${r.land_end_fmt||''}</td><td>${r.joined}/${r.max_members}</td><td>${bd}</td><td><div class="act-cell"><button class="btn bo bsm" data-action="mon" data-rid="${r.room_id}">현황</button><button class="btn bo bsm" data-action="edit-room" data-rid="${r.room_id}">수정</button><button class="btn bsm btn-lock" data-action="del-room" data-rid="${r.room_id}" data-rdate="${r.room_date}" data-rnum="${r.room_number}">삭제</button></div></td></tr>`;
+        }).join('') + '</tbody></table>';
+  } catch(e) { el.innerHTML='<div class="empty">불러오기 실패</div>'; }
+}
+async function loadAR() {
+  const el = document.getElementById('all-rooms');
+  el.innerHTML = '<div class="empty"><span class="sp spd" style="width:18px;height:18px"></span></div>';
+  try { const d = await api('get_all_rooms'); roomCache = d.rooms||[]; filterAR(); }
+  catch(e) { el.innerHTML='<div class="empty">불러오기 실패</div>'; }
+}
+function filterAR() {
+  const df = document.getElementById('rfd')?.value || '';
+  renderAR(df ? roomCache.filter(r=>r.room_date===df) : roomCache);
+}
+function renderAR(rooms) {
+  const el = document.getElementById('all-rooms');
+  if (!rooms.length) { el.innerHTML='<div class="empty">룸이 없습니다</div>'; return; }
+  el.innerHTML = '<table class="tbl"><thead><tr><th>날짜</th><th>#</th><th>품앗이</th><th>티켓팅</th><th>착륙</th><th>인원</th><th>상태</th><th>메모</th><th></th></tr></thead><tbody>'
+    + rooms.map(r => {
+        const bd = r.status==='open' ? '<span class="badge bdk">open</span>' : r.status==='closed' ? '<span class="badge bdg">closed</span>' : '<span class="badge bdm">waiting</span>';
+        const tg = (r.items||'').split(',').map(t=>'<span class="tag">'+t.trim()+'</span>').join('');
+        return `<tr><td style="font-weight:600;white-space:nowrap">${r.room_date}</td><td>#${r.room_number}</td><td>${tg}</td><td style="font-size:11px;white-space:nowrap">${r.ticket_start_fmt||''} ~ ${r.ticket_end_fmt||''}</td><td style="font-size:11px;white-space:nowrap">${r.land_start_fmt||''} ~ ${r.land_end_fmt||''}</td><td>${r.joined}/${r.max_members}</td><td>${bd}</td><td style="font-size:11px;color:var(--text2);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.memo||''}</td><td><div class="act-cell"><button class="btn bo bsm" data-action="edit-room" data-rid="${r.room_id}">수정</button><button class="btn bsm btn-lock" data-action="del-room" data-rid="${r.room_id}" data-rdate="${r.room_date}" data-rnum="${r.room_number}">삭제</button></div></td></tr>`;
+      }).join('') + '</tbody></table>';
+}
+
+// 룸 생성 모달
+function openCR() {
+  document.getElementById('crd').value = td();
+  document.getElementById('crn').value = roomCache.filter(r=>r.room_date===td()).length + 1;
+  document.querySelectorAll('#ichips .chip').forEach(c=>c.classList.remove('on'));
+  document.getElementById('sitems').textContent = '없음';
+  document.getElementById('crmo').value = '';
+  hideBnr('crerr');
+  document.getElementById('tpv').style.display = 'none';
+  openModal('mcr');
+}
+document.getElementById('btnCRClose').addEventListener('click', ()=>closeModal('mcr'));
+document.getElementById('btnCR').addEventListener('click', doCreateRoom);
+document.getElementById('btnERClose').addEventListener('click', ()=>closeModal('mer'));
+document.getElementById('btnER').addEventListener('click', doUpdateRoom);
+
+// 칩 토글 (이벤트 위임)
+document.getElementById('ichips').addEventListener('click', e => {
+  const chip = e.target.closest('.chip'); if (!chip) return;
+  chip.classList.toggle('on');
+  const sel = [...document.querySelectorAll('#ichips .chip.on')].map(c=>c.textContent).join(',');
+  document.getElementById('sitems').textContent = sel || '없음';
+});
+document.getElementById('echips').addEventListener('click', e => {
+  const chip = e.target.closest('.chip'); if (!chip) return;
+  chip.classList.toggle('on');
+});
+
+// 시간 미리보기
+['crts','crte','crls','crle','crd'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', pvt);
+});
+function pvt() {
+  const d=document.getElementById('crd').value, ts=document.getElementById('crts').value, te=document.getElementById('crte').value, ls=document.getElementById('crls').value, le=document.getElementById('crle').value;
+  const pv = document.getElementById('tpv');
+  if (!d||!ts||!te||!ls||!le) { pv.style.display='none'; return; }
+  const teD=te<=ts?nd(d):d, lsD=ls<ts?nd(d):d, leD=le<=ls?nd(lsD):lsD;
+  pv.style.display='block';
+  pv.innerHTML='🎫 '+d+' '+ts+' ~ '+teD+' '+te+' &nbsp;| 🛬 '+lsD+' '+ls+' ~ '+leD+' '+le;
+}
+
+async function doCreateRoom() {
+  hideBnr('crerr');
+  const date=document.getElementById('crd').value, num=document.getElementById('crn').value;
+  const ts=document.getElementById('crts').value, te=document.getElementById('crte').value;
+  const ls=document.getElementById('crls').value, le=document.getElementById('crle').value;
+  const max=document.getElementById('crm').value;
+  const items=[...document.querySelectorAll('#ichips .chip.on')].map(c=>c.textContent).join(',');
+  const memo=document.getElementById('crmo').value;
+  if (!date||!ts||!te||!ls||!le) { showBnr('crerr','날짜와 시간을 입력해 주세요'); return; }
+  if (!items) { showBnr('crerr','품앗이 항목을 선택해 주세요'); return; }
+  const teD=te<=ts?nd(date):date, lsD=ls<ts?nd(date):date, leD=le<=ls?nd(lsD):lsD;
+  sl('btnCR',true);
+  try {
+    const d = await api('create_room',{admin_id:adminInfo.admin_id,room_date:date,room_number:Number(num),items,max_members:Number(max),ticket_start:date+' '+ts,ticket_end:teD+' '+te,land_start:lsD+' '+ls,land_end:leD+' '+le,memo});
+    if (!d.ok) { showBnr('crerr', d.error||'실패'); return; }
+    closeModal('mcr'); showBnr('rok','룸 생성 완료','ok'); loadTR(); loadAR();
+  } catch(e) { showBnr('crerr','서버 오류'); }
+  finally { sl('btnCR',false,'룸 생성 완료'); }
+}
+
+function openER(r) {
+  document.getElementById('erid').value  = r.room_id;
+  document.getElementById('erdate').value= r.room_date;
+  document.getElementById('ermax').value = r.max_members;
+  document.getElementById('erst').value  = r.status||'open';
+  document.getElementById('ermo').value  = r.memo||'';
+  const to = s => s ? String(s).replace(/.*(\d{2}:\d{2})$/,'$1') : '';
+  document.getElementById('erts').value = to(r.ticket_start);
+  document.getElementById('erte').value = to(r.ticket_end);
+  document.getElementById('erls').value = to(r.land_start);
+  document.getElementById('erle').value = to(r.land_end);
+  const sel = (r.items||'').split(',').map(s=>s.trim());
+  document.querySelectorAll('#echips .chip').forEach(c=>c.classList.toggle('on', sel.includes(c.textContent.trim())));
+  hideBnr('ererr');
+  openModal('mer');
+}
+function openERbyId(rid) {
+  const r = roomCache.find(x=>x.room_id===rid);
+  if (r) { openER(r); return; }
+  api('get_all_rooms').then(d=>{ roomCache=d.rooms||[]; const ro=roomCache.find(x=>x.room_id===rid); if(ro) openER(ro); });
+}
+async function doUpdateRoom() {
+  hideBnr('ererr');
+  const rid=document.getElementById('erid').value, date=document.getElementById('erdate').value;
+  const max=document.getElementById('ermax').value, st=document.getElementById('erst').value, memo=document.getElementById('ermo').value;
+  const items=[...document.querySelectorAll('#echips .chip.on')].map(c=>c.textContent).join(',');
+  const ts=document.getElementById('erts').value, te=document.getElementById('erte').value;
+  const ls=document.getElementById('erls').value, le=document.getElementById('erle').value;
+  if (!items) { showBnr('ererr','품앗이 항목을 선택해 주세요'); return; }
+  const teD=te<=ts?nd(date):date, lsD=ls<ts?nd(date):date, leD=le<=ls?nd(lsD):lsD;
+  sl('btnER',true);
+  try {
+    const d = await api('update_room',{room_id:rid,items,max_members:Number(max),memo,status:st,ticket_start:date+' '+ts,ticket_end:teD+' '+te,land_start:lsD+' '+ls,land_end:leD+' '+le});
+    if (!d.ok) { showBnr('ererr',d.error||'실패'); return; }
+    closeModal('mer'); showBnr('rok','룸 수정 완료','ok'); loadTR(); loadAR();
+  } catch(e) { showBnr('ererr','서버 오류'); }
+  finally { sl('btnER',false,'수정 완료'); }
+}
+async function doDeleteRoom(rid,date,num) {
+  if (!await iconfirm(`${date} #${num} 룸을 삭제할까요?`, true)) return;
+  const d = await api('delete_room',{room_id:rid});
+  if (d.ok) { showBnr('rok','룸 삭제 완료','ok'); loadTR(); loadAR(); }
+  else showBnr('rerr', d.error||'실패');
+}
+
+async function doCreateAllPresets() {
+  if (!await iconfirm(`오늘(${td()}) 프리셋 6종을 생성할까요?`)) return;
   sl('btn-preset-all',true);
   let ok=0,skip=0,fail=[];
-  for(const p of PRESETS){
-    try{
-      const d=await api('create_preset',{admin_id:ai.admin_id,preset_num:p.num,room_date:td()});
-      if(d.ok) ok++;
-      else if(d.error&&d.error.includes('이미')) skip++;
+  for (const p of PRESETS) {
+    try {
+      const d = await api('create_preset',{admin_id:adminInfo.admin_id,preset_num:p.num,room_date:td()});
+      if (d.ok) ok++;
+      else if (d.error&&d.error.includes('이미')) skip++;
       else fail.push(`${p.num}번: ${d.error}`);
-    }catch(e){ fail.push(`${p.num}번: 서버 오류`); }
+    } catch(e) { fail.push(`${p.num}번: 서버 오류`); }
   }
   sl('btn-preset-all',false,'⚡ 오늘 프리셋 생성');
-  const msg=`✅ 생성 ${ok}개${skip?` · 건너뜀 ${skip}개`:''}${fail.length?`\n⚠ 실패: ${fail.join(', ')}`:''}`;
-  if(fail.length) alert(msg);
+  const msg = `✅ 생성 ${ok}개${skip?` · 건너뜀 ${skip}개`:''}${fail.length?`\n⚠ 실패: ${fail.join(', ')}`:''}`;
+  if (fail.length) showBnr('rok', msg);
   else showBnr('rok',msg,'ok');
   loadTR(); loadAR();
 }
 
-// LOGS
-async function loadLogs(){
-  const el=document.getElementById('ltbl');el.innerHTML='<div class="empty"><span class="sp spd" style="width:18px;height:18px"></span></div>';
-  const mid=document.getElementById('logm')?.value||'',act=document.getElementById('loga')?.value||'';
-  const d2=new Date(),thu=new Date(d2);thu.setDate(d2.getDate()+4-(d2.getDay()||7));const ys=new Date(thu.getFullYear(),0,1);const wk=Math.ceil(((thu-ys)/86400000+1)/7);const wkey=thu.getFullYear()+'-W'+String(wk).padStart(2,'0')+'-plane';
-  try{const r=await api('get_logs',{week_key:wkey,member_id:mid});let logs=r.logs||[];if(act)logs=logs.filter(l=>l.action===act);if(!logs.length){el.innerHTML='<div class="empty">로그가 없습니다</div>';return;}
-    const al={ticket:'티켓팅',link_register:'링크 등록',link_update:'링크 수정',land:'착륙'};
-    el.innerHTML='<table class="tbl"><thead><tr><th>시각</th><th>닉네임</th><th>아이디</th><th>액션</th><th>상세</th></tr></thead><tbody>'+logs.map(l=>'<tr><td style="font-size:11px;color:var(--text2);white-space:nowrap">'+(l.logged_at||'')+'</td><td style="font-weight:600">'+(l.nickname||'')+'</td><td style="font-size:11px;color:var(--text2)">@'+(l.insta_id||'')+'</td><td>'+(al[l.action]||l.action||'')+'</td><td style="font-size:11px;color:var(--text2);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(l.detail||'')+'</td></tr>').join('')+'</tbody></table>';}
-  catch(e){el.innerHTML='<div class="empty">불러오기 실패</div>';}
+// 룸 패널 이벤트 위임
+['today-rooms','all-rooms'].forEach(id => {
+  document.getElementById(id).addEventListener('click', e => {
+    const btn = e.target.closest('[data-action]'); if (!btn) return;
+    const {action, rid, rdate, rnum} = btn.dataset;
+    if (action==='mon')      swMon(rid);
+    if (action==='edit-room') openERbyId(rid);
+    if (action==='del-room')  doDeleteRoom(rid, rdate, rnum);
+  });
+});
+
+// =====================================================================
+// MONITOR
+// =====================================================================
+document.getElementById('btnMonRefresh').addEventListener('click', ()=>loadMon());
+
+async function loadMon(filterRoomId) {
+  const el = document.getElementById('mon-content');
+  el.innerHTML = '<div class="empty"><span class="sp spd" style="width:18px;height:18px"></span></div>';
+  try {
+    const d = await api('get_daily');
+    if (!d.ok) { el.innerHTML='<div class="empty">불러오기 실패</div>'; return; }
+    let rs = d.room_stats || [];
+    if (!rs.length) {
+      const rd = await api('get_all_rooms');
+      const todayRooms = (rd.rooms||[]).filter(r=>r.room_date===td());
+      if (!todayRooms.length) { el.innerHTML='<div class="empty">오늘 생성된 비행기가 없습니다</div>'; return; }
+      rs = todayRooms.map(r=>({room_id:r.room_id,room_number:r.room_number,room_date:r.room_date,items:r.items,memo:r.memo||'',ticket_start_fmt:r.ticket_start_fmt,ticket_end_fmt:r.ticket_end_fmt,land_start_fmt:r.land_start_fmt,land_end_fmt:r.land_end_fmt,is_land_closed:false,total:0,landed_count:0,participants:[],no_land_list:[]}));
+    }
+    if (filterRoomId) rs = rs.filter(r=>r.room_id===filterRoomId);
+    if (!rs.length) { el.innerHTML='<div class="empty">해당 비행기를 찾을 수 없습니다</div>'; return; }
+    monStats = rs;
+    const typeIcon = {normal:'',excellent:'⭐',honorary:'🏅',staff:'🎖'};
+    el.innerHTML = rs.map((r,ridx) => {
+      const bd = r.is_land_closed ? '<span class="badge bdr">착륙 마감</span>' : '<span class="badge bdk">진행 중</span>';
+      const tg = (r.items||'').split(',').map(t=>'<span class="tag">'+t.trim()+'</span>').join('');
+      const parts = r.participants || [];
+      const nl = r.no_land_list || [];
+      const prows = parts.map(p => {
+        const pb  = p.status==='landed' ? '<span class="badge bdk" style="font-size:10px">착륙✓</span>' : '<span class="badge bdb" style="font-size:10px">탑승</span>';
+        const ti  = typeIcon[p.ticket_type||'normal'] || '';
+        const landBtn = p.status!=='landed'
+          ? `<button class="btn bsm" style="color:var(--green);border:1px solid var(--green);background:transparent;margin-left:4px" data-action="admin-land" data-rid="${r.room_id}" data-mid="${p.member_id||''}" data-nick="${p.nickname}">🛬</button>`
+          : '';
+        const delBtn = `<button class="btn bsm btn-lock" style="margin-left:2px" data-action="admin-del" data-rid="${r.room_id}" data-mid="${p.member_id||''}" data-nick="${p.nickname}">🗑️</button>`;
+        return `<div class="pr"><div class="av">${lt(p.nickname)}</div><div style="flex:1;margin-left:8px;min-width:0"><div style="font-size:12px;font-weight:600">${p.nickname} ${ti}<span style="font-weight:400;color:var(--text3)"> @${p.insta_id}</span></div>${p.post_url?'<div style="font-size:11px"><a href="'+p.post_url+'" target="_blank" style="color:var(--primary)">'+p.post_url+'</a></div>':'<div style="font-size:11px;color:var(--text3)">링크 미등록</div>'}</div><div style="display:flex;align-items:center">${pb}${landBtn}${delBtn}</div></div>`;
+      }).join('');
+      return `<div class="rca">
+        <div class="rcah">
+          <div>
+            <div style="font-size:14px;font-weight:700">${r.room_date||''} #${r.room_number} ${bd}</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px">티켓팅 ${r.ticket_start_fmt||''} ~ ${r.ticket_end_fmt||''} &nbsp; 착륙 ${r.land_start_fmt||''} ~ ${r.land_end_fmt||''}</div>
+            <div style="margin-top:4px">${tg}</div>
+            ${r.memo?'<div style="font-size:11px;color:var(--text3);margin-top:3px">'+r.memo.split('\n')[0]+'</div>':''}
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:20px;font-weight:700">${r.landed_count}/${r.total}</div>
+            <div style="font-size:11px;color:var(--text3)">착륙/참여</div>
+            <div style="display:flex;flex-direction:column;gap:4px;margin-top:6px">
+              <button class="btn bo bsm" data-action="copy-room" data-ridx="${ridx}" data-type="all">전체 복사 (${parts.length}명)</button>
+              ${nl.length?`<button class="btn bsm" style="color:var(--amber);border:1px solid var(--amber);background:transparent" data-action="copy-room" data-ridx="${ridx}" data-type="nolnad">미착륙 복사 (${nl.length}명)</button>`:''}
+            </div>
+          </div>
+        </div>
+        <div style="max-height:220px;overflow-y:auto">${prows||'<div class="empty" style="padding:16px">참여자 없음</div>'}</div>
+        ${nl.length?`<div style="padding:10px 16px;background:var(--amber-bg);border-top:1px solid #FDE68A"><div style="font-size:12px;font-weight:700;color:var(--amber);margin-bottom:3px">⚠ 착륙 미완료 (${nl.length}명)</div><div style="font-size:12px;color:var(--amber)">${nl.map(p=>p.nickname).join(', ')}</div></div>`:''}
+      </div>`;
+    }).join('');
+    panelLoaded.monitor = true;
+  } catch(e) { console.error(e); el.innerHTML='<div class="empty">불러오기 실패</div>'; }
 }
+
+// 참여현황 이벤트 위임
+document.getElementById('mon-content').addEventListener('click', async e => {
+  const btn = e.target.closest('[data-action]'); if (!btn) return;
+  const {action, rid, mid, nick, ridx, type} = btn.dataset;
+  if (action==='admin-land') {
+    if (!mid) { showBnr('sok','member_id가 없습니다. fixAllMemberIds 실행 후 다시 시도해주세요.'); return; }
+    if (!await iconfirm(`${nick}님 착륙 처리할까요?`)) return;
+    btn.disabled = true;
+    const d = await api('admin_land',{room_id:rid,member_id:mid,admin_id:adminInfo.admin_id});
+    btn.disabled = false;
+    if (d.ok) { showBnr('sok',d.message,'ok'); loadMon(); }
+    else showBnr('sok', d.error||'실패');
+  }
+  if (action==='admin-del') {
+    if (!mid) { showBnr('sok','member_id가 없습니다.'); return; }
+    if (!await iconfirm(`${nick}님 참여 기록 삭제 (복구 불가)`, true)) return;
+    btn.disabled = true;
+    const d = await api('admin_delete_part',{room_id:rid,member_id:mid,admin_id:adminInfo.admin_id});
+    btn.disabled = false;
+    if (d.ok) { showBnr('sok',d.message,'ok'); loadMon(); }
+    else showBnr('sok', d.error||'실패');
+  }
+  if (action==='copy-room') cpRoom(btn, Number(ridx), type);
+});
+
+function cpRoom(btn, idx, type) {
+  const r = monStats[idx];
+  if (!r) { showBnr('sok','데이터를 찾을 수 없습니다. 새로고침 후 다시 시도해주세요.'); return; }
+  let list, txt;
+  if (type==='nolnad') {
+    list = r.no_land_list || [];
+    if (!list.length) { showBnr('sok','미착륙자가 없습니다'); return; }
+    txt = `📋 ${r.room_date||''} #${r.room_number} 미착륙자 명단 (${list.length}명)\n${'─'.repeat(30)}\n` + list.map(p=>p.nickname+' @'+p.insta_id).join('\n');
+  } else {
+    list = r.participants || [];
+    if (!list.length) { showBnr('sok','참여자가 없습니다'); return; }
+    txt = `📋 ${r.room_date||''} #${r.room_number} 전체 참여자 (${list.length}명)\n${'─'.repeat(30)}\n` + list.map(p=>p.nickname+' @'+p.insta_id+(p.post_url?' '+p.post_url:'')).join('\n');
+  }
+  const labelAll = `전체 복사 (${list.length}명)`, labelNl = `미착륙 복사 (${list.length}명)`;
+  const origLabel = type==='nolnad' ? labelNl : labelAll;
+  const copy = () => { btn.textContent='✓ 복사됨!'; setTimeout(()=>btn.textContent=origLabel, 1500); };
+  navigator.clipboard.writeText(txt).then(copy).catch(()=>{ const t=document.createElement('textarea');t.value=txt;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);copy(); });
+}
+
+// =====================================================================
+// SETTLE
+// =====================================================================
+document.getElementById('btn-daily-s').addEventListener('click', doDailyS);
+document.getElementById('btn-weekly-s').addEventListener('click', doWeeklyS);
+document.getElementById('btn-init-rec').addEventListener('click', doInitWeeklyRecord);
+
+function loadSI() {
+  const now=new Date(), d=now.getDay(), tm=d===0?-6:1-d, mon=new Date(now);
+  mon.setDate(now.getDate()+tm); mon.setHours(10,0,0,0);
+  const sun=new Date(mon); sun.setDate(mon.getDate()+6); sun.setHours(22,0,0,0);
+  const f=d=>(d.getMonth()+1)+'/'+d.getDate()+' '+('0'+d.getHours()).slice(-2)+':00';
+  document.getElementById('sinfo').innerHTML='주간: <strong>'+f(mon)+' ~ '+f(sun)+'</strong> · 필참 2회<br>일간: 당일 11:00 ~ 익일 10:00';
+}
+async function doDailyS() {
+  if (!await iconfirm('일간 정산을 실행할까요?')) return;
+  sl('btn-daily-s',true);
+  const d = await api('run_daily',{admin_id:adminInfo.admin_id});
+  sl('btn-daily-s',false,'일간 정산 실행');
+  if (d.ok) showBnr('sok','일간 정산 완료 — 경고 '+d.warned+'명: '+(d.warned_list||[]).join(', ')||'없음','ok');
+  else showBnr('serr',d.error||'실패');
+}
+async function doWeeklyS() {
+  if (!await iconfirm('주간 정산을 실행할까요? (경고·우수/명예 초기화·이월)')) return;
+  sl('btn-weekly-s',true);
+  const d = await api('run_weekly',{admin_id:adminInfo.admin_id});
+  sl('btn-weekly-s',false,'주간 정산 실행');
+  if (d.ok) {
+    showBnr('sok',`주간 정산 완료\n통과 ${d.passed}명 · 경고 ${d.warned}명\n우수 초기화 ${d.reset_excellent||0}명 · 명예 초기화 ${d.reset_honorary||0}명\n경고 이월 ${d.carry_over_warns||0}명`,'ok');
+    const st = (await api('get_weekly',{week_key:d.week_key})).stats || [];
+    const r = document.getElementById('sresult');
+    r.innerHTML = '<div class="card"><div class="ch"><span class="ct">'+d.week_key+' 결과</span></div>'
+      + (d.carry_over_list?.length ? '<div style="padding:10px 16px;background:var(--amber-bg);border-bottom:1px solid #FDE68A;font-size:12px"><strong style="color:var(--amber)">⚠ 경고 이월 (다음주 월요일 10:00까지 차감 필요):</strong> '+d.carry_over_list.join(', ')+'</div>' : '')
+      + '<table class="tbl"><thead><tr><th>닉네임</th><th>아이디</th><th>참여</th><th>착륙</th><th>진행률</th><th>결과</th></tr></thead><tbody>'
+      + st.map(s => {
+          const pct=Math.min(100,Math.round((s.land_count/2)*100));
+          const bc=s.is_pass?'var(--green)':s.land_count>0?'var(--amber)':'var(--red)';
+          return `<tr><td style="font-weight:600">${s.nickname}</td><td>@${s.insta_id}</td><td style="text-align:center">${s.participate_count}</td><td style="text-align:center;font-weight:700">${s.land_count}</td><td><div style="display:flex;align-items:center;gap:6px"><div class="wb"><div class="wbi" style="width:${pct}%;background:${bc}"></div></div><span style="font-size:11px">${pct}%</span></div></td><td>${s.is_pass?'<span class="badge bdk">통과</span>':'<span class="badge bdm">경고</span>'}</td></tr>`;
+        }).join('')+'</tbody></table></div>';
+  } else showBnr('serr',d.error||'실패');
+}
+async function doInitWeeklyRecord() {
+  if (!await iconfirm('이번 주 기록을 초기화할까요? (없는 멤버만 추가)')) return;
+  sl('btn-init-rec',true);
+  const d = await api('init_weekly_record',{admin_id:adminInfo.admin_id});
+  sl('btn-init-rec',false,'📋 이번주 기록 초기화');
+  if (d.ok) showBnr('sok',d.message,'ok');
+  else showBnr('serr',d.error||'실패');
+}
+
+// =====================================================================
+// MEMBERS — 핵심 최적화: 행 단위 DOM 업데이트
+// =====================================================================
+document.getElementById('msrch').addEventListener('input', filterM);
+document.getElementById('msf').addEventListener('change', filterM);
+document.getElementById('btnOpenAM').addEventListener('click', openAM);
+document.getElementById('btnMBClose').addEventListener('click', ()=>closeModal('mmb'));
+document.getElementById('btnMB').addEventListener('click', subMB);
+
+async function loadM() {
+  try {
+    const d = await api('get_members');
+    memberList = d.members || [];
+    filterM();
+    updLogM();
+    panelLoaded.members = true;
+  } catch(e) { showBnr('merr','멤버 조회 실패'); }
+}
+
+function updLogM() {
+  const s = document.getElementById('logm');
+  if (s) s.innerHTML = '<option value="">전체</option>' + memberList.map(m=>`<option value="${m.member_id}">${m.nickname}</option>`).join('');
+}
+
+function filterM() {
+  const q  = document.getElementById('msrch')?.value.toLowerCase() || '';
+  const st = document.getElementById('msf')?.value || '';
+  renderM(memberList.filter(m => (!st || m.status===st) && (m.nickname.toLowerCase().includes(q) || m.insta_id.toLowerCase().includes(q))));
+}
+
+function statusBadge(status) {
+  return status==='locked'   ? '<span class="badge bdr">잠금</span>'
+       : status==='warned'   ? '<span class="badge bdm">경고</span>'
+       : status==='inactive' ? '<span class="badge bdg">비활성</span>'
+       : '<span class="badge bdk">활성</span>';
+}
+
+function renderM(members) {
+  const el = document.getElementById('mtbl');
+  if (!members.length) { el.innerHTML='<div class="empty">멤버가 없습니다</div>'; return; }
+  const rows = members.map((m, i) => {
+    const wc  = Number(m.warning_count)   || 0;
+    const ec  = Number(m.excellent_count) || 0;
+    const hc  = Number(m.honorary_count)  || 0;
+    const mid = m.member_id;
+    // 잠금/비활성 버튼
+    const lockBtn  = m.status==='locked'   ? `<button class="btn bgg bsm" data-action="unlock" data-mid="${mid}">잠금해제</button>` : `<button class="btn bsm btn-lock" data-action="lock" data-mid="${mid}">잠금</button>`;
+    const actBtn   = m.status==='inactive' ? `<button class="btn bgg bsm" data-action="activate" data-mid="${mid}">활성화</button>` : `<button class="btn bsm btn-inact" data-action="inactivate" data-mid="${mid}">비활성</button>`;
+    return `<tr data-mid="${mid}">
+      <td style="color:var(--text3)">${i+1}</td>
+      <td style="font-weight:600">${m.nickname}</td>
+      <td style="font-size:12px">@${m.insta_id}</td>
+      <td>${statusBadge(m.status)}</td>
+      <td><div style="display:flex;align-items:center;gap:4px">
+        <button class="cbtn" data-action="warn-" data-mid="${mid}" ${wc<=0?'disabled':''}>−</button>
+        <span class="cv" style="${wc>0?'color:var(--red)':''}" data-field="wc">${wc}</span>
+        <button class="cbtn" data-action="warn+" data-mid="${mid}">+</button>
+      </div></td>
+      <td><div style="display:flex;align-items:center;gap:4px">
+        <button class="cbtn" data-action="exc-" data-mid="${mid}" ${ec<=0?'disabled':''}>−</button>
+        <span class="cv" style="${ec>0?'color:var(--primary)':''}" title="우수 티켓" data-field="ec">⭐${ec}</span>
+        <button class="cbtn" data-action="exc+" data-mid="${mid}">+</button>
+      </div></td>
+      <td><div style="display:flex;align-items:center;gap:4px">
+        <button class="cbtn" data-action="hon-" data-mid="${mid}" ${hc<=0?'disabled':''}>−</button>
+        <span class="cv" style="${hc>0?'color:var(--purple)':''}" title="명예 티켓" data-field="hc">🏅${hc}</span>
+        <button class="cbtn" data-action="hon+" data-mid="${mid}">+</button>
+      </div></td>
+      <td style="font-size:11px;color:var(--text2)">${m.last_login_at||'-'}</td>
+      <td><div class="act-cell">
+        <button class="btn bo bsm" data-action="memo" data-mid="${mid}">메모</button>
+        ${actBtn}${lockBtn}
+      </div></td>
+    </tr>`;
+  }).join('');
+  el.innerHTML = '<table class="tbl"><thead><tr><th>#</th><th>닉네임</th><th>아이디</th><th>상태</th><th>경고</th><th>우수⭐</th><th>명예🏅</th><th>마지막 로그인</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>';
+}
+
+// =====================================================================
+// 인라인 확인 토스트 — confirm() 완전 대체
+// UI 스레드를 절대 블록하지 않음 (Promise 기반)
+// =====================================================================
+let _toastEl = null;
+function iconfirm(msg, danger=false) {
+  return new Promise(resolve => {
+    // 기존 토스트 제거
+    if (_toastEl) _toastEl.remove();
+    const el = document.createElement('div');
+    el.className = 'iconf';
+    el.innerHTML = `<span class="iconf-msg">${msg}</span>
+      <button class="iconf-no">취소</button>
+      <button class="iconf-yes${danger?' danger':''}">확인</button>`;
+    document.body.appendChild(el);
+    _toastEl = el;
+    const cleanup = (val) => { el.remove(); _toastEl=null; resolve(val); };
+    el.querySelector('.iconf-yes').onclick = () => cleanup(true);
+    el.querySelector('.iconf-no').onclick  = () => cleanup(false);
+    // 5초 후 자동 취소
+    setTimeout(() => { if (_toastEl===el) cleanup(false); }, 5000);
+  });
+}
+
+// ── 행 처리 중 스피너 표시/해제
+function rowBusy(tr, on) {
+  if (on) tr.classList.add('row-loading');
+  else    tr.classList.remove('row-loading');
+}
+
+// ── 행 단위 DOM 업데이트 헬퍼
+function updateMemberRow(mid) {
+  const m = memberList.find(x => x.member_id === mid);
+  if (!m) return;
+  const tr = document.querySelector(`#mtbl tr[data-mid="${mid}"]`);
+  if (!tr) return;
+
+  const wc = Number(m.warning_count)   || 0;
+  const ec = Number(m.excellent_count) || 0;
+  const hc = Number(m.honorary_count)  || 0;
+
+  // 상태 배지
+  const tdStatus = tr.querySelector('td:nth-child(4)');
+  if (tdStatus) tdStatus.innerHTML = statusBadge(m.status);
+
+  // 경고 수치
+  const wcSpan = tr.querySelector('[data-field="wc"]');
+  if (wcSpan) { wcSpan.textContent = wc; wcSpan.style.color = wc > 0 ? 'var(--red)' : ''; }
+  const wMinus = tr.querySelector('[data-action="warn-"]');
+  if (wMinus) wMinus.disabled = wc <= 0;
+
+  // 우수 수치
+  const ecSpan = tr.querySelector('[data-field="ec"]');
+  if (ecSpan) { ecSpan.textContent = '⭐' + ec; ecSpan.style.color = ec > 0 ? 'var(--primary)' : ''; }
+  const eMinus = tr.querySelector('[data-action="exc-"]');
+  if (eMinus) eMinus.disabled = ec <= 0;
+
+  // 명예 수치
+  const hcSpan = tr.querySelector('[data-field="hc"]');
+  if (hcSpan) { hcSpan.textContent = '🏅' + hc; hcSpan.style.color = hc > 0 ? 'var(--purple)' : ''; }
+  const hMinus = tr.querySelector('[data-action="hon-"]');
+  if (hMinus) hMinus.disabled = hc <= 0;
+
+  // 잠금/비활성 버튼 교체
+  const actCell = tr.querySelector('.act-cell');
+  if (actCell) {
+    const lockBtn = m.status==='locked'
+      ? `<button class="btn bgg bsm" data-action="unlock" data-mid="${mid}">잠금해제</button>`
+      : `<button class="btn bsm btn-lock" data-action="lock" data-mid="${mid}">잠금</button>`;
+    const actBtn  = m.status==='inactive'
+      ? `<button class="btn bgg bsm" data-action="activate" data-mid="${mid}">활성화</button>`
+      : `<button class="btn bsm btn-inact" data-action="inactivate" data-mid="${mid}">비활성</button>`;
+    const memoBtn = actCell.querySelector('[data-action="memo"]');
+    actCell.innerHTML = (memoBtn ? memoBtn.outerHTML : `<button class="btn bo bsm" data-action="memo" data-mid="${mid}">메모</button>`) + actBtn + lockBtn;
+  }
+}
+
+// ── 멤버 테이블 이벤트 위임
+document.getElementById('mtbl').addEventListener('click', async e => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn || btn.disabled) return;
+  const { action, mid } = btn.dataset;
+  if (!mid) return;
+  const m = memberList.find(x => x.member_id === mid);
+  if (!m && !['unlock','lock','activate','inactivate','memo'].includes(action)) return;
+  if (action === 'memo') { openEM(m); return; }
+
+  const tr = btn.closest('tr');
+
+  // +/- 계열은 confirm 없이 즉시 낙관적 업데이트 후 API
+  if (['warn+','warn-','exc+','exc-','hon+','hon-'].includes(action)) {
+    await handleCounter(action, mid, m, btn, tr);
+    return;
+  }
+  // 잠금/비활성은 확인 토스트만 (모달 없음)
+  if (action==='lock')        await handleLock(mid, 'lock', btn, tr);
+  if (action==='unlock')      await handleLock(mid, 'unlock', btn, tr);
+  if (action==='inactivate')  await handleStatus(mid, 'inactive', btn, tr);
+  if (action==='activate')    await handleStatus(mid, 'active', btn, tr);
+});
+
+// ── +/- 카운터: confirm 없이 즉시 처리 (실수면 반대로 누르면 됨)
+async function handleCounter(action, mid, m, btn, tr) {
+  btn.disabled = true;
+  rowBusy(tr, true);
+
+  const isWarn = action.startsWith('warn');
+  const isExc  = action.startsWith('exc');
+  const isHon  = action.startsWith('hon');
+  const delta  = action.endsWith('+') ? 1 : -1;
+
+  try {
+    let d;
+    if (isWarn) {
+      const cur = Number(m.warning_count) || 0;
+      if (delta < 0 && cur <= 0) return;
+      d = delta > 0
+        ? await api('manual_warn', {member_id:mid, admin_nickname:adminInfo.nickname, reason:'관리자 수동 경고 +1'})
+        : await api('adjust_warn', {member_id:mid, delta:-1});
+      if (d.ok) {
+        if (d.member) { m.warning_count=d.member.warning_count; m.status=d.member.status; }
+        else { m.warning_count=Math.max(0,cur+delta); if(delta>0&&m.status==='active') m.status='warned'; }
+      }
+    } else if (isExc) {
+      const cur = Number(m.excellent_count) || 0;
+      if (delta < 0 && cur <= 0) return;
+      d = await api('adjust_excellent', {member_id:mid, delta});
+      if (d.ok) m.excellent_count = d.member ? d.member.excellent_count : Math.max(0,cur+delta);
+    } else if (isHon) {
+      const cur = Number(m.honorary_count) || 0;
+      if (delta < 0 && cur <= 0) return;
+      d = await api('adjust_honorary', {member_id:mid, delta});
+      if (d.ok) m.honorary_count = d.member ? d.member.honorary_count : Math.max(0,cur+delta);
+    }
+    if (d?.ok) { updateMemberRow(mid); showBnr('mok', d.message||'처리 완료', 'ok'); }
+    else showBnr('merr', d?.error||'실패');
+  } catch(e) { showBnr('merr','오류가 발생했습니다'); }
+  finally { rowBusy(tr, false); btn.disabled = false; }
+}
+
+// ── 잠금/해제: 토스트 확인 후 처리
+async function handleLock(mid, lockAction, btn, tr) {
+  const label = lockAction==='lock' ? '잠금 처리할까요?' : '잠금을 해제할까요?';
+  if (!await iconfirm(label, lockAction==='lock')) return;
+
+  btn.disabled = true; rowBusy(tr, true);
+  try {
+    const d = await api('toggle_lock', {member_id:mid, lock_action:lockAction});
+    if (d.ok) {
+      const m = memberList.find(x=>x.member_id===mid);
+      if (m) m.status = lockAction==='lock' ? 'locked' : (Number(m.warning_count)>0 ? 'warned' : 'active');
+      updateMemberRow(mid); showBnr('mok', d.message, 'ok');
+    } else showBnr('merr', d.error||'실패');
+  } catch(e) { showBnr('merr','오류가 발생했습니다'); }
+  finally { rowBusy(tr, false); btn.disabled = false; }
+}
+
+// ── 활성/비활성: 토스트 확인 후 처리
+async function handleStatus(mid, newStatus, btn, tr) {
+  const label = newStatus==='inactive' ? '비활성 처리할까요?' : '활성화할까요?';
+  if (!await iconfirm(label, newStatus==='inactive')) return;
+
+  btn.disabled = true; rowBusy(tr, true);
+  try {
+    const d = await api('update_member', {member_id:mid, status:newStatus});
+    if (d.ok) {
+      const m = memberList.find(x=>x.member_id===mid);
+      if (m) m.status = newStatus;
+      updateMemberRow(mid); showBnr('mok','처리 완료','ok');
+    } else showBnr('merr', d.error||'실패');
+  } catch(e) { showBnr('merr','오류가 발생했습니다'); }
+  finally { rowBusy(tr, false); btn.disabled = false; }
+}
+
+// ── 멤버 등록/수정 모달
+function openAM() {
+  editMemberId = null;
+  document.getElementById('mmbt').textContent = '멤버 등록';
+  document.getElementById('btnMB').textContent = '등록 완료';
+  document.getElementById('mmb-reg-fields').style.display = '';
+  document.getElementById('amnk').value = '';
+  document.getElementById('amin').value = '';
+  document.getElementById('ammo').value = '';
+  hideBnr('mberr');
+  openModal('mmb');
+}
+function openEM(m) {
+  if (!m) return;
+  editMemberId = m.member_id;
+  document.getElementById('mmbt').textContent = m.nickname + ' 메모 수정';
+  document.getElementById('btnMB').textContent = '수정 완료';
+  document.getElementById('mmb-reg-fields').style.display = 'none';
+  document.getElementById('ammo').value = m.memo || '';
+  hideBnr('mberr');
+  openModal('mmb');
+}
+async function subMB() {
+  hideBnr('mberr');
+  const memo = document.getElementById('ammo').value;
+  if (!editMemberId) {
+    const nick  = document.getElementById('amnk').value.trim();
+    const insta = document.getElementById('amin').value.trim();
+    if (!nick||!insta) { showBnr('mberr','닉네임과 인스타 아이디는 필수'); return; }
+    sl('btnMB',true);
+    try {
+      const d = await api('add_member',{nickname:nick,insta_id:insta,memo});
+      if (!d.ok) { showBnr('mberr',d.error||'실패'); return; }
+      closeModal('mmb'); showBnr('mok','등록 완료','ok'); loadM();
+    } catch(e) { showBnr('mberr','서버 오류'); }
+    finally { sl('btnMB',false,'등록 완료'); }
+  } else {
+    sl('btnMB',true);
+    try {
+      const d = await api('update_member',{member_id:editMemberId,memo});
+      if (!d.ok) { showBnr('mberr',d.error||'실패'); return; }
+      // 캐시만 업데이트
+      const m = memberList.find(x=>x.member_id===editMemberId);
+      if (m) m.memo = memo;
+      closeModal('mmb'); showBnr('mok','메모 수정 완료','ok');
+    } catch(e) { showBnr('mberr','서버 오류'); }
+    finally { sl('btnMB',false,'수정 완료'); }
+  }
+}
+
+// =====================================================================
+// LOGS
+// =====================================================================
+document.getElementById('btnLogRefresh').addEventListener('click', loadLogs);
+document.getElementById('logm').addEventListener('change', loadLogs);
+document.getElementById('loga').addEventListener('change', loadLogs);
+
+async function loadLogs() {
+  const el  = document.getElementById('ltbl');
+  el.innerHTML = '<div class="empty"><span class="sp spd" style="width:18px;height:18px"></span></div>';
+  const mid = document.getElementById('logm')?.value || '';
+  const act = document.getElementById('loga')?.value || '';
+  const now = new Date(), thu = new Date(now);
+  thu.setDate(now.getDate() + 4 - (now.getDay()||7));
+  const ys  = new Date(thu.getFullYear(),0,1);
+  const wk  = Math.ceil(((thu-ys)/86400000+1)/7);
+  const wkey = thu.getFullYear() + '-W' + String(wk).padStart(2,'0') + '-plane';
+  try {
+    const r = await api('get_logs', {week_key:wkey, member_id:mid});
+    let logs = r.logs || [];
+    if (act) logs = logs.filter(l=>l.action===act);
+    if (!logs.length) { el.innerHTML='<div class="empty">로그가 없습니다</div>'; return; }
+    const al = {ticket:'티켓팅',link_register:'링크 등록',link_update:'링크 수정',land:'착륙'};
+    el.innerHTML = '<table class="tbl"><thead><tr><th>시각</th><th>닉네임</th><th>아이디</th><th>액션</th><th>상세</th></tr></thead><tbody>'
+      + logs.map(l=>`<tr><td style="font-size:11px;color:var(--text2);white-space:nowrap">${l.logged_at||''}</td><td style="font-weight:600">${l.nickname||''}</td><td style="font-size:11px;color:var(--text2)">@${l.insta_id||''}</td><td>${al[l.action]||l.action||''}</td><td style="font-size:11px;color:var(--text2);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.detail||''}</td></tr>`).join('')
+      + '</tbody></table>';
+    panelLoaded.logs = true;
+  } catch(e) { el.innerHTML='<div class="empty">불러오기 실패</div>'; }
+}
+
+// =====================================================================
+// 초기 진입
+// =====================================================================
+window.addEventListener('load', () => {
+  const s = loadSession();
+  if (s) { adminInfo = s; showDash(); init(); }
+});
 </script>
-
-
-<!-- 전역 로딩 오버레이 -->
-<div id="g-loading" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.35);align-items:center;justify-content:center;flex-direction:column;gap:12px">
-  <div style="width:44px;height:44px;border:4px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite"></div>
-  <div id="g-loading-msg" style="color:#fff;font-size:13px;font-weight:600;text-shadow:0 1px 4px rgba(0,0,0,.5)">처리 중...</div>
-</div>
 </body>
 </html>
