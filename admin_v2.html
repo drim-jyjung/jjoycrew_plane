@@ -830,13 +830,38 @@ function filterM(){
   const st=document.getElementById('msf')?.value||'';
   renderM(memberList.filter(m=>(!st||m.status===st)&&(m.nickname.toLowerCase().includes(q)||m.insta_id.toLowerCase().includes(q))));
 }
+let currentList = [];
+
+function filterM(){
+  const q=document.getElementById('msrch')?.value.toLowerCase()||'';
+  const st=document.getElementById('msf')?.value||'';
+  currentList=memberList.filter(m=>(!st||m.status===st)&&(m.nickname.toLowerCase().includes(q)||m.insta_id.toLowerCase().includes(q)));
+  renderM(currentList);
+}
+
 function renderM(list){
   const el=document.getElementById('mtbl');
   if(!list.length){el.innerHTML='<div class="empty">멤버 없음</div>';return;}
-  el.innerHTML='<table class="tbl"><thead><tr><th>#</th><th>닉네임</th><th>아이디</th><th>상태</th><th>경고</th><th>우수⭐</th><th>명예🏅</th><th>마지막 로그인</th><th></th></tr></thead><tbody>'
-    +list.map((m,i)=>{
+
+  // 테이블 헤더 먼저 그리기
+  el.innerHTML=`<table class="tbl">
+    <thead><tr><th>#</th><th>닉네임</th><th>아이디</th><th>상태</th><th>경고</th><th>우수⭐</th><th>명예🏅</th><th>마지막 로그인</th><th></th></tr></thead>
+    <tbody id="mtbl-body"></tbody>
+  </table>`;
+  const tbody=document.getElementById('mtbl-body');
+
+  // requestAnimationFrame으로 30명씩 나눠 그리기 — UI 블록 없음
+  const CHUNK=30;
+  let idx=0;
+  function renderChunk(){
+    const end=Math.min(idx+CHUNK, list.length);
+    const frag=document.createDocumentFragment();
+    for(;idx<end;idx++){
+      const m=list[idx], i=idx;
       const wc=Number(m.warning_count)||0,ec=Number(m.excellent_count)||0,hc=Number(m.honorary_count)||0,mid=m.member_id;
-      return `<tr data-mid="${mid}">
+      const tr=document.createElement('tr');
+      tr.dataset.mid=mid;
+      tr.innerHTML=`
         <td style="color:var(--text3)">${i+1}</td>
         <td style="font-weight:600">${m.nickname}</td>
         <td style="font-size:12px;color:var(--text2)">@${m.insta_id}</td>
@@ -861,29 +886,45 @@ function renderM(list){
           <button class="btn bo bsm" data-a="memo" data-mid="${mid}">메모</button>
           ${m.status==='inactive'?`<button class="btn bsm btn-success" data-a="activate" data-mid="${mid}">활성화</button>`:`<button class="btn bsm btn-danger" data-a="inactivate" data-mid="${mid}">비활성</button>`}
           ${m.status==='locked'?`<button class="btn bsm btn-success" data-a="unlock" data-mid="${mid}">잠금해제</button>`:`<button class="btn bsm btn-danger" data-a="lock" data-mid="${mid}">잠금</button>`}
-        </div></td>
-      </tr>`;
-    }).join('')+'</tbody></table>';
+        </div></td>`;
+      frag.appendChild(tr);
+    }
+    tbody.appendChild(frag);
+    if(idx<list.length) requestAnimationFrame(renderChunk);
+  }
+  requestAnimationFrame(renderChunk);
 }
 
-// 행 단위 업데이트
+// 행 단위 업데이트 — innerHTML reflow 없이 셀만 직접 수정
 function updateRow(mid){
-  const m=memberList.find(x=>x.member_id===mid);if(!m)return;
-  const tr=document.querySelector(`#mtbl tr[data-mid="${mid}"]`);if(!tr)return;
+  const m=memberList.find(x=>x.member_id===mid); if(!m)return;
+  const tr=document.querySelector(`#mtbl-body tr[data-mid="${mid}"]`); if(!tr)return;
   const wc=Number(m.warning_count)||0,ec=Number(m.excellent_count)||0,hc=Number(m.honorary_count)||0;
-  const td4=tr.querySelector('td:nth-child(4)');if(td4)td4.innerHTML=stBadge(m.status);
-  const set=(f,v,c)=>{const s=tr.querySelector(`[data-f="${f}"]`);if(s){s.textContent=v;s.style.color=c||'';}};
-  set('wc',wc,wc>0?'var(--red)':'');
-  set('ec','⭐'+ec,ec>0?'var(--primary)':'');
-  set('hc','🏅'+hc,hc>0?'var(--purple)':'');
-  const dis=(a,v)=>{const b=tr.querySelector(`[data-a="${a}"]`);if(b)b.disabled=v;};
-  dis('w-',wc<=0);dis('e-',ec<=0);dis('h-',hc<=0);
-  const cell=tr.querySelector('.act-cell');
-  if(cell){
-    const memo=cell.querySelector('[data-a="memo"]')?.outerHTML||`<button class="btn bo bsm" data-a="memo" data-mid="${mid}">메모</button>`;
-    const inact=m.status==='inactive'?`<button class="btn bsm btn-success" data-a="activate" data-mid="${mid}">활성화</button>`:`<button class="btn bsm btn-danger" data-a="inactivate" data-mid="${mid}">비활성</button>`;
-    const lock=m.status==='locked'?`<button class="btn bsm btn-success" data-a="unlock" data-mid="${mid}">잠금해제</button>`:`<button class="btn bsm btn-danger" data-a="lock" data-mid="${mid}">잠금</button>`;
-    cell.innerHTML=memo+inact+lock;
+
+  // 상태 배지만 교체
+  const td4=tr.children[3];
+  if(td4) td4.innerHTML=stBadge(m.status);
+
+  // 수치 텍스트만 변경 (innerHTML X)
+  const wcEl=tr.querySelector('[data-f="wc"]'); if(wcEl){wcEl.textContent=wc;wcEl.style.color=wc>0?'var(--red)':'';}
+  const ecEl=tr.querySelector('[data-f="ec"]'); if(ecEl){ecEl.textContent='⭐'+ec;ecEl.style.color=ec>0?'var(--primary)':'';}
+  const hcEl=tr.querySelector('[data-f="hc"]'); if(hcEl){hcEl.textContent='🏅'+hc;hcEl.style.color=hc>0?'var(--purple)':'';}
+
+  // - 버튼 disabled만 토글
+  const wb=tr.querySelector('[data-a="w-"]'); if(wb)wb.disabled=wc<=0;
+  const eb=tr.querySelector('[data-a="e-"]'); if(eb)eb.disabled=ec<=0;
+  const hb=tr.querySelector('[data-a="h-"]'); if(hb)hb.disabled=hc<=0;
+
+  // 잠금/비활성 버튼 — 텍스트와 data-a만 변경 (innerHTML X)
+  const lockBtn=tr.querySelector('[data-a="lock"],[data-a="unlock"]');
+  if(lockBtn){
+    if(m.status==='locked'){lockBtn.dataset.a='unlock';lockBtn.textContent='잠금해제';lockBtn.className='btn bsm btn-success';}
+    else{lockBtn.dataset.a='lock';lockBtn.textContent='잠금';lockBtn.className='btn bsm btn-danger';}
+  }
+  const actBtn=tr.querySelector('[data-a="inactivate"],[data-a="activate"]');
+  if(actBtn){
+    if(m.status==='inactive'){actBtn.dataset.a='activate';actBtn.textContent='활성화';actBtn.className='btn bsm btn-success';}
+    else{actBtn.dataset.a='inactivate';actBtn.textContent='비활성';actBtn.className='btn bsm btn-danger';}
   }
 }
 
@@ -900,43 +941,106 @@ document.getElementById('mtbl').addEventListener('click',e=>{
   if(action==='activate')   doStatus(mid,'active',btn);
 });
 
-// 낙관적 업데이트
+// +/- : 낙관적 업데이트 — 즉시 반영, API 백그라운드, 실패 시 롤백만
 function doCount(action,mid,m,btn){
   if(!m)return;
   const delta=action.endsWith('+')?1:-1,type=action[0];
   const prev={wc:m.warning_count,ec:m.excellent_count,hc:m.honorary_count,st:m.status};
-  if(type==='w'){const cur=Number(m.warning_count)||0;if(delta<0&&cur<=0)return;m.warning_count=Math.max(0,cur+delta);if(delta>0&&m.status==='active')m.status='warned';if(delta<0&&m.warning_count===0)m.status='active';}
-  else if(type==='e'){const cur=Number(m.excellent_count)||0;if(delta<0&&cur<=0)return;m.excellent_count=Math.max(0,cur+delta);}
-  else{const cur=Number(m.honorary_count)||0;if(delta<0&&cur<=0)return;m.honorary_count=Math.max(0,cur+delta);}
-  updateRow(mid);btn.disabled=true;setTimeout(()=>{btn.disabled=false;},1000);
+
+  // 즉시 캐시 업데이트
+  if(type==='w'){
+    const cur=Number(m.warning_count)||0;
+    if(delta<0&&cur<=0)return;
+    m.warning_count=Math.max(0,cur+delta);
+    if(delta>0&&m.status==='active')m.status='warned';
+    if(delta<0&&m.warning_count===0)m.status='active';
+  } else if(type==='e'){
+    const cur=Number(m.excellent_count)||0;
+    if(delta<0&&cur<=0)return;
+    m.excellent_count=Math.max(0,cur+delta);
+  } else {
+    const cur=Number(m.honorary_count)||0;
+    if(delta<0&&cur<=0)return;
+    m.honorary_count=Math.max(0,cur+delta);
+  }
+
+  // 즉시 화면 반영
+  updateRow(mid);
+  btn.disabled=true;
+  setTimeout(()=>{btn.disabled=false;},1200);
+
+  // API 백그라운드 — 응답 후 updateRow 호출 안 함 (이미 반영됨)
   const call=type==='w'
-    ?(delta>0?api('manual_warn',{member_id:mid,admin_nickname:adminInfo.nickname,reason:'관리자 수동 경고 +1'}):api('adjust_warn',{member_id:mid,delta:-1}))
-    :type==='e'?api('adjust_excellent',{member_id:mid,delta}):api('adjust_honorary',{member_id:mid,delta});
+    ?(delta>0
+      ?api('manual_warn',{member_id:mid,admin_nickname:adminInfo.nickname,reason:'관리자 수동 경고 +1'})
+      :api('adjust_warn',{member_id:mid,delta:-1}))
+    :type==='e'
+      ?api('adjust_excellent',{member_id:mid,delta})
+      :api('adjust_honorary',{member_id:mid,delta});
+
   call.then(d=>{
-    if(!d.ok){m.warning_count=prev.wc;m.excellent_count=prev.ec;m.honorary_count=prev.hc;m.status=prev.st;updateRow(mid);showBnr('merr',d.error||'실패');}
-    else if(d.member){if(d.member.warning_count!==undefined)m.warning_count=d.member.warning_count;if(d.member.excellent_count!==undefined)m.excellent_count=d.member.excellent_count;if(d.member.honorary_count!==undefined)m.honorary_count=d.member.honorary_count;if(d.member.status!==undefined)m.status=d.member.status;updateRow(mid);}
-  }).catch(()=>{m.warning_count=prev.wc;m.excellent_count=prev.ec;m.honorary_count=prev.hc;m.status=prev.st;updateRow(mid);showBnr('merr','네트워크 오류');});
+    if(!d.ok){
+      // 실패 시만 롤백
+      m.warning_count=prev.wc;m.excellent_count=prev.ec;
+      m.honorary_count=prev.hc;m.status=prev.st;
+      updateRow(mid);
+      showBnr('merr',d.error||'실패');
+    }
+    // 성공 시 updateRow 호출 안 함 — 이미 반영됨
+  }).catch(()=>{
+    m.warning_count=prev.wc;m.excellent_count=prev.ec;
+    m.honorary_count=prev.hc;m.status=prev.st;
+    updateRow(mid);
+    showBnr('merr','네트워크 오류');
+  });
 }
+
+// 잠금/해제 : 낙관적 업데이트
 async function doLock(mid,lockAction,btn){
   if(!await iconfirm(lockAction==='lock'?'잠금 처리할까요?':'잠금 해제할까요?',lockAction==='lock'))return;
-  const m=memberList.find(x=>x.member_id===mid),prev=m?.status;
-  if(m)m.status=lockAction==='lock'?'locked':(Number(m.warning_count)>0?'warned':'active');
-  updateRow(mid);btn.disabled=true;
+  const m=memberList.find(x=>x.member_id===mid);
+  const prev=m?.status;
+  if(m) m.status=lockAction==='lock'?'locked':(Number(m.warning_count)>0?'warned':'active');
+  updateRow(mid); // 즉시 반영
+  btn.disabled=true;
   api('toggle_lock',{member_id:mid,lock_action:lockAction}).then(d=>{
-    if(!d.ok){if(m)m.status=prev;updateRow(mid);showBnr('merr',d.error||'실패');}
-    else showBnr('mok',d.message,'ok');
+    if(!d.ok){
+      if(m)m.status=prev;
+      updateRow(mid); // 실패 시만 롤백
+      showBnr('merr',d.error||'실패');
+    }
+    // 성공 시 updateRow 호출 안 함
     btn.disabled=false;
-  }).catch(()=>{if(m)m.status=prev;updateRow(mid);showBnr('merr','오류');btn.disabled=false;});
+  }).catch(()=>{
+    if(m)m.status=prev;
+    updateRow(mid);
+    showBnr('merr','오류');
+    btn.disabled=false;
+  });
 }
+
+// 비활성/활성 : 낙관적 업데이트
 async function doStatus(mid,newStatus,btn){
   if(!await iconfirm(newStatus==='inactive'?'비활성 처리할까요?':'활성화할까요?',newStatus==='inactive'))return;
-  const m=memberList.find(x=>x.member_id===mid),prev=m?.status;
-  if(m)m.status=newStatus;updateRow(mid);btn.disabled=true;
+  const m=memberList.find(x=>x.member_id===mid);
+  const prev=m?.status;
+  if(m) m.status=newStatus;
+  updateRow(mid); // 즉시 반영
+  btn.disabled=true;
   api('update_member',{member_id:mid,status:newStatus}).then(d=>{
-    if(!d.ok){if(m)m.status=prev;updateRow(mid);showBnr('merr',d.error||'실패');}
-    else showBnr('mok','처리 완료','ok');
+    if(!d.ok){
+      if(m)m.status=prev;
+      updateRow(mid); // 실패 시만 롤백
+      showBnr('merr',d.error||'실패');
+    }
+    // 성공 시 updateRow 호출 안 함
     btn.disabled=false;
-  }).catch(()=>{if(m)m.status=prev;updateRow(mid);showBnr('merr','오류');btn.disabled=false;});
+  }).catch(()=>{
+    if(m)m.status=prev;
+    updateRow(mid);
+    showBnr('merr','오류');
+    btn.disabled=false;
+  });
 }
 
 function openAM(){
