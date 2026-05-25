@@ -150,6 +150,7 @@ select.input{cursor:pointer}
       <div class="ni" data-panel="settle">📋 정산</div>
       <div class="ni" data-panel="weekly">📅 주간 시트</div>
       <div class="ni" data-panel="members">👤 멤버 관리</div>
+      <div class="ni" data-panel="logs">📝 활동 로그</div>
     </div>
     <div class="main">
 
@@ -262,6 +263,31 @@ select.input{cursor:pointer}
           <div id="merr" class="bnr bnr-e" style="margin:10px 16px 0"></div>
           <div id="mtbl"><div class="empty"><span class="sp spd"></span></div></div>
         </div>
+      </div>
+
+      <!-- 활동 로그 -->
+      <div class="panel" id="panel-logs">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div class="pt" style="margin:0">📝 활동 로그</div>
+          <button class="btn bo bsm" id="btnLogRefresh">새로고침</button>
+        </div>
+        <div class="card cb" style="margin-bottom:12px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+            <div class="field" style="margin:0"><label class="fl">멤버</label>
+              <select class="input" id="logm" style="width:150px"><option value="">전체</option></select></div>
+            <div class="field" style="margin:0"><label class="fl">액션</label>
+              <select class="input" id="loga" style="width:130px">
+                <option value="">전체</option>
+                <option value="ticket">탑승</option>
+                <option value="link_register">링크 등록</option>
+                <option value="link_update">링크 수정</option>
+                <option value="land">착륙</option>
+                <option value="admin_land">관리자 착륙</option>
+              </select></div>
+            <button class="btn bo bsm" id="btnLogSearch">조회</button>
+          </div>
+        </div>
+        <div class="card"><div id="ltbl"><div class="empty">멤버 또는 액션을 선택하고 조회해주세요</div></div></div>
       </div>
 
     </div>
@@ -445,6 +471,7 @@ function switchPanel(name){
   if(name==='members'&&!loaded.members) loadM();
   if(name==='settle') loadSI();
   if(name==='weekly') { document.getElementById('wk-input').value=thisWeekKey(); loadWeekSheet(); }
+  if(name==='logs') initLogs();
 }
 
 // ── 로그인
@@ -884,7 +911,6 @@ function renderM(list){
         <td style="font-size:11px;color:var(--text2)">${m.last_login_at||'-'}</td>
         <td><div class="act-cell" data-mid="${mid}">
           <button class="btn bo bsm" data-a="memo" data-mid="${mid}">메모</button>
-          ${m.status==='inactive'?`<button class="btn bsm btn-success" data-a="activate" data-mid="${mid}">활성화</button>`:`<button class="btn bsm btn-danger" data-a="inactivate" data-mid="${mid}">비활성</button>`}
           ${m.status==='locked'?`<button class="btn bsm btn-success" data-a="unlock" data-mid="${mid}">잠금해제</button>`:`<button class="btn bsm btn-danger" data-a="lock" data-mid="${mid}">잠금</button>`}
         </div></td>`;
       frag.appendChild(tr);
@@ -915,16 +941,11 @@ function updateRow(mid){
   const eb=tr.querySelector('[data-a="e-"]'); if(eb)eb.disabled=ec<=0;
   const hb=tr.querySelector('[data-a="h-"]'); if(hb)hb.disabled=hc<=0;
 
-  // 잠금/비활성 버튼 — 텍스트와 data-a만 변경 (innerHTML X)
+  // 잠금/비활성 버튼 — 잠금만 남김
   const lockBtn=tr.querySelector('[data-a="lock"],[data-a="unlock"]');
   if(lockBtn){
     if(m.status==='locked'){lockBtn.dataset.a='unlock';lockBtn.textContent='잠금해제';lockBtn.className='btn bsm btn-success';}
     else{lockBtn.dataset.a='lock';lockBtn.textContent='잠금';lockBtn.className='btn bsm btn-danger';}
-  }
-  const actBtn=tr.querySelector('[data-a="inactivate"],[data-a="activate"]');
-  if(actBtn){
-    if(m.status==='inactive'){actBtn.dataset.a='activate';actBtn.textContent='활성화';actBtn.className='btn bsm btn-success';}
-    else{actBtn.dataset.a='inactivate';actBtn.textContent='비활성';actBtn.className='btn bsm btn-danger';}
   }
 }
 
@@ -935,10 +956,8 @@ document.getElementById('mtbl').addEventListener('click',e=>{
   const m=memberList.find(x=>x.member_id===mid);
   if(action==='memo'){openEM(m);return;}
   if(['w+','w-','e+','e-','h+','h-'].includes(action)){doCount(action,mid,m,btn);return;}
-  if(action==='lock')       doLock(mid,'lock',btn);
-  if(action==='unlock')     doLock(mid,'unlock',btn);
-  if(action==='inactivate') doStatus(mid,'inactive',btn);
-  if(action==='activate')   doStatus(mid,'active',btn);
+  if(action==='lock')   doLock(mid,'lock',btn);
+  if(action==='unlock') doLock(mid,'unlock',btn);
 });
 
 // +/- : 낙관적 업데이트 — 즉시 반영, API 백그라운드, 실패 시 롤백만
@@ -1041,6 +1060,56 @@ async function doStatus(mid,newStatus,btn){
     showBnr('merr','오류');
     btn.disabled=false;
   });
+}
+
+// ══════════════════════════════════════════════
+// 활동 로그
+// ══════════════════════════════════════════════
+document.getElementById('btnLogRefresh').addEventListener('click', loadLogs);
+document.getElementById('btnLogSearch').addEventListener('click', loadLogs);
+
+function initLogs() {
+  // 멤버 셀렉트 채우기
+  const sel = document.getElementById('logm');
+  if (sel && sel.options.length <= 1 && memberList.length > 0) {
+    memberList.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.member_id;
+      opt.textContent = m.nickname + ' @' + m.insta_id;
+      sel.appendChild(opt);
+    });
+  }
+}
+
+async function loadLogs() {
+  const el = document.getElementById('ltbl');
+  el.innerHTML = '<div class="empty"><span class="sp spd"></span></div>';
+  const mid = document.getElementById('logm')?.value || '';
+  const act = document.getElementById('loga')?.value || '';
+
+  // get_room_detail 로 참여 기록 조회 대신 plane_Participations에서 멤버별 필터
+  // API: get_member_parts (새로 추가 필요) 대신 get_daily로 오늘치 조회
+  // 현재 gs에 로그 API가 없으므로 plane_Participations 전체를 get_all_parts로 조회
+  const d = await api('get_parts', {member_id: mid, action: act});
+  if (!d.ok) {
+    el.innerHTML = '<div class="empty">불러오기 실패 — gs에 get_parts 액션을 추가해주세요</div>';
+    return;
+  }
+  const parts = d.parts || [];
+  if (!parts.length) { el.innerHTML = '<div class="empty">기록 없음</div>'; return; }
+  el.innerHTML = '<table class="tbl"><thead><tr><th>탑승일시</th><th>닉네임</th><th>아이디</th><th>룸</th><th>링크등록시각</th><th>착륙시각</th><th>상태</th><th>링크</th></tr></thead><tbody>'
+    + parts.map(p => `<tr>
+      <td style="font-size:11px;white-space:nowrap;color:var(--text2)">${p.ticket_at||''}</td>
+      <td style="font-weight:600">${p.nickname||''}</td>
+      <td style="font-size:12px;color:var(--text2)">@${p.insta_id||''}</td>
+      <td style="font-size:11px">${p.room_date||''} #${p.room_number||''}</td>
+      <td style="font-size:11px;color:var(--text2)">${p.link_at||'-'}</td>
+      <td style="font-size:11px;color:var(--text2)">${p.landed_at||'-'}</td>
+      <td>${p.status==='landed'?'<span class="badge bdk">착륙✓</span>':'<span class="badge bdb">탑승</span>'}</td>
+      <td style="font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+        ${p.post_url?`<a href="${p.post_url}" target="_blank" style="color:var(--primary)">${p.post_url}</a>`:'<span style="color:var(--text3)">-</span>'}
+      </td>
+    </tr>`).join('') + '</tbody></table>';
 }
 
 function openAM(){
