@@ -266,7 +266,7 @@ const API = 'https://script.google.com/macros/s/AKfycbxslBc1R0WRTQHwRG9RJMuGMdUb
 
 const SK = 'plane_crew_v2';
 const SK_CRED = 'plane_crew_cred'; // 자동 로그인용 자격증명 저장
-let me = null, currentRoom = null, participants = [], weekLandCount = 0;
+let me = null, currentRoom = null, participants = [], weekLandCount = 0, todayParticipated = false;
 
 // iOS 키보드 대응
 if (window.visualViewport) {
@@ -405,31 +405,33 @@ function doLogout() {
 // ══════════════════════════════════════════════
 // 룸 목록
 // ══════════════════════════════════════════════
+function _renderTopBadges() {
+  const bdg=document.getElementById('rooms-badges');
+  if (!bdg) return;
+  const badges=[];
+  if (me?.warning_count>0) badges.push(`<span style="font-size:11px;font-weight:700;background:var(--red-bg);color:var(--red);padding:2px 7px;border-radius:20px;white-space:nowrap">⚠️ ${me.warning_count}회</span>`);
+  if (me?.honorary_count>0) badges.push(`<span style="font-size:11px;font-weight:700;background:var(--purple-bg);color:var(--purple);padding:2px 7px;border-radius:20px;white-space:nowrap">🏅 ${me.honorary_count}</span>`);
+  if (me?.excellent_count>0) badges.push(`<span style="font-size:11px;font-weight:700;background:var(--primary-light);color:var(--primary);padding:2px 7px;border-radius:20px;white-space:nowrap">⭐ ${me.excellent_count}</span>`);
+  bdg.innerHTML=badges.join('');
+}
+
 async function goRooms() {
   showPage('page-rooms');
 
-  // 최신 멤버 상태 조회 (경고/잠금 해제 반영)
-  if (me?.nickname && me?.insta_id) {
-    try {
-      const fresh = await api('login', {nickname: me.nickname, insta_id: me.insta_id});
-      if (fresh.ok) {
+  // 최신 멤버 상태 조회 (경고/잠금 해제 반영) — 비동기로 조용히 갱신
+  if (me?.nickname && me?.insta_id && me?.member_id) {
+    api('login', {nickname: me.nickname, insta_id: me.insta_id}).then(fresh => {
+      if (fresh?.ok && fresh.member) {
         me = fresh.member;
-        saveS(me); // 세션 갱신
+        saveS(me);
+        // 배지/배너 재렌더
+        _renderTopBadges();
       }
-    } catch(e) {}
+    }).catch(()=>{});
   }
 
   document.getElementById('rooms-user').textContent = me?`@${me.insta_id}`:'';
-
-  // 탑바 배지
-  const bdg=document.getElementById('rooms-badges');
-  if (bdg) {
-    const badges=[];
-    if (me?.warning_count>0) badges.push(`<span style="font-size:11px;font-weight:700;background:var(--red-bg);color:var(--red);padding:2px 7px;border-radius:20px;white-space:nowrap">⚠️ ${me.warning_count}회</span>`);
-    if (me?.honorary_count>0) badges.push(`<span style="font-size:11px;font-weight:700;background:var(--purple-bg);color:var(--purple);padding:2px 7px;border-radius:20px;white-space:nowrap">🏅 ${me.honorary_count}</span>`);
-    if (me?.excellent_count>0) badges.push(`<span style="font-size:11px;font-weight:700;background:var(--primary-light);color:var(--primary);padding:2px 7px;border-radius:20px;white-space:nowrap">⭐ ${me.excellent_count}</span>`);
-    bdg.innerHTML=badges.join('');
-  }
+  _renderTopBadges();
 
   // 경고 배너
   const wb = document.getElementById('warn-top-rooms');
@@ -534,7 +536,7 @@ async function goTicket(roomId) {
     api('get_room_detail',{room_id:roomId}),
   ]);
   weekLandCount = wcRes.status==='fulfilled'&&wcRes.value.ok ? (wcRes.value.week_land_count||0) : 0;
-  const todayParticipated = wcRes.status==='fulfilled'&&wcRes.value.ok ? !!wcRes.value.today_participated : false;
+  todayParticipated = wcRes.status==='fulfilled'&&wcRes.value.ok ? !!wcRes.value.today_participated : false;
   if (detailRes.status==='rejected'||!detailRes.value.ok) {
     document.getElementById('p-list').innerHTML='<div class="empty">불러오기 실패</div>'; return;
   }
