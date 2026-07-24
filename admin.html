@@ -232,6 +232,17 @@ select.input{cursor:pointer}
           <div style="margin-top:6px;font-size:11px;color:var(--text3)">일간: 착륙 마감 룸 미착륙자 경고 · 주간: 착륙 2회 미달 경고 + 우수/명예 초기화</div>
         </div>
         <div id="sresult"></div>
+        <!-- 일간 정산 히스토리 -->
+        <div style="margin-top:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="font-size:13px;font-weight:700">📋 일간 정산 히스토리</div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <input type="date" class="input" id="log-date" style="width:140px">
+              <button class="btn bo bsm" id="btnLogHistory">조회</button>
+            </div>
+          </div>
+          <div class="card"><div id="log-history"><div class="empty">날짜를 선택하고 조회하세요</div></div></div>
+        </div>
       </div>
 
       <!-- 주간 시트 -->
@@ -470,7 +481,7 @@ function switchPanel(name){
   if(name==='rooms'&&loaded.rooms)  loadAR(); // 룸탭 재진입 시 항상 새로고침
   if(name==='monitor'&&!loaded.monitor) loadMon();
   if(name==='members'&&!loaded.members) loadM();
-  if(name==='settle') loadSI();
+  if(name==='settle') { loadSI(); document.getElementById('log-date').value=td(); }
   if(name==='weekly') { document.getElementById('wk-input').value=thisWeekKey(); loadWeekSheet(); }
   if(name==='logs') initLogs();
 }
@@ -863,6 +874,43 @@ function cpNoLand(ri){
 document.getElementById('btn-daily-s').addEventListener('click',doDailyS);
 document.getElementById('btn-weekly-s').addEventListener('click',doWeeklyS);
 document.getElementById('btn-init-week').addEventListener('click',doInitWeek);
+
+document.getElementById('btnLogHistory').addEventListener('click', loadLogHistory);
+document.getElementById('log-date').addEventListener('change', loadLogHistory);
+
+async function loadLogHistory(){
+  const dateVal = document.getElementById('log-date').value;
+  if(!dateVal) return;
+  const el = document.getElementById('log-history');
+  el.innerHTML = '<div class="empty"><span class="sp spd"></span></div>';
+  const d = await api('get_logs', {log_date: dateVal});
+  if(!d.ok){el.innerHTML='<div class="empty">불러오기 실패</div>';return;}
+  const logs = d.logs||[];
+  if(!logs.length){el.innerHTML=`<div class="empty">${dateVal} 정산 기록 없음</div>`;return;}
+  // settle 로그와 warn 로그 분리
+  const settles = logs.filter(l=>l.log_type==='daily_settle');
+  const warns   = logs.filter(l=>l.log_type==='daily_warn');
+  const skips   = logs.filter(l=>l.log_type==='daily_settle_skip');
+  el.innerHTML = `
+    <div style="padding:14px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px">${dateVal} 일간 정산 결과</div>
+      ${settles.map(s=>`
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rsm);padding:10px 14px;margin-bottom:8px">
+          <div style="font-size:12px;font-weight:700">${s.room_date||''} #${s.room_number||''}</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:3px">${s.detail||''}</div>
+        </div>`).join('')}
+      ${warns.length?`
+        <div style="margin-top:10px;font-size:12px;font-weight:700;color:var(--red);margin-bottom:6px">⚠ 경고 부여 (${warns.length}명)</div>
+        <table class="tbl"><thead><tr><th>닉네임</th><th>아이디</th><th>룸</th><th>시각</th></tr></thead><tbody>
+        ${warns.map(w=>`<tr>
+          <td style="font-weight:600">${w.nickname||''}</td>
+          <td style="font-size:12px;color:var(--text2)">@${w.insta_id||''}</td>
+          <td style="font-size:11px">${w.room_date||''} #${w.room_number||''}</td>
+          <td style="font-size:11px;color:var(--text2)">${w.created_at||''}</td>
+        </tr>`).join('')}
+        </tbody></table>`:'<div style="font-size:12px;color:var(--green);margin-top:8px">✅ 경고 부여 없음</div>'}
+    </div>`;
+}
 
 function loadSI(){
   const now=new Date(),day=now.getDay(),tm=day===0?-6:1-day,mon=new Date(now);
