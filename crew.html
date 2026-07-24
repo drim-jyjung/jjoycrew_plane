@@ -15,7 +15,7 @@
   --green:#059669;--green-bg:#ECFDF5;
   --amber:#D97706;--amber-bg:#FFFBEB;
   --red:#DC2626;--red-bg:#FEF2F2;
-  --purple:#7C3AED;
+  --purple:#7C3AED;--purple-bg:#F5F3FF;
   --r:16px;--rsm:10px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -47,8 +47,9 @@ body{
   flex:1;
   display:flex;
   flex-direction:column;
-  min-height:0; /* 필수: flex child가 overflow 되도록 */
+  min-height:0;
   overflow:hidden;
+  background:var(--bg);
 }
 /* 티켓 중간 스크롤 — 참여자 목록 */
 .ticket-scroll{
@@ -56,7 +57,22 @@ body{
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
   overscroll-behavior:contain;
-  min-height:0; /* 필수 */
+  min-height:0;
+  background:var(--bg);
+}
+/* 룸 정보 카드 */
+.room-info-card{
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:14px 16px;
+}
+/* 참여자 섹션 */
+.p-section-header{
+  padding:8px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:10;
 }
 /* 내 참여 하단 고정 영역 */
 .my-section{
@@ -65,9 +81,7 @@ body{
   padding:14px 16px;
   padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));
   background:var(--surface);
-  /* 그림자로 스크롤 위에 떠있는 느낌 */
-  box-shadow:0 -4px 16px rgba(0,0,0,.06);
-  /* 최대 높이 제한 — 버튼 영역이 너무 커지면 스크롤 */
+  box-shadow:0 -4px 16px rgba(0,0,0,.07);
   max-height:55vh;
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
@@ -105,7 +119,16 @@ select.input{cursor:pointer}
 /* 카드 */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
 /* 룸 카드 */
-.room-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:10px;cursor:pointer;position:relative;overflow:hidden}
+.room-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:16px;
+  margin-bottom:10px;
+  cursor:pointer;
+  position:relative;overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);
+}
 .room-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--grad)}
 .room-card:active{opacity:.85}
 .room-card.disabled{opacity:.6;cursor:not-allowed}
@@ -116,13 +139,13 @@ select.input{cursor:pointer}
 /* 내 참여 섹션 */
 .my-section{border-top:2px solid var(--border);padding:16px;background:var(--surface);padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
 .my-label{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
-.my-block{border:1px solid var(--border);border-radius:var(--rsm);overflow:hidden;margin-bottom:8px}
+.my-block{border:1px solid var(--border);border-radius:var(--rsm);overflow:hidden;margin-bottom:8px;background:var(--surface)}
 .my-block:last-child{margin-bottom:0}
 .my-row{padding:12px 14px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid var(--border)}
 .my-row:last-child{border-bottom:none}
 .my-row-label{font-size:13px;font-weight:600;margin-bottom:2px}
 .my-row-sub{font-size:11px;color:var(--text3)}
-.link-box{font-size:12px;color:var(--primary);word-break:break-all;padding:8px 10px;background:#EFF9FF;border-radius:6px;margin-top:6px}
+.link-box{font-size:12px;color:var(--primary);word-break:break-all;padding:8px 10px;background:#EFF9FF;border-radius:6px;margin-top:6px;border:1px solid #BFDBFE}
 /* 빈 상태 */
 .empty{text-align:center;padding:48px 20px;color:var(--text3);font-size:13px}
 /* 로그인 */
@@ -176,8 +199,9 @@ select.input{cursor:pointer}
   <!-- 탑바 고정 -->
   <div class="topbar" style="flex-shrink:0">
     <div class="topbar-logo">✈ 비행기방</div>
-    <div style="display:flex;align-items:center;gap:8px">
+    <div style="display:flex;align-items:center;gap:6px">
       <span id="rooms-user" style="font-size:12px;color:var(--text2)"></span>
+      <span id="rooms-badges" style="display:flex;gap:4px;align-items:center"></span>
       <button class="btn btn-outline btn-sm" id="btn-logout">로그아웃</button>
     </div>
   </div>
@@ -185,7 +209,7 @@ select.input{cursor:pointer}
   <div id="warn-top-rooms" class="warn-top"></div>
   <div id="ticket-info-bar" style="display:none;padding:6px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;flex-direction:column"></div>
   <!-- 룸 목록 스크롤 -->
-  <div class="content">
+  <div class="content" style="background:var(--bg)">
     <div id="rooms-error" class="banner banner-error"></div>
     <div id="rooms-list"><div class="empty"><span class="sp sp-dark" style="width:24px;height:24px"></span></div></div>
   </div>
@@ -208,19 +232,19 @@ select.input{cursor:pointer}
 
     <!-- 스크롤 영역: 룸 정보 + 참여자 목록 -->
     <div class="ticket-scroll">
-      <!-- 룸 정보 -->
-      <div style="padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border)">
+      <!-- 룸 정보 카드 -->
+      <div class="room-info-card">
         <div id="ticket-time" style="font-size:12px;color:var(--text2);margin-bottom:6px"></div>
         <div id="ticket-items" style="margin-bottom:6px"></div>
-        <div id="ticket-memo" style="font-size:12px;color:var(--text2);white-space:pre-line;background:var(--bg);border-radius:8px;padding:10px 12px;display:none;line-height:1.7"></div>
+        <div id="ticket-memo" style="font-size:12px;color:var(--text2);white-space:pre-line;background:var(--bg);border-radius:8px;padding:10px 12px;display:none;line-height:1.7;margin-top:4px"></div>
       </div>
       <!-- 참여자 헤더 -->
-      <div style="padding:8px 16px;display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-bottom:1px solid var(--border)">
+      <div class="p-section-header">
         <span id="p-count" style="font-size:12px;font-weight:700;color:var(--text2)">참여자 목록</span>
         <button class="btn btn-outline btn-sm" id="btn-copy-all">전체 복사</button>
       </div>
       <!-- 참여자 목록 -->
-      <div id="p-list" style="background:var(--surface)">
+      <div id="p-list" style="background:var(--surface);margin:8px 12px;border-radius:var(--r);border:1px solid var(--border);overflow:hidden">
         <div class="empty" style="padding:20px"><span class="sp sp-dark" style="width:20px;height:20px"></span></div>
       </div>
     </div>
@@ -321,8 +345,7 @@ document.getElementById('btn-copy-all').addEventListener('click', copyAll);
 document.getElementById('my-part').addEventListener('click', e => {
   const btn = e.target.closest('button[data-action]'); if(!btn) return;
   const a = btn.dataset.action;
-  if (a==='ticket')    doTicketFromUI();
-  if (a==='staff')     doTicketDirect('staff');
+  if (a==='ticket') doTicketFromUI();
   if (a==='land')      doLand(btn);
   if (a==='link-reg')  doRegisterLink(btn);
   if (a==='link-edit') doUpdateLink(btn);
@@ -381,6 +404,16 @@ async function goRooms() {
   showPage('page-rooms');
   document.getElementById('rooms-user').textContent = me?`@${me.insta_id}`:'';
 
+  // 탑바 배지 — 경고/명예/우수 횟수 (아이디와 로그아웃 사이)
+  const bdg=document.getElementById('rooms-badges');
+  if (bdg) {
+    const badges=[];
+    if (me?.warning_count>0) badges.push(`<span style="font-size:11px;font-weight:700;background:var(--red-bg);color:var(--red);padding:2px 7px;border-radius:20px;white-space:nowrap">⚠️ ${me.warning_count}회</span>`);
+    if (me?.honorary_count>0) badges.push(`<span style="font-size:11px;font-weight:700;background:var(--purple-bg);color:var(--purple);padding:2px 7px;border-radius:20px;white-space:nowrap">🏅 ${me.honorary_count}</span>`);
+    if (me?.excellent_count>0) badges.push(`<span style="font-size:11px;font-weight:700;background:var(--primary-light);color:var(--primary);padding:2px 7px;border-radius:20px;white-space:nowrap">⭐ ${me.excellent_count}</span>`);
+    bdg.innerHTML=badges.join('');
+  }
+
   // 경고 배너
   const wb = document.getElementById('warn-top-rooms');
   if (me?.is_warned) {
@@ -388,13 +421,9 @@ async function goRooms() {
     wb.innerHTML=`⚠️ 경고 ${me.warning_count||1}회 보유 · 만료: ${me.warn_expires||'익일 10:00'} · 경고 보유 시 탑승 불가`;
   } else wb.className='warn-top';
 
-  // 우수/명예 안내
+  // ticket-info-bar 제거 (탑바 배지로 통합)
   const ib=document.getElementById('ticket-info-bar');
-  const infos=[];
-  if (me?.excellent_count>0) infos.push(`<div style="font-size:12px;color:var(--primary);padding:3px 0">⭐ 우수 티켓 ${me.excellent_count}개 · 만료: ${expiryExcellent(me.excellent_granted_at)}</div>`);
-  if (me?.honorary_count>0)  infos.push(`<div style="font-size:12px;color:var(--purple);padding:3px 0">🏅 명예 티켓 ${me.honorary_count}개 · 만료: ${expiryHonorary(me.honorary_granted_at)}</div>`);
-  if (infos.length) { ib.style.display='flex'; ib.style.flexDirection='column'; ib.innerHTML=infos.join(''); }
-  else ib.style.display='none';
+  if (ib) ib.style.display='none';
 
   hideBnr('rooms-error');
   document.getElementById('rooms-list').innerHTML='<div class="empty"><span class="sp sp-dark" style="width:24px;height:24px"></span></div>';
@@ -488,6 +517,7 @@ async function goTicket(roomId) {
     api('get_room_detail',{room_id:roomId}),
   ]);
   weekLandCount = wcRes.status==='fulfilled'&&wcRes.value.ok ? (wcRes.value.week_land_count||0) : 0;
+  const todayParticipated = wcRes.status==='fulfilled'&&wcRes.value.ok ? !!wcRes.value.today_participated : false;
   if (detailRes.status==='rejected'||!detailRes.value.ok) {
     document.getElementById('p-list').innerHTML='<div class="empty">불러오기 실패</div>'; return;
   }
@@ -562,7 +592,7 @@ function renderMyPart(beforeTicket,inTicket,showLanding,inLand,afterAll) {
         ${myPart.post_url?`<div class="link-box">${myPart.post_url}</div>`:'<div class="my-row-sub" style="margin-top:4px">링크 미등록</div>'}
       </div></div>
     </div>
-    <div style="margin-top:8px;text-align:center;font-size:12px;color:var(--text2)">이번주 일반 착륙 <strong>${weekLandCount}회</strong> 완료</div>`;
+    <div style="margin-top:8px;text-align:center;font-size:12px;color:var(--text2)">이번주 <strong>${weekLandCount}일</strong> 착륙 완료${weekLandCount>=2?' · ✅ 필참 달성':` · ${2-weekLandCount}일 더 필요`}</div>`;
     return;
   }
 
@@ -614,23 +644,28 @@ function renderMyPart(beforeTicket,inTicket,showLanding,inLand,afterAll) {
   if (inTicket) {
     const ec=me?.excellent_count||0, hc=me?.honorary_count||0;
     const passMsg=weekLandCount>=2
-      ?`<span style="color:var(--green);font-weight:700">✅ 이번주 ${weekLandCount}회 (필참 달성)</span>`
-      :`<span style="color:var(--amber);font-weight:700">⚠ 이번주 ${weekLandCount}회 (${2-weekLandCount}회 더 필요)</span>`;
+      ?`<span style="color:var(--green);font-weight:700">✅ 이번주 ${weekLandCount}일 착륙 완료 (필참 달성)</span>`
+      :todayParticipated
+        ?`<span style="color:var(--primary);font-weight:700">🛫 오늘 참여 중 · 이번주 ${weekLandCount}일/${2-weekLandCount}일 더 필요</span>`
+        :`<span style="color:var(--amber);font-weight:700">⚠ 이번주 ${weekLandCount}일 (${2-weekLandCount}일 더 필요)</span>`;
     el.innerHTML=`<div class="my-block">
       <div style="padding:9px 14px;background:var(--bg);border-bottom:1px solid var(--border);font-size:12px">🛫 ${passMsg}</div>
       <div style="padding:14px;display:flex;flex-direction:column;gap:10px">
-        <div><div class="my-row-label" style="margin-bottom:5px">인스타그램 링크</div>
-          <input class="input" id="inp-ticket-link" placeholder="https://instagram.com/p/..." autocomplete="off"></div>
-        <div><div class="my-row-label" style="margin-bottom:5px">탑승 유형</div>
+        <div>
+          <div class="my-row-label" style="margin-bottom:5px">인스타그램 링크</div>
+          <input class="input" id="inp-ticket-link" placeholder="https://instagram.com/p/..." autocomplete="off">
+        </div>
+        <div>
+          <div class="my-row-label" style="margin-bottom:5px">탑승 유형</div>
           <select class="input" id="sel-ticket-type">
             <option value="normal">✈ 일반 탑승 — 주 2회 필참 카운트</option>
-            ${ec>0?`<option value="excellent">⭐ 우수 탑승 (${ec}개) — 주 2회 제외</option>`:''}
-            ${hc>0?`<option value="honorary">🏅 명예 탑승 (${hc}개) — 주 2회 제외</option>`:''}
+            <option value="staff">🎖 운영진 탑승 — 즉시 착륙, 주 2회 제외</option>
+            ${ec>0?`<option value="excellent">⭐ 우수 탑승 (보유 ${ec}개) — 즉시 착륙, 주 2회 제외</option>`:''}
+            ${hc>0?`<option value="honorary">🏅 명예 탑승 (보유 ${hc}개) — 즉시 착륙, 주 2회 제외</option>`:''}
           </select>
         </div>
-        <button class="btn btn-grad" data-action="ticket">✈ 탑승하기</button>
-        <button class="btn btn-outline" style="font-size:12px;color:var(--text2)" data-action="staff">🎖 운영진 탑승 (주 2회 제외)</button>
-        <div class="my-row-sub" style="text-align:center">취소 불가 · 우수/명예/운영진은 즉시 착륙 처리</div>
+        <button class="btn btn-grad" data-action="ticket">✈ 탑승</button>
+        <div class="my-row-sub" style="text-align:center">취소 불가 · 운영진/우수/명예는 즉시 착륙 처리</div>
       </div>
     </div>`; return;
   }
@@ -646,11 +681,7 @@ function renderMyPart(beforeTicket,inTicket,showLanding,inLand,afterAll) {
 // ══════════════════════════════════════════════
 async function doTicketFromUI() {
   const sel=document.getElementById('sel-ticket-type');
-  await doTicket(sel?sel.value:'normal');
-}
-async function doTicketDirect(tt) {
-  const li=document.getElementById('inp-ticket-link');
-  if (!li?.value.trim().startsWith('http')) { alert('링크를 먼저 입력해주세요'); li?.focus(); return; }
+  const tt=sel?sel.value:'normal';
   await doTicket(tt);
 }
 async function doTicket(tt='normal') {
@@ -658,7 +689,7 @@ async function doTicket(tt='normal') {
   const li=document.getElementById('inp-ticket-link');
   const url=(li?.value||'').trim();
   if (!url.startsWith('http')) { alert('인스타그램 링크를 입력해주세요'); li?.focus(); return; }
-  const btn=document.querySelector('#my-part button[data-action="ticket"]')||document.querySelector('#my-part button[data-action="staff"]');
+  const btn=document.querySelector('#my-part button[data-action="ticket"]');
   if (btn) { btn.disabled=true; btn.textContent='처리 중...'; }
   try {
     const td=await api('ticket',{room_id:currentRoom.room_id,member_id:me.member_id,nickname:me.nickname,insta_id:me.insta_id,ticket_type:tt});
