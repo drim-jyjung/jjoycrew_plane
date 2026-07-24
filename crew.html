@@ -394,7 +394,12 @@ async function doLogin() {
 
 function doLogout() {
   me=null; currentRoom=null; participants=[];
-  clearS(); showPage('page-login');
+  clearS();
+  try { localStorage.removeItem(SK_CRED); } catch(e){}
+  showPage('page-login');
+  // 입력창 초기화
+  document.getElementById('inp-nick').value='';
+  document.getElementById('inp-insta').value='';
 }
 
 // ══════════════════════════════════════════════
@@ -402,9 +407,21 @@ function doLogout() {
 // ══════════════════════════════════════════════
 async function goRooms() {
   showPage('page-rooms');
+
+  // 최신 멤버 상태 조회 (경고/잠금 해제 반영)
+  if (me?.nickname && me?.insta_id) {
+    try {
+      const fresh = await api('login', {nickname: me.nickname, insta_id: me.insta_id});
+      if (fresh.ok) {
+        me = fresh.member;
+        saveS(me); // 세션 갱신
+      }
+    } catch(e) {}
+  }
+
   document.getElementById('rooms-user').textContent = me?`@${me.insta_id}`:'';
 
-  // 탑바 배지 — 경고/명예/우수 횟수 (아이디와 로그아웃 사이)
+  // 탑바 배지
   const bdg=document.getElementById('rooms-badges');
   if (bdg) {
     const badges=[];
