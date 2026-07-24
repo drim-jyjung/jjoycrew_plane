@@ -956,27 +956,72 @@ async function loadWeekSheet(){
   el.innerHTML='<div class="empty"><span class="sp spd"></span></div>';
   const d=await api('get_week_sheet',{week_key:wk});
   if(!d.ok){el.innerHTML='<div class="empty">불러오기 실패</div>';return;}
-  if(!d.headers||d.headers.length<4){el.innerHTML=`<div class="empty">${wk} 시트 없음<br><span style="font-size:11px">주간 정산 또는 첫 탑승 시 자동 생성됩니다</span></div>`;return;}
+  if(!d.headers||d.headers.length<3){
+    el.innerHTML=`<div class="empty">${wk} 시트 없음<br><span style="font-size:11px">첫 탑승 시 자동 생성됩니다</span></div>`;return;
+  }
+
   const headers=d.headers, rows=d.rows;
-  // member_id 컬럼 제외하고 nickname/insta_id/날짜열/합계 표시
-  const midIdx=headers.indexOf('member_id');
-  const dispHeaders=headers.filter((_,i)=>i!==midIdx);
-  const sumIdx=dispHeaders.indexOf('주간합계');
-  const mark=v=>{
+  // gs에서 이미 member_id 제외됨
+  const sumIdx=headers.indexOf('주간합계');
+
+  const markHtml=v=>{
     if(v==='✓'||v==='⭐'||v==='🏅'||v==='🎖') return `<span class="mark-land">${v}</span>`;
+    if(v==='⚠') return `<span style="color:var(--red);font-weight:700">⚠</span>`;
     if(v==='●') return `<span class="mark-tick">●</span>`;
     return v||'';
   };
-  el.innerHTML=`<div class="week-tbl-wrap"><table class="week-tbl">
-    <thead><tr>${dispHeaders.map((h,i)=>`<th${i===sumIdx-1?` class="mark-sum"`:''} style="${i<2?'min-width:80px':'min-width:60px'}">${h}</th>`).join('')}</tr></thead>
-    <tbody>${rows.map(r=>{
-      const dispRow=r.filter((_,i)=>i!==midIdx);
-      return '<tr>'+dispRow.map((v,i)=>{
-        const isSum=i===sumIdx-1;
-        return `<td${isSum?' class="mark-sum"':''}>${isSum?v:mark(v)}</td>`;
-      }).join('')+'</tr>';
-    }).join('')}</tbody>
-  </table></div>`;
+
+  // 헤더 렌더
+  el.innerHTML=`
+    <div style="padding:10px 14px;display:flex;justify-content:flex-end">
+      <button class="btn bo bsm" id="btn-wk-download">⬇ 엑셀 다운로드</button>
+    </div>
+    <div class="week-tbl-wrap">
+      <table class="week-tbl">
+        <thead><tr>${headers.map((h,i)=>`<th style="${i<2?'min-width:80px':'min-width:55px'}${i===sumIdx?' background:var(--green-bg);color:var(--green)':''}">${h}</th>`).join('')}</tr></thead>
+        <tbody id="week-tbl-body"></tbody>
+      </table>
+    </div>`;
+
+  // 다운로드 버튼 이벤트
+  document.getElementById('btn-wk-download').onclick=()=>downloadWeekSheet(wk, headers, rows);
+
+  // requestAnimationFrame으로 50행씩 렌더링 (브라우저 블록 방지)
+  const tbody=document.getElementById('week-tbl-body');
+  const CHUNK=50; let idx=0;
+  function renderChunk(){
+    const frag=document.createDocumentFragment();
+    const end=Math.min(idx+CHUNK, rows.length);
+    for(;idx<end;idx++){
+      const r=rows[idx];
+      const tr=document.createElement('tr');
+      // 미착륙 경고 있는 행 배경 표시
+      const hasWarn=r.some(v=>v==='⚠');
+      if(hasWarn) tr.style.background='#FFF8F8';
+      tr.innerHTML=r.map((v,i)=>{
+        const isSum=i===sumIdx;
+        return `<td${isSum?' class="mark-sum"':''}>${isSum?(v||0):markHtml(v)}</td>`;
+      }).join('');
+      frag.appendChild(tr);
+    }
+    tbody.appendChild(frag);
+    if(idx<rows.length) requestAnimationFrame(renderChunk);
+  }
+  requestAnimationFrame(renderChunk);
+}
+
+// 엑셀 다운로드 (CSV 방식 — 별도 라이브러리 불필요)
+function downloadWeekSheet(wk, headers, rows){
+  const BOM='\uFEFF'; // 한글 깨짐 방지
+  const esc=v=>'"'+String(v||'').replace(/"/g,'""')+'"';
+  const lines=[headers.map(esc).join(',')];
+  rows.forEach(r=>lines.push(r.map(esc).join(',')));
+  const csv=BOM+lines.join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=wk+'.csv'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 
 // ══════════════════════════════════════════════
