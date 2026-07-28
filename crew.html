@@ -418,16 +418,24 @@ function _renderTopBadges() {
 async function goRooms() {
   showPage('page-rooms');
 
-  // 최신 멤버 상태 조회 (경고/잠금 해제 반영) — 비동기로 조용히 갱신
+  // 최신 멤버 상태 조회 — 룸 목록 로드 후 백그라운드 갱신
+  // (잠금/경고 해제 즉시 반영용)
   if (me?.nickname && me?.insta_id && me?.member_id) {
-    api('login', {nickname: me.nickname, insta_id: me.insta_id}).then(fresh => {
-      if (fresh?.ok && fresh.member) {
-        me = fresh.member;
-        saveS(me);
-        // 배지/배너 재렌더
-        _renderTopBadges();
-      }
-    }).catch(()=>{});
+    setTimeout(function(){
+      api('login', {nickname: me.nickname, insta_id: me.insta_id}).then(function(fresh){
+        if (fresh?.ok && fresh.member && fresh.member.member_id === me.member_id) {
+          me = fresh.member;
+          saveS(me);
+          _renderTopBadges();
+          // 경고 배너도 갱신
+          const wb = document.getElementById('warn-top-rooms');
+          if (me?.is_warned) {
+            wb.className='warn-top show';
+            wb.innerHTML=`⚠️ 경고 ${me.warning_count||1}회 보유 · 만료: ${me.warn_expires||'익일 10:00'} · 경고 보유 시 탑승 불가`;
+          } else wb.className='warn-top';
+        }
+      }).catch(function(){});
+    }, 1500); // 룸 목록 로드 후 1.5초 뒤 갱신
   }
 
   document.getElementById('rooms-user').textContent = me?`@${me.insta_id}`:'';
@@ -711,9 +719,18 @@ async function doTicket(tt='normal') {
   const btn=document.querySelector('#my-part button[data-action="ticket"]');
   if (btn) { btn.disabled=true; btn.textContent='처리 중...'; }
   try {
-    const td=await api('ticket',{room_id:currentRoom.room_id,member_id:me.member_id,nickname:me.nickname,insta_id:me.insta_id,ticket_type:tt});
+    const instant=(tt==='excellent'||tt==='honorary'||tt==='staff');
+    // post_url을 탑승 API에 같이 전달 (즉시 착륙 유형은 register_link 불가이므로)
+    const td=await api('ticket',{
+      room_id:currentRoom.room_id, member_id:me.member_id,
+      nickname:me.nickname, insta_id:me.insta_id,
+      ticket_type:tt, post_url:url
+    });
     if (!td.ok) { alert(td.error||'탑승 실패'); return; }
-    await api('register_link',{room_id:currentRoom.room_id,member_id:me.member_id,post_url:url});
+    // 일반 탑승만 별도 링크 등록 (즉시 착륙은 탑승 시 이미 저장됨)
+    if (!instant) {
+      await api('register_link',{room_id:currentRoom.room_id,member_id:me.member_id,post_url:url});
+    }
     if (tt==='excellent') { me.excellent_count=Math.max(0,(me.excellent_count||0)-1); saveS(me); }
     if (tt==='honorary')  { me.honorary_count =Math.max(0,(me.honorary_count ||0)-1); saveS(me); }
     fly(); await goTicket(currentRoom.room_id);
