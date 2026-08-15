@@ -491,6 +491,8 @@ document.getElementById('btnLogin').addEventListener('click',doLogin);
 document.getElementById('apw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 document.getElementById('btnLogout').addEventListener('click',doLogout);
 
+const ADMIN_CRED = 'plane_admin_cred';
+
 async function doLogin(){
   const nick=document.getElementById('aid').value.trim(), insta=document.getElementById('apw').value.trim();
   hideBnr('lerr');
@@ -499,6 +501,8 @@ async function doLogin(){
   const d=await api('admin_login',{nickname:nick,insta_id:insta});
   btnLoad('btnLogin',false,'로그인');
   if(!d.ok){showBnr('lerr',d.error||'로그인 실패');return;}
+  // 자격증명 저장
+  try { localStorage.setItem(ADMIN_CRED, JSON.stringify({nickname:nick, insta_id:insta})); } catch(e){}
   adminInfo=d.admin; saveS(adminInfo);
   document.getElementById('admbdg').textContent='👤 '+adminInfo.nickname;
   document.getElementById('pg-login').classList.add('hide');
@@ -507,13 +511,33 @@ async function doLogin(){
 }
 function doLogout(){
   adminInfo=null;memberList=[];roomCache=[];clearS();
+  // 자격증명 삭제
+  try { localStorage.removeItem(ADMIN_CRED); } catch(e){}
   Object.keys(loaded).forEach(k=>loaded[k]=false);
   document.getElementById('pg-login').classList.remove('hide');
   document.getElementById('pg-dash').classList.remove('show');
+  document.getElementById('aid').value='';
+  document.getElementById('apw').value='';
 }
 window.addEventListener('load',()=>{
   const s=loadS();
-  if(s?.admin_id){adminInfo=s;document.getElementById('admbdg').textContent='👤 '+adminInfo.nickname;document.getElementById('pg-login').classList.add('hide');document.getElementById('pg-dash').classList.add('show');loadDash();}
+  if(s?.admin_id){
+    adminInfo=s;
+    document.getElementById('admbdg').textContent='👤 '+adminInfo.nickname;
+    document.getElementById('pg-login').classList.add('hide');
+    document.getElementById('pg-dash').classList.add('show');
+    loadDash();
+    return;
+  }
+  // 세션 없으면 저장된 자격증명으로 자동 로그인 시도
+  try {
+    const cred=JSON.parse(localStorage.getItem(ADMIN_CRED)||'null');
+    if(cred?.nickname && cred?.insta_id){
+      document.getElementById('aid').value=cred.nickname;
+      document.getElementById('apw').value=cred.insta_id;
+      doLogin();
+    }
+  } catch(e){}
 });
 
 // ══════════════════════════════════════════════
