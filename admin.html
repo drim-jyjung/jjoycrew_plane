@@ -1191,12 +1191,18 @@ function doCount(action,mid,m,btn){
     m.honorary_count=Math.max(0,cur+delta);
   }
 
-  // 즉시 화면 반영
+  // 즉시 화면 반영 + 로딩 표시
   updateRow(mid);
-  btn.disabled=true;
-  setTimeout(()=>{btn.disabled=false;},1200);
+  // 같은 행의 +/-버튼 전부 비활성 (API 응답까지)
+  const tr=btn.closest('tr');
+  const rowBtns=tr?tr.querySelectorAll('.cbtn'):[];
+  rowBtns.forEach(b=>b.disabled=true);
+  // 수치 옆에 로딩 스피너 표시
+  const fieldMap={w:'wc',e:'ec',h:'hc'};
+  const valEl=tr?.querySelector(`[data-f="${fieldMap[type]}"]`);
+  const origText=valEl?.textContent;
+  if(valEl) valEl.innerHTML=`${origText} <span class="sp" style="width:10px;height:10px;vertical-align:middle"></span>`;
 
-  // API 백그라운드 — 응답 후 updateRow 호출 안 함 (이미 반영됨)
   const call=type==='w'
     ?(delta>0
       ?api('manual_warn',{member_id:mid,admin_nickname:adminInfo.nickname,reason:'관리자 수동 경고 +1'})
@@ -1207,17 +1213,26 @@ function doCount(action,mid,m,btn){
 
   call.then(d=>{
     if(!d.ok){
-      // 실패 시만 롤백
+      // 실패 시 롤백
       m.warning_count=prev.wc;m.excellent_count=prev.ec;
       m.honorary_count=prev.hc;m.status=prev.st;
-      updateRow(mid);
       showBnr('merr',d.error||'실패');
     }
-    // 성공 시 updateRow 호출 안 함 — 이미 반영됨
+    // 성공/실패 모두 화면 갱신 후 버튼 복원
+    updateRow(mid);
+    rowBtns.forEach(b=>{
+      // -버튼은 값이 0이면 disabled 유지
+      const f=b.dataset.a;
+      if(f==='w-') b.disabled=(Number(m.warning_count)||0)<=0;
+      else if(f==='e-') b.disabled=(Number(m.excellent_count)||0)<=0;
+      else if(f==='h-') b.disabled=(Number(m.honorary_count)||0)<=0;
+      else b.disabled=false;
+    });
   }).catch(()=>{
     m.warning_count=prev.wc;m.excellent_count=prev.ec;
     m.honorary_count=prev.hc;m.status=prev.st;
     updateRow(mid);
+    rowBtns.forEach(b=>b.disabled=false);
     showBnr('merr','네트워크 오류');
   });
 }
