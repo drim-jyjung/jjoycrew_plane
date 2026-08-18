@@ -27,7 +27,7 @@ body{
   min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;
 }
 /* 페이지 */
-.page{display:none;flex-direction:column;min-height:100vh;min-height:100dvh}
+.page{display:none;flex-direction:column;position:fixed;inset:0;overflow:hidden}
 .page.active{display:flex}
 /* 탑바 */
 .topbar{
@@ -137,7 +137,6 @@ select.input{cursor:pointer}
 .p-row:last-child{border-bottom:none}
 .av{width:32px;height:32px;border-radius:50%;background:var(--grad);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
 /* 내 참여 섹션 */
-.my-section{border-top:2px solid var(--border);padding:16px;background:var(--surface);padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
 .my-label{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
 .my-block{border:1px solid var(--border);border-radius:var(--rsm);overflow:hidden;margin-bottom:8px;background:var(--surface)}
 .my-block:last-child{margin-bottom:0}
