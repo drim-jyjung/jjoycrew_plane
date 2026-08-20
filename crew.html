@@ -132,6 +132,7 @@ select.input{cursor:pointer}
 .room-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--grad)}
 .room-card:active{opacity:.85}
 .room-card.disabled{opacity:.6;cursor:not-allowed}
+.room-card.mine{border-color:#93C5FD}
 /* 참여자 */
 .p-row{display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border)}
 .p-row:last-child{border-bottom:none}
@@ -454,7 +455,7 @@ async function goRooms() {
   hideBnr('rooms-error');
   document.getElementById('rooms-list').innerHTML='<div class="empty"><span class="sp sp-dark" style="width:24px;height:24px"></span></div>';
   try {
-    const d = await api('get_rooms');
+    const d = await api('get_rooms', {member_id: me?.member_id});
     renderRooms(d.rooms||[]);
   } catch(e) { showBnr('rooms-error','룸 목록을 불러오지 못했습니다'); document.getElementById('rooms-list').innerHTML=''; }
 }
@@ -467,6 +468,7 @@ function renderRooms(rooms) {
     return;
   }
   const now=new Date();
+  const ttIcon={excellent:'⭐',honorary:'🏅',staff:'🎖',normal:''};
   el.innerHTML=rooms.map(r=>{
     // ticket_start 등은 "yyyy-MM-dd HH:mm" 형식으로 API에서 옴
     const ts=parseKST(r.ticket_start), te=parseKST(r.ticket_end);
@@ -487,6 +489,14 @@ function renderRooms(rooms) {
     // 경고자는 티켓팅 중에만 탑승 불가, 나머지(마감/착륙중)는 확인용 진입 가능
     if (isWarned && inTicket) canEnter=false;
 
+    // 내가 이 방에 참여했는지 표시 (목록에서 바로 구분되도록)
+    const myIcon = ttIcon[r.my_ticket_type||'normal']||'';
+    const myBadge = r.my_status === 'landed'
+      ? `<span class="badge badge-green">✅ 참여완료${myIcon?' '+myIcon:''}</span>`
+      : r.my_status === 'ticketed'
+        ? `<span class="badge badge-blue">🎫 탑승중${myIcon?' '+myIcon:''}</span>`
+        : '';
+
     const tags=(r.items||'').split(',').map(t=>`<span class="tag">${t.trim()}</span>`).join('');
     const maxLabel=Number(r.max_members)>=9999?'무제한':r.max_members;
 
@@ -503,10 +513,10 @@ function renderRooms(rooms) {
     } else if (!beforeTicket) {
       countLine=`<div style="font-size:12px;color:var(--text2);margin-top:6px">👥 ${r.joined}/${maxLabel}명</div>`;
     }
-    return `<div class="room-card${canEnter?'':' disabled'}" data-rid="${r.room_id}">
+    return `<div class="room-card${canEnter?'':' disabled'}${r.my_status?' mine':''}" data-rid="${r.room_id}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
         <div style="font-size:15px;font-weight:700">${String(r.room_date).substring(0,10)} #${r.room_number}</div>
-        ${badge}
+        <div style="display:flex;gap:4px;align-items:center">${badge}${myBadge}</div>
       </div>
       <div style="font-size:11px;color:var(--text2);margin-bottom:6px">🎫 ${r.ticket_start_fmt||fmt(r.ticket_start)} ~ ${r.ticket_end_fmt||fmt(r.ticket_end)} &nbsp; 🛬 ${r.land_start_fmt||fmt(r.land_start)} ~ ${r.land_end_fmt||fmt(r.land_end)}</div>
       <div>${tags}</div>
