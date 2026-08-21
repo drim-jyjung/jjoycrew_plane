@@ -336,6 +336,23 @@ function expiryHonorary(grantedAt) {
   } catch(e){ return '일요일 22:00'; }
 }
 
+// ── 텍스트 어디에 있든 링크(http로 시작하는 부분)만 뽑아내기
+// 인스타그램 "공유하기"로 복사하면 앞뒤에 한글 설명이 붙어서 복사되는 경우가 많아,
+// 순수 링크만 입력해야 통과되던 기존 방식(사실상 한글 섞이면 실패) 대신
+// 붙여넣은 텍스트 아무데나 링크가 있으면 자동으로 찾아서 추출한다.
+function extractUrl(text) {
+  if (!text) return '';
+  const m = String(text).match(/https?:\/\/[^\s]+/);
+  if (!m) return '';
+  let url = m[0];
+  // 공백 없이 바로 이어붙은 한글이 있으면 그 앞까지만 링크로 인정
+  const koreanIdx = url.search(/[가-힣]/);
+  if (koreanIdx > -1) url = url.substring(0, koreanIdx);
+  // 링크 뒤에 흔히 붙는 문장부호 제거
+  url = url.replace(/[),.!?;:'"”’]+$/,'');
+  return url;
+}
+
 // ── 이벤트 바인딩
 document.getElementById('btn-login').addEventListener('click', doLogin);
 document.getElementById('btn-logout').addEventListener('click', doLogout);
@@ -728,8 +745,9 @@ async function doTicketFromUI() {
 async function doTicket(tt='normal') {
   if (!me?.member_id||!currentRoom) return;
   const li=document.getElementById('inp-ticket-link');
-  const url=(li?.value||'').trim();
-  if (!url.startsWith('http')) { alert('인스타그램 링크를 입력해주세요'); li?.focus(); return; }
+  const raw=(li?.value||'').trim();
+  const url=extractUrl(raw);
+  if (!url) { alert('인스타그램 링크를 찾을 수 없어요. 링크가 포함된 텍스트를 입력해주세요\n(카톡 등에서 복사한 설명글을 통째로 붙여넣어도 괜찮아요)'); li?.focus(); return; }
   const btn=document.querySelector('#my-part button[data-action="ticket"]');
   if (btn) { btn.disabled=true; btn.textContent='처리 중...'; }
   try {
@@ -752,8 +770,9 @@ async function doTicket(tt='normal') {
   finally { if(btn){btn.disabled=false;} }
 }
 async function doRegisterLink(btn) {
-  const url=(document.getElementById('inp-link')?.value||'').trim();
-  if (!url.startsWith('http')) { alert('올바른 URL을 입력해주세요'); return; }
+  const raw=(document.getElementById('inp-link')?.value||'').trim();
+  const url=extractUrl(raw);
+  if (!url) { alert('올바른 링크를 찾을 수 없어요. 링크가 포함된 텍스트를 입력해주세요'); return; }
   if (btn) { btn.disabled=true; btn.textContent='등록 중...'; }
   try {
     const d=await api('register_link',{room_id:currentRoom.room_id,member_id:me.member_id,post_url:url});
@@ -763,8 +782,9 @@ async function doRegisterLink(btn) {
   finally { if(btn){btn.disabled=false;btn.textContent='등록';} }
 }
 async function doUpdateLink(btn) {
-  const url=(document.getElementById('inp-link-edit')?.value||'').trim();
-  if (!url.startsWith('http')) { alert('올바른 URL을 입력해주세요'); return; }
+  const raw=(document.getElementById('inp-link-edit')?.value||'').trim();
+  const url=extractUrl(raw);
+  if (!url) { alert('올바른 링크를 찾을 수 없어요. 링크가 포함된 텍스트를 입력해주세요'); return; }
   if (btn) { btn.disabled=true; btn.textContent='수정 중...'; }
   try {
     const d=await api('update_link',{room_id:currentRoom.room_id,member_id:me.member_id,post_url:url});
