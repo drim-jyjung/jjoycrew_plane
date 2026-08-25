@@ -564,17 +564,15 @@ async function goTicket(roomId) {
   wt.innerHTML=me?.is_warned?`⚠️ 경고 ${me.warning_count||1}회 · 만료: ${me.warn_expires||'익일 10:00'}`:'';
   wt.classList.toggle('show',!!me?.is_warned);
 
-  // 병렬 로드
-  const [wcRes, detailRes] = await Promise.allSettled([
-    api('get_my_week_count',{member_id:me.member_id}),
-    api('get_room_detail',{room_id:roomId}),
-  ]);
-  weekLandCount = wcRes.status==='fulfilled'&&wcRes.value.ok ? (wcRes.value.week_land_count||0) : 0;
-  todayParticipated = wcRes.status==='fulfilled'&&wcRes.value.ok ? !!wcRes.value.today_participated : false;
-  if (detailRes.status==='rejected'||!detailRes.value.ok) {
+  // 방 상세 + 내 주간현황을 한 번에 로드 (예전엔 get_my_week_count를 따로 호출해서
+  // 참여기록 전체를 두 번 읽었음 — get_room_detail이 member_id를 받으면 한 번만 읽고 같이 내려줌)
+  const detailRes = await api('get_room_detail',{room_id:roomId, member_id:me.member_id});
+  weekLandCount = detailRes.ok && detailRes.my_week ? (detailRes.my_week.week_land_count||0) : 0;
+  todayParticipated = detailRes.ok && detailRes.my_week ? !!detailRes.my_week.today_participated : false;
+  if (!detailRes.ok) {
     document.getElementById('p-list').innerHTML='<div class="empty">불러오기 실패</div>'; return;
   }
-  const data=detailRes.value;
+  const data=detailRes;
   currentRoom=data.room; participants=data.participants||[];
 
   document.getElementById('ticket-title').textContent=`${String(currentRoom.room_date).substring(0,10)} #${currentRoom.room_number}`;
