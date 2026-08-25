@@ -514,8 +514,7 @@ function switchPanel(name){
   document.getElementById('panel-'+name).classList.add('active');
   document.querySelector(`.ni[data-panel="${name}"]`).classList.add('on');
   if(name==='dashboard') loadDash();
-  if(name==='rooms'&&!loaded.rooms) loadAR(); // loadAR이 오늘룸+전체 둘다 처리
-  if(name==='rooms'&&loaded.rooms)  loadAR(); // 룸탭 재진입 시 항상 새로고침
+  if(name==='rooms') loadAR(); // loadAR이 오늘룸+전체 둘 다 처리, 재진입 시 항상 새로고침
   if(name==='monitor'&&!loaded.monitor) loadMon();
   if(name==='members'&&!loaded.members) loadM();
   if(name==='settle') { loadSI(); document.getElementById('log-date').value=td(); }
