@@ -204,7 +204,10 @@ select.input{cursor:pointer}
         </div>
         <div class="card">
           <div class="ch"><span class="ct">전체 룸</span>
-            <div style="display:flex;gap:6px">
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+              <input class="input" id="rfw" placeholder="2026_W35 (주)" style="width:120px">
+              <button class="btn bo bsm" id="btnRFWThis">이번주</button>
+              <span style="color:var(--text3);font-size:12px">또는</span>
               <input type="date" class="input" id="rfd" style="width:140px">
               <button class="btn bo bsm" id="btnARRefresh">새로고침</button>
             </div>
@@ -398,6 +401,15 @@ select.input{cursor:pointer}
   </div>
 </div>
 
+<!-- 룸 히스토리 상세보기 모달 (룸관리 탭에서 방 클릭 시 — 오늘 방/과거 방 구분 없이 동작) -->
+<div class="ov" id="mrh">
+  <div class="modal" style="width:600px">
+    <div class="mt" id="rhTitle">룸 상세</div>
+    <div id="rhBody"><div class="empty"><span class="sp spd"></span></div></div>
+    <div style="margin-top:14px"><button class="btn bo bfl" id="btnRHClose">닫기</button></div>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════════════════
 // ★ 수정 필요: 배포 URL
@@ -495,12 +507,24 @@ const nd=d=>{const x=new Date(d);x.setDate(x.getDate()+1);return x.toISOString()
 const lt=n=>n?n[0]:'?';
 
 // ── 이번 주 키
+// ── KST 날짜 안전 연산 헬퍼 (gs의 동일 로직과 완전히 통일 — 서버/클라 주차키 불일치 방지)
+// new Date(str).getDay() 같은 로컬 타임존 암묵의존 방식 대신 UTC 기반으로만 계산해서
+// 관리자 기기의 타임존 설정과 무관하게 항상 서버와 동일한 결과가 나오도록 함
+function kstDateParts_(dateStr){ const m=String(dateStr).match(/^(\d{4})-(\d{2})-(\d{2})/); return m?{y:+m[1],mo:+m[2],d:+m[3]}:null; }
+function utcMidnightOfKstDate_(dateStr){ const p=kstDateParts_(dateStr); return new Date(Date.UTC(p.y,p.mo-1,p.d)); }
+function weekdayOfKstDate_(dateStr){ return utcMidnightOfKstDate_(dateStr).getUTCDay(); }
+function addDaysToKstDate_(dateStr,n){ const d=utcMidnightOfKstDate_(dateStr); d.setUTCDate(d.getUTCDate()+n); return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0'); }
+function weekKeyOf(dateStr){
+  const day=weekdayOfKstDate_(dateStr); // 0=일...6=토
+  const thuStr=addDaysToKstDate_(dateStr, 4-(day||7));
+  const thuParts=kstDateParts_(thuStr);
+  const thuUTC=utcMidnightOfKstDate_(thuStr).getTime();
+  const ysUTC=Date.UTC(thuParts.y,0,1);
+  const wn=Math.ceil(((thuUTC-ysUTC)/86400000+1)/7);
+  return thuParts.y+'_W'+String(wn).padStart(2,'0');
+}
 function thisWeekKey(){
-  const now=new Date(),thu=new Date(now);
-  thu.setDate(now.getDate()+4-(now.getDay()||7));
-  const ys=new Date(thu.getFullYear(),0,1);
-  const wn=Math.ceil(((thu-ys)/86400000+1)/7);
-  return thu.getFullYear()+'_W'+String(wn).padStart(2,'0');
+  return weekKeyOf(td());
 }
 
 // ── 네비게이션
@@ -663,7 +687,9 @@ async function doWeeklyD(){
 // 룸 관리
 // ══════════════════════════════════════════════
 document.getElementById('btnARRefresh').addEventListener('click',()=>loadAR());
-document.getElementById('rfd').addEventListener('input',filterAR);
+document.getElementById('rfd').addEventListener('input',()=>{ document.getElementById('rfw').value=''; filterAR(); });
+document.getElementById('rfw').addEventListener('input',()=>{ document.getElementById('rfd').value=''; filterAR(); });
+document.getElementById('btnRFWThis').addEventListener('click',()=>{ document.getElementById('rfw').value=thisWeekKey(); document.getElementById('rfd').value=''; filterAR(); });
 document.getElementById('btn-preset-all').addEventListener('click',doAllPresets);
 document.getElementById('btnOpenCR').addEventListener('click',openCR);
 document.getElementById('btnCRClose').addEventListener('click',()=>closeModal('mcr'));
@@ -703,23 +729,65 @@ async function loadAR(){
   loaded.rooms=true;
 }
 function filterAR(){
+  const wf=document.getElementById('rfw')?.value.trim()||'';
   const df=document.getElementById('rfd')?.value||'';
-  const rooms=df?roomCache.filter(r=>r.room_date===df):roomCache;
+  let rooms;
+  if(wf) rooms=roomCache.filter(r=>weekKeyOf(r.room_date)===wf);
+  else if(df) rooms=roomCache.filter(r=>r.room_date===df);
+  else rooms=roomCache;
   const el=document.getElementById('all-rooms');
-  if(!rooms.length){el.innerHTML='<div class="empty">룸 없음</div>';return;}
+  if(!rooms.length){el.innerHTML=`<div class="empty">${wf?wf+' 주차에 ':df?df+'에 ':''}생성된 룸 없음</div>`;return;}
   el.innerHTML='<table class="tbl"><thead><tr><th>날짜</th><th>#</th><th>품앗이</th><th>티켓팅</th><th>착륙</th><th>인원</th><th>상태</th><th></th></tr></thead><tbody>'
-    +rooms.map(r=>`<tr><td style="font-weight:600">${r.room_date}</td><td>#${r.room_number}</td><td>${(r.items||'').split(',').map(t=>`<span class="tag">${t.trim()}</span>`).join('')}</td><td style="font-size:11px;white-space:nowrap">${r.ticket_start_fmt||''} ~ ${r.ticket_end_fmt||''}</td><td style="font-size:11px;white-space:nowrap">${r.land_start_fmt||''} ~ ${r.land_end_fmt||''}</td><td>${r.joined}/${Number(r.max_members)>=9999?"무제한":r.max_members}(+${(r.total_joined||r.joined)-r.joined}운영진)</td><td>${r.status==='open'?'<span class="badge bdk">open</span>':'<span class="badge bdg">closed</span>'}</td><td><div class="act-cell"><button class="btn bo bsm" data-action="edit" data-rid="${r.room_id}">수정</button><button class="btn bsm btn-danger" data-action="del" data-rid="${r.room_id}" data-date="${r.room_date}" data-num="${r.room_number}">삭제</button></div></td></tr>`).join('')+'</tbody></table>';
+    +rooms.map(r=>`<tr><td style="font-weight:600">${r.room_date}</td><td>#${r.room_number}</td><td>${(r.items||'').split(',').map(t=>`<span class="tag">${t.trim()}</span>`).join('')}</td><td style="font-size:11px;white-space:nowrap">${r.ticket_start_fmt||''} ~ ${r.ticket_end_fmt||''}</td><td style="font-size:11px;white-space:nowrap">${r.land_start_fmt||''} ~ ${r.land_end_fmt||''}</td><td>${r.joined}/${Number(r.max_members)>=9999?"무제한":r.max_members}(+${(r.total_joined||r.joined)-r.joined}운영진)</td><td>${r.status==='open'?'<span class="badge bdk">open</span>':'<span class="badge bdg">closed</span>'}</td><td><div class="act-cell"><button class="btn bo bsm" data-action="mon" data-rid="${r.room_id}">현황</button><button class="btn bo bsm" data-action="edit" data-rid="${r.room_id}">수정</button><button class="btn bsm btn-danger" data-action="del" data-rid="${r.room_id}" data-date="${r.room_date}" data-num="${r.room_number}">삭제</button></div></td></tr>`).join('')+'</tbody></table>';
 }
 
 ['today-rooms','all-rooms'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{
     const btn=e.target.closest('[data-action]');if(!btn)return;
     const{action,rid,date,num}=btn.dataset;
-    if(action==='mon'){switchPanel('monitor');}  // 참여현황 전체 보기
+    if(action==='mon'){openRoomHistory(rid);}
     if(action==='edit'){const r=roomCache.find(x=>x.room_id===rid);if(r)openER(r);else api('get_all_rooms').then(d=>{roomCache=d.rooms||[];const ro=roomCache.find(x=>x.room_id===rid);if(ro)openER(ro);});}
     if(action==='del') doDeleteRoom(rid,date,num);
   });
 });
+
+// 룸 히스토리 상세보기 — 오늘 방이든 몇 달 전 방이든 날짜 구분 없이 동작
+// (get_room_detail은 시간/날짜 제약이 없어서 마감된 옛날 방도 그대로 조회됨)
+document.getElementById('btnRHClose').addEventListener('click',()=>closeModal('mrh'));
+async function openRoomHistory(rid){
+  document.getElementById('rhTitle').textContent='룸 상세';
+  document.getElementById('rhBody').innerHTML='<div class="empty"><span class="sp spd"></span></div>';
+  openModal('mrh');
+  const d=await api('get_room_detail',{room_id:rid});
+  if(!d.ok){document.getElementById('rhBody').innerHTML=`<div class="empty">${d.error||'불러오기 실패'}</div>`;return;}
+  const room=d.room, parts=d.participants||[];
+  document.getElementById('rhTitle').textContent=`${room.room_date} #${room.room_number} 상세`;
+  const icon={normal:'',excellent:'⭐',honorary:'🏅',staff:'🎖'};
+  const landed=parts.filter(p=>p.status==='landed'), notLanded=parts.filter(p=>p.status!=='landed');
+  document.getElementById('rhBody').innerHTML=`
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px">
+      🎫 ${room.ticket_start_fmt||''} ~ ${room.ticket_end_fmt||''} &nbsp; 🛬 ${room.land_start_fmt||''} ~ ${room.land_end_fmt||''}
+      &nbsp; ${(room.items||'').split(',').map(t=>`<span class="tag">${t.trim()}</span>`).join('')}
+    </div>
+    <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:6px">✓ 착륙 완료 (${landed.length}명)</div>
+    ${landed.length?landed.map(p=>`
+      <div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">
+        <span style="font-weight:600;min-width:70px">${p.nickname}</span>
+        <span style="color:var(--text3);min-width:110px">@${p.insta_id}</span>
+        <span>${icon[p.ticket_type||'normal']||''}</span>
+        ${p.post_url?`<a href="${p.post_url}" target="_blank" style="color:var(--primary);word-break:break-all">${p.post_url}</a>`:'<span style="color:var(--text3)">링크없음</span>'}
+      </div>`).join(''):'<div class="empty" style="padding:10px">없음</div>'}
+    ${notLanded.length?`
+    <div style="font-size:12px;font-weight:700;color:var(--red);margin:12px 0 6px">⚠ 미착륙 (${notLanded.length}명)</div>
+    ${notLanded.map(p=>`
+      <div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">
+        <span style="font-weight:600;min-width:70px">${p.nickname}</span>
+        <span style="color:var(--text3);min-width:110px">@${p.insta_id}</span>
+        ${p.post_url?`<a href="${p.post_url}" target="_blank" style="color:var(--primary);word-break:break-all">${p.post_url}</a>`:'<span style="color:var(--text3)">링크없음</span>'}
+      </div>`).join('')}`:''}
+    ${!parts.length?'<div class="empty" style="padding:16px">참여자 없음</div>':''}
+  `;
+}
 
 function openCR(){
   document.getElementById('crd').value=td();
