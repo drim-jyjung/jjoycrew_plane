@@ -1,1570 +1,2867 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>비행기방 관리자</title>
-<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#F3F4F6;--surface:#fff;--primary:#1A6BFF;--primary-light:#E8F0FF;
-  --text:#111827;--text2:#6B7280;--text3:#9CA3AF;
-  --border:#E5E7EB;--border2:#D1D5DB;
-  --green:#059669;--green-bg:#ECFDF5;
-  --amber:#D97706;--amber-bg:#FFFBEB;
-  --red:#DC2626;--red-bg:#FEF2F2;
-  --purple:#7C3AED;--purple-bg:#F5F3FF;
-  --r:10px;--rsm:7px;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Pretendard,-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
-#pg-login{display:flex;align-items:center;justify-content:center;min-height:100vh}
-#pg-login.hide{display:none}
-#pg-dash{display:none;flex-direction:column;min-height:100vh}
-#pg-dash.show{display:flex}
-.topbar{height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:30;flex-shrink:0}
-.layout{display:flex;flex:1}
-.sidebar{width:175px;background:var(--surface);border-right:1px solid var(--border);padding:12px 8px;flex-shrink:0;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto}
-.main{flex:1;padding:20px;min-height:0;overflow-y:auto}
-.panel{display:none}.panel.active{display:block}
-/* 사이드바 */
-.ni{display:flex;align-items:center;gap:7px;padding:8px 10px;border-radius:var(--rsm);font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;margin-bottom:2px;user-select:none}
-.ni:hover{background:var(--bg)}.ni.on{background:var(--primary-light);color:var(--primary);font-weight:600}
-/* 공통 */
-.card{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);margin-bottom:14px;overflow:hidden}
-.ch{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
-.ct{font-size:13px;font-weight:700}.cb{padding:16px}
-.pt{font-size:17px;font-weight:700;margin-bottom:16px}
-.sg{display:grid;gap:10px;margin-bottom:14px}
-.sg4{grid-template-columns:repeat(4,1fr)}.sg3{grid-template-columns:repeat(3,1fr)}.sg2{grid-template-columns:1fr 1fr}
-.sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px}
-.sn{font-size:23px;font-weight:700}.sl{font-size:11px;color:var(--text2);margin-top:2px}
-/* 입력 */
-.field{margin-bottom:11px}.field:last-child{margin-bottom:0}
-.fl{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:4px;display:block}
-.input{width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--rsm);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);outline:none;transition:border-color .15s}
-.input:focus{border-color:var(--primary)}.input::placeholder{color:var(--text3)}
-select.input{cursor:pointer}
-.r2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-/* 버튼 */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;font-family:inherit;font-size:13px;font-weight:600;padding:7px 14px;border-radius:var(--rsm);border:none;cursor:pointer;transition:opacity .15s;white-space:nowrap}
-.btn:disabled{opacity:.4;cursor:not-allowed}
-.bp{background:var(--primary);color:#fff}.bo{background:transparent;color:var(--text);border:1px solid var(--border2)}
-.bgg{background:var(--green);color:#fff}.bam{background:var(--amber);color:#fff}.bred{background:var(--red);color:#fff}
-.bfl{width:100%}.bsm{padding:4px 10px;font-size:12px;border-radius:6px}
-.btn-danger{color:var(--red);border:1px solid var(--red);background:transparent}
-.btn-success{background:var(--green);color:#fff;border:none}
-/* 배지/태그 */
-.badge{display:inline-flex;align-items:center;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap}
-.bdk{background:var(--green-bg);color:var(--green)}.bdm{background:var(--amber-bg);color:var(--amber)}
-.bdr{background:var(--red-bg);color:var(--red)}.bdb{background:var(--primary-light);color:var(--primary)}
-.bdg{background:var(--bg);color:var(--text2)}.bdp{background:var(--purple-bg);color:var(--purple)}
-.tag{display:inline-flex;font-size:10px;padding:2px 6px;border-radius:4px;background:var(--primary-light);color:var(--primary);margin:1px}
-/* 배너 */
-.bnr{padding:10px 12px;border-radius:var(--rsm);font-size:12px;margin-bottom:10px;display:none}
-.bnr.show{display:block}
-.bnr-e{background:var(--red-bg);color:var(--red);border:1px solid #FECACA}
-.bnr-o{background:var(--green-bg);color:var(--green);border:1px solid #A7F3D0}
-.bnr-w{background:var(--amber-bg);color:var(--amber);border:1px solid #FDE68A}
-/* 스피너 */
-.sp{width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;vertical-align:middle}
-.spd{border-color:var(--border);border-top-color:var(--primary)}
-@keyframes spin{to{transform:rotate(360deg)}}
-/* 테이블 */
-.tbl{width:100%;border-collapse:collapse}
-.tbl th{text-align:left;font-size:11px;font-weight:700;color:var(--text3);padding:7px 10px;border-bottom:2px solid var(--border);white-space:nowrap}
-.tbl td{padding:8px 10px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle}
-.tbl tr:last-child td{border-bottom:none}.tbl tr:hover td{background:#fafafa}
-/* 멤버 버튼 */
-.cbtn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:5px;border:1px solid var(--border2);font-size:15px;font-weight:700;cursor:pointer;background:var(--surface);color:var(--text);font-family:inherit}
-.cbtn:hover:not(:disabled){border-color:var(--primary);color:var(--primary)}
-.cbtn:disabled{opacity:.3;cursor:not-allowed}
-.cv{font-size:13px;font-weight:700;min-width:22px;text-align:center;display:inline-block}
-.act-cell{display:flex;gap:3px;align-items:center}
-/* 참여현황 */
-.rca{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
-.rcah{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;background:var(--bg)}
-.pr{display:flex;align-items:center;padding:8px 14px;border-bottom:1px solid var(--border)}
-.pr:last-child{border-bottom:none}
-.av{width:28px;height:28px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
-.wb{flex:1;height:5px;background:var(--bg);border-radius:3px;overflow:hidden;min-width:50px}
-.wbi{height:100%;border-radius:3px}
-/* 모달 */
-.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center}
-.ov.show{display:flex}
-.modal{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);box-shadow:0 20px 60px rgba(0,0,0,.15);width:460px;max-width:95vw;max-height:90vh;overflow-y:auto;padding:22px}
-.mt{font-size:15px;font-weight:700;margin-bottom:14px}
-/* 칩 */
-.chip-wrap{display:flex;flex-wrap:wrap;gap:5px}
-.chip{font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;transition:all .15s}
-.chip.on{background:var(--primary);color:#fff;border-color:var(--primary)}
-/* 토스트 */
-.iconf{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1e2330;color:#fff;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.3);z-index:9999;font-size:13px;white-space:nowrap;animation:slideUp .15s ease}
-@keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-.iconf-yes{padding:5px 14px;border-radius:6px;font-size:12px;font-weight:700;border:none;cursor:pointer;background:var(--primary);color:#fff}
-.iconf-yes.danger{background:var(--red)}
-.iconf-no{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,.25);cursor:pointer;background:transparent;color:#fff}
-.dv{height:1px;background:var(--border);margin:12px 0}
-.empty{text-align:center;padding:28px;color:var(--text3);font-size:13px}
-/* 주차 시트 테이블 */
-.week-tbl-wrap{overflow-x:auto}
-.week-tbl{border-collapse:collapse;white-space:nowrap;font-size:12px}
-.week-tbl th,.week-tbl td{padding:6px 10px;border:1px solid var(--border);text-align:center}
-.week-tbl th{background:var(--primary-light);color:var(--primary);font-weight:700;font-size:11px}
-.week-tbl td:nth-child(1),.week-tbl td:nth-child(2),.week-tbl td:nth-child(3){text-align:left;background:#fafafa;position:sticky;left:0}
-.week-tbl td:nth-child(2){left:80px}.week-tbl td:nth-child(3){left:160px}
-.week-tbl th:nth-child(1),.week-tbl th:nth-child(2),.week-tbl th:nth-child(3){position:sticky;left:0;z-index:2}
-.week-tbl th:nth-child(2){left:80px}.week-tbl th:nth-child(3){left:160px}
-.mark-land{color:var(--green);font-weight:700}
-.mark-tick{color:var(--amber)}
-.mark-sum{background:var(--green-bg);color:var(--green);font-weight:700}
-</style>
-</head>
-<body>
+/**
+ * 비행기방 API v2
+ * 시트: plane_Members / plane_Rooms / plane_Participations / plane_Warnings / Admins
+ * 주차별 시트: YYYY_Wnn (예: 2025_W21) — 멤버행 × 날짜_룸열
+ */
 
-<!-- 로그인 -->
-<div id="pg-login">
-  <div style="background:var(--surface);border-radius:var(--r);border:1px solid var(--border);padding:32px;width:340px">
-    <div style="text-align:center;margin-bottom:24px"><div style="font-size:36px">✈️</div><div style="font-size:18px;font-weight:800;margin-top:6px">비행기방 <span style="color:var(--primary)">관리자</span></div></div>
-    <div id="lerr" class="bnr bnr-e"></div>
-    <div class="field"><label class="fl">닉네임</label><input class="input" id="aid" placeholder="닉네임" autocomplete="off"></div>
-    <div class="field"><label class="fl">인스타 아이디</label><input class="input" id="apw" placeholder="instagram_id" autocomplete="off" autocapitalize="none"></div>
-    <button class="btn bp bfl" id="btnLogin" style="margin-top:4px">로그인</button>
-  </div>
-</div>
+const SS_ID = "1rAqtcrzQufihHYOGQ0Fa8Y74GWLCVj-ECvGJ9WWqIi8";
+const SS = SpreadsheetApp.openById(SS_ID);
 
-<!-- 대시 -->
-<div id="pg-dash">
-  <div class="topbar">
-    <div style="font-size:14px;font-weight:800">✈ 비행기방 <span style="color:var(--primary)">관리자</span></div>
-    <div style="display:flex;align-items:center;gap:8px">
-      <span id="admbdg" style="font-size:12px;color:var(--text2)"></span>
-      <button class="btn bo bsm" id="btnLogout">로그아웃</button>
-    </div>
-  </div>
-  <div class="layout">
-    <div class="sidebar">
-      <div class="ni on" data-panel="dashboard">📊 대시보드</div>
-      <div class="ni" data-panel="rooms">🏠 룸 관리</div>
-      <div class="ni" data-panel="monitor">👥 참여 현황</div>
-      <div class="ni" data-panel="settle">📋 정산</div>
-      <div class="ni" data-panel="weekly">📅 주간 시트</div>
-      <div class="ni" data-panel="members">👤 멤버 관리</div>
-      <div class="ni" data-panel="logs">📝 활동 로그</div>
-    </div>
-    <div class="main">
+// ── 시트 참조 (한 번만)
+const SH = {
+  MEMBERS: () => SS.getSheetByName("plane_Members"),
+  ROOMS: () => SS.getSheetByName("plane_Rooms"),
+  PARTS: () => SS.getSheetByName("plane_Participations"),
+  WARNINGS: () => SS.getSheetByName("plane_Warnings"),
+  ADMINS: () => SS.getSheetByName("Admins"),
+  LOGS: () => {
+    var s = SS.getSheetByName("plane_Logs");
+    if (!s) {
+      s = SS.insertSheet("plane_Logs");
+      var h = [
+        "log_id",
+        "log_type",
+        "log_date",
+        "room_id",
+        "room_date",
+        "room_number",
+        "member_id",
+        "nickname",
+        "insta_id",
+        "detail",
+        "created_at",
+      ];
+      s.getRange(1, 1, 1, h.length).setValues([h]);
+      s.setFrozenRows(1);
+      s.getRange(1, 1, 1, h.length)
+        .setFontWeight("bold")
+        .setBackground("#E8F0FE");
+    }
+    return s;
+  },
+};
 
-      <!-- 대시보드 -->
-      <div class="panel active" id="panel-dashboard">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-          <div class="pt" style="margin:0">대시보드 <span id="ddate" style="font-size:12px;font-weight:400;color:var(--text3)"></span></div>
-          <button class="btn bo bsm" id="btnDashRefresh">새로고침</button>
-        </div>
-        <div id="dok" class="bnr bnr-o"></div><div id="derr" class="bnr bnr-e"></div>
-        <div class="sg sg4">
-          <div class="sc"><div class="sn" id="ds-r">-</div><div class="sl">오늘 룸</div></div>
-          <div class="sc"><div class="sn" id="ds-j">-</div><div class="sl">총 참여</div></div>
-          <div class="sc"><div class="sn" id="ds-l" style="color:var(--green)">-</div><div class="sl">착륙 완료</div></div>
-          <div class="sc"><div class="sn" id="ds-w" style="color:var(--red)">-</div><div class="sl">경고 대상(미처리)</div></div>
-        </div>
-        <div class="card" id="wt-card" style="display:none">
-          <div class="ch"><span class="ct">⚠ 착륙 미완료 — 경고 대상</span>
-            <div style="display:flex;gap:6px">
-              <button class="btn bo bsm" id="btn-wt-copy">📋 전체 복사</button>
-              <button class="btn bam bsm" id="btn-daily-d">일간 정산</button>
-            </div>
-          </div>
-          <div id="wt-list"></div>
-        </div>
-        <div class="dv"></div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <div style="font-size:13px;font-weight:700">📆 주간 현황 <span id="dwrange" style="font-size:11px;font-weight:400;color:var(--text3)"></span></div>
-          <button class="btn bp bsm" id="btn-weekly-d">주간 정산</button>
-        </div>
-        <div class="sg sg3" style="margin-bottom:12px">
-          <div class="sc"><div class="sn" id="ds-wp" style="color:var(--green)">-</div><div class="sl">필참 달성</div></div>
-          <div class="sc"><div class="sn" id="ds-wf" style="color:var(--red)">-</div><div class="sl">미달</div></div>
-          <div class="sc"><div class="sn" id="ds-ww" style="color:var(--amber)">-</div><div class="sl">경고 활성</div></div>
-        </div>
-        <div class="card"><div id="wkl"><div class="empty"><span class="sp spd"></span></div></div></div>
-      </div>
-
-      <!-- 룸 관리 -->
-      <div class="panel" id="panel-rooms">
-        <div id="rok" class="bnr bnr-o"></div><div id="rerr" class="bnr bnr-e"></div>
-        <div class="card">
-          <div class="ch"><span class="ct">오늘의 비행기</span>
-            <div style="display:flex;gap:5px">
-              <button class="btn bp bsm" id="btnOpenCR">+ 직접 생성</button>
-              <button class="btn bo bsm" id="btn-preset-all">⚡ 프리셋 6종</button>
-            </div>
-          </div>
-          <div id="today-rooms"><div class="empty"><span class="sp spd"></span></div></div>
-        </div>
-        <div class="card">
-          <div class="ch"><span class="ct">전체 룸</span>
-            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-              <input class="input" id="rfw" placeholder="2026_W35 (주)" style="width:120px">
-              <button class="btn bo bsm" id="btnRFWThis">이번주</button>
-              <span style="color:var(--text3);font-size:12px">또는</span>
-              <input type="date" class="input" id="rfd" style="width:140px">
-              <button class="btn bo bsm" id="btnARRefresh">새로고침</button>
-            </div>
-          </div>
-          <div id="all-rooms"><div class="empty"><span class="sp spd"></span></div></div>
-        </div>
-      </div>
-
-      <!-- 참여 현황 -->
-      <div class="panel" id="panel-monitor">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-          <div class="pt" style="margin:0">참여 현황</div>
-          <div style="display:flex;gap:6px">
-            <button class="btn bo bsm" id="btnMonCopyAll">📋 오늘 미착륙자 전체 복사</button>
-            <button class="btn bo bsm" id="btnMonRefresh">새로고침</button>
-          </div>
-        </div>
-        <div id="sok" class="bnr bnr-o"></div>
-        <div id="mon-content"><div class="empty"><span class="sp spd"></span></div></div>
-      </div>
-
-      <!-- 정산 -->
-      <div class="panel" id="panel-settle">
-        <div class="pt">정산</div>
-        <div id="skok" class="bnr bnr-o"></div><div id="serr" class="bnr bnr-e"></div>
-        <div class="card cb">
-          <div id="sinfo" style="font-size:12px;color:var(--text2);margin-bottom:12px"></div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn bam" style="width:150px" id="btn-daily-s">일간 정산 실행</button>
-            <button class="btn bp" style="width:150px" id="btn-weekly-s">주간 정산 실행</button>
-            <button class="btn bo" style="width:180px" id="btn-init-week">📋 이번주 시트 초기화</button>
-          </div>
-          <div style="margin-top:6px;font-size:11px;color:var(--text3)">일간: 착륙 마감 룸 미착륙자 경고 · 주간: 착륙 2회 미달 경고 + 우수/명예 초기화<br>※ 정산 기록은 "정산이 실행된 날짜"가 아니라 <strong>방이 열렸던 날짜</strong> 기준으로 저장됩니다.</div>
-        </div>
-        <div id="sresult"></div>
-        <!-- 일간 정산 히스토리 -->
-        <div style="margin-top:14px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <div style="font-size:13px;font-weight:700">📋 일간 정산 히스토리</div>
-            <div style="display:flex;gap:6px;align-items:center">
-              <input type="date" class="input" id="log-date" style="width:140px">
-              <button class="btn bo bsm" id="btnLogHistory">조회</button>
-            </div>
-          </div>
-          <div class="card"><div id="log-history"><div class="empty">날짜를 선택하고 조회하세요</div></div></div>
-        </div>
-      </div>
-
-      <!-- 주간 시트 -->
-      <div class="panel" id="panel-weekly">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-          <div class="pt" style="margin:0">📅 주간 시트</div>
-          <div style="display:flex;gap:6px;align-items:center">
-            <input class="input" id="wk-input" placeholder="2025_W21" style="width:120px">
-            <button class="btn bo bsm" id="btn-wk-load">조회</button>
-          </div>
-        </div>
-        <div class="card"><div id="week-sheet-content"><div class="empty">주차를 입력하고 조회하세요<br><span style="font-size:11px;margin-top:4px;display:block">예: 2025_W21</span></div></div></div>
-      </div>
-
-      <!-- 멤버 관리 -->
-      <div class="panel" id="panel-members">
-        <div class="card">
-          <div class="ch">
-            <div style="display:flex;gap:6px">
-              <input class="input" id="msrch" placeholder="닉네임/아이디 검색" style="width:175px">
-              <select class="input" id="msf" style="width:90px">
-                <option value="">전체</option><option value="active">활성</option>
-                <option value="warned">경고</option><option value="locked">잠금</option><option value="inactive">비활성</option>
-              </select>
-            </div>
-            <button class="btn bp bsm" id="btnOpenAM">+ 등록</button>
-          </div>
-          <div id="mok" class="bnr bnr-o" style="margin:10px 16px 0"></div>
-          <div id="merr" class="bnr bnr-e" style="margin:10px 16px 0"></div>
-          <div id="mtbl"><div class="empty"><span class="sp spd"></span></div></div>
-        </div>
-      </div>
-
-      <!-- 활동 로그 -->
-      <div class="panel" id="panel-logs">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-          <div class="pt" style="margin:0">📝 활동 로그</div>
-          <button class="btn bo bsm" id="btnLogRefresh">새로고침</button>
-        </div>
-        <div class="card cb" style="margin-bottom:12px">
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
-            <div class="field" style="margin:0"><label class="fl">멤버</label>
-              <select class="input" id="logm" style="width:150px"><option value="">전체</option></select></div>
-            <div class="field" style="margin:0"><label class="fl">액션</label>
-              <select class="input" id="loga" style="width:130px">
-                <option value="">전체</option>
-                <option value="ticket">탑승</option>
-                <option value="link_register">링크 등록</option>
-                <option value="link_update">링크 수정</option>
-                <option value="land">착륙</option>
-                <option value="admin_land">관리자 착륙</option>
-              </select></div>
-            <button class="btn bo bsm" id="btnLogSearch">조회</button>
-          </div>
-        </div>
-        <div class="card"><div id="ltbl"><div class="empty">멤버 또는 액션을 선택하고 조회해주세요</div></div></div>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-<!-- 룸 생성 모달 -->
-<div class="ov" id="mcr">
-  <div class="modal">
-    <div class="mt">룸 생성</div>
-    <div id="crerr" class="bnr bnr-e"></div>
-    <div class="r3" style="margin-bottom:10px">
-      <div class="field" style="margin:0"><label class="fl">날짜</label><input class="input" id="crd" type="date"></div>
-      <div class="field" style="margin:0"><label class="fl">룸 번호</label><input class="input" id="crn" type="number" min="1" value="1"></div>
-      <div class="field" style="margin:0"><label class="fl">최대 인원</label><input class="input" id="crm" type="number" value="20"></div>
-    </div>
-    <div style="background:#F8FAFF;border:1px solid #DDEAFF;border-radius:8px;padding:10px;margin-bottom:10px">
-      <div style="font-size:12px;font-weight:700;margin-bottom:8px">시간</div>
-      <div style="display:grid;grid-template-columns:55px 1fr 12px 1fr;align-items:center;gap:5px;margin-bottom:6px">
-        <span style="font-size:11px;font-weight:700;color:var(--primary)">티켓팅</span>
-        <input class="input" id="crts" type="time" value="10:00" style="text-align:center">
-        <span style="text-align:center;color:var(--text3)">~</span>
-        <input class="input" id="crte" type="time" value="22:00" style="text-align:center">
-      </div>
-      <div style="display:grid;grid-template-columns:55px 1fr 12px 1fr;align-items:center;gap:5px">
-        <span style="font-size:11px;font-weight:700;color:var(--green)">착륙</span>
-        <input class="input" id="crls" type="time" value="22:00" style="text-align:center">
-        <span style="text-align:center;color:var(--text3)">~</span>
-        <input class="input" id="crle" type="time" value="09:00" style="text-align:center">
-      </div>
-    </div>
-    <div class="field">
-      <label class="fl">품앗이 항목</label>
-      <div class="chip-wrap" id="ichips">
-        <span class="chip">좋아요</span><span class="chip">댓글</span><span class="chip">저장</span><span class="chip">공유하기</span><span class="chip">리포스트</span>
-      </div>
-      <div style="margin-top:5px;font-size:12px;color:var(--text2)">선택: <span id="sitems" style="font-weight:600">없음</span></div>
-    </div>
-    <div class="field"><label class="fl">메모</label><input class="input" id="crmo" placeholder="메모 (선택)"></div>
-    <div style="display:flex;gap:8px"><button class="btn bp" style="flex:1" id="btnCR">생성</button><button class="btn bo" id="btnCRClose">취소</button></div>
-  </div>
-</div>
-
-<!-- 룸 수정 모달 -->
-<div class="ov" id="mer">
-  <div class="modal">
-    <div class="mt">룸 수정</div>
-    <div id="ererr" class="bnr bnr-e"></div>
-    <input type="hidden" id="erid"><input type="hidden" id="erdate">
-    <div class="r2" style="margin-bottom:10px">
-      <div class="field" style="margin:0"><label class="fl">최대 인원</label><input class="input" id="ermax" type="number" min="1"></div>
-      <div class="field" style="margin:0"><label class="fl">상태</label><select class="input" id="erst"><option value="open">open</option><option value="closed">closed</option></select></div>
-    </div>
-    <div style="background:#F8FAFF;border:1px solid #DDEAFF;border-radius:8px;padding:10px;margin-bottom:10px">
-      <div style="display:grid;grid-template-columns:55px 1fr 12px 1fr;align-items:center;gap:5px;margin-bottom:6px">
-        <span style="font-size:11px;font-weight:700;color:var(--primary)">티켓팅</span>
-        <input class="input" id="erts" type="time" style="text-align:center">
-        <span style="text-align:center;color:var(--text3)">~</span>
-        <input class="input" id="erte" type="time" style="text-align:center">
-      </div>
-      <div style="display:grid;grid-template-columns:55px 1fr 12px 1fr;align-items:center;gap:5px">
-        <span style="font-size:11px;font-weight:700;color:var(--green)">착륙</span>
-        <input class="input" id="erls" type="time" style="text-align:center">
-        <span style="text-align:center;color:var(--text3)">~</span>
-        <input class="input" id="erle" type="time" style="text-align:center">
-      </div>
-    </div>
-    <div class="field"><label class="fl">품앗이 항목</label>
-      <div class="chip-wrap" id="echips"><span class="chip">좋아요</span><span class="chip">댓글</span><span class="chip">저장</span><span class="chip">공유하기</span><span class="chip">리포스트</span></div>
-    </div>
-    <div class="field"><label class="fl">메모</label><input class="input" id="ermo"></div>
-    <div style="display:flex;gap:8px"><button class="btn bp" id="btnER">수정 완료</button><button class="btn bo" id="btnERClose">취소</button></div>
-  </div>
-</div>
-
-<!-- 멤버 모달 -->
-<div class="ov" id="mmb">
-  <div class="modal">
-    <div id="mmbt" class="mt">멤버 등록</div>
-    <div id="mberr" class="bnr bnr-e"></div>
-    <div id="mmb-fields">
-      <div class="r2" style="margin-bottom:10px">
-        <div class="field" style="margin:0"><label class="fl">닉네임</label><input class="input" id="amnk" autocomplete="off"></div>
-        <div class="field" style="margin:0"><label class="fl">인스타 아이디</label><input class="input" id="amin" autocomplete="off" autocapitalize="none"></div>
-      </div>
-    </div>
-    <div class="field"><label class="fl">메모</label><input class="input" id="ammo" placeholder="메모 (선택)"></div>
-    <div style="display:flex;gap:8px"><button class="btn bp" style="flex:1" id="btnMB">등록 완료</button><button class="btn bo" id="btnMBClose">취소</button></div>
-  </div>
-</div>
-
-<!-- 룸 히스토리 상세보기 모달 (룸관리 탭에서 방 클릭 시 — 오늘 방/과거 방 구분 없이 동작) -->
-<div class="ov" id="mrh">
-  <div class="modal" style="width:600px">
-    <div class="mt" id="rhTitle">룸 상세</div>
-    <div id="rhBody"><div class="empty"><span class="sp spd"></span></div></div>
-    <div style="margin-top:14px"><button class="btn bo bfl" id="btnRHClose">닫기</button></div>
-  </div>
-</div>
-
-<script>
-// ══════════════════════════════════════════════
-// ★ 수정 필요: 배포 URL
-// ══════════════════════════════════════════════
-const API = 'https://script.google.com/macros/s/AKfycbwsirJW4Gq3V_mUqeY8L_Fg-d77nkb4FTuOL3nu1IOSJIaAJ68H2Cj4HUNWjzbu8NjLOg/exec';
-
-const SK = 'plane_admin_v2';
-const PRESETS=[
-  {num:1,label:'[좋아요+리포스트] 20명',items:'좋아요,리포스트',max:20,ts:'12:00',te:'15:00',ls:'15:01',le:'18:00',nextDay:false},
-  {num:2,label:'[좋아요+저장+공유] 20명',items:'좋아요,저장,공유하기',max:20,ts:'12:00',te:'15:00',ls:'15:01',le:'18:00',nextDay:false},
-  {num:3,label:'[좋아요] 무제한',items:'좋아요',max:9999,ts:'11:00',te:'22:00',ls:'22:01',le:'10:00',nextDay:true},
-  {num:4,label:'[좋+댓] 30명',items:'좋아요,댓글',max:30,ts:'11:00',te:'22:00',ls:'22:01',le:'10:00',nextDay:true},
-  {num:5,label:'[좋+댓] 20명',items:'좋아요,댓글',max:20,ts:'19:00',te:'22:00',ls:'22:01',le:'10:00',nextDay:true},
-  {num:6,label:'[무한공유] 무제한',items:'공유하기',max:9999,ts:'11:00',te:'20:00',ls:'20:01',le:'23:00',nextDay:false},
+// ── 프리셋
+const PRESETS = [
+  {
+    num: 1,
+    label: "[좋아요+리포스트] 20명",
+    items: "좋아요,리포스트",
+    max: 20,
+    ts: "12:00",
+    te: "15:00",
+    ls: "15:01",
+    le: "18:00",
+    lsNextDay: false,
+    leNextDay: false,
+  },
+  {
+    num: 2,
+    label: "[좋아요+저장+공유] 20명",
+    items: "좋아요,저장,공유하기",
+    max: 20,
+    ts: "12:00",
+    te: "15:00",
+    ls: "15:01",
+    le: "18:00",
+    lsNextDay: false,
+    leNextDay: false,
+  },
+  {
+    num: 3,
+    label: "[좋아요] 무제한",
+    items: "좋아요",
+    max: 9999,
+    ts: "11:00",
+    te: "22:00",
+    ls: "22:01",
+    le: "10:00",
+    lsNextDay: false,
+    leNextDay: true,
+  },
+  {
+    num: 4,
+    label: "[좋+댓] 30명",
+    items: "좋아요,댓글",
+    max: 30,
+    ts: "11:00",
+    te: "22:00",
+    ls: "22:01",
+    le: "10:00",
+    lsNextDay: false,
+    leNextDay: true,
+  },
+  {
+    num: 5,
+    label: "[좋+댓] 20명",
+    items: "좋아요,댓글",
+    max: 20,
+    ts: "19:00",
+    te: "22:00",
+    ls: "22:01",
+    le: "10:00",
+    lsNextDay: false,
+    leNextDay: true,
+  },
+  {
+    num: 6,
+    label: "[무한공유] 무제한",
+    items: "공유하기",
+    max: 9999,
+    ts: "11:00",
+    te: "20:00",
+    ls: "20:01",
+    le: "23:00",
+    lsNextDay: false,
+    leNextDay: false,
+  },
 ];
 
-let adminInfo=null, memberList=[], roomCache=[], monStats=[], editMemberId=null;
-const loaded={dashboard:false,rooms:false,monitor:false,members:false};
-
-// ── 세션
-const saveS  = d=>{ try{sessionStorage.setItem(SK,JSON.stringify(d));}catch(e){} };
-const loadS  = ()=>{ try{return JSON.parse(sessionStorage.getItem(SK));}catch(e){return null;} };
-const clearS = ()=>{ try{sessionStorage.removeItem(SK);}catch(e){} };
-
-// ── API (오버레이 없음)
-async function api(action,body={}){
-  try{const r=await fetch(API,{method:'POST',body:JSON.stringify({...body,action})});return r.json();}
-  catch(e){return{ok:false,error:'네트워크 오류'};}
+// ============================================================
+// 진입점
+// ============================================================
+function doGet(e) {
+  return handle(e);
+}
+function doPost(e) {
+  return handle(e);
 }
 
-// ── 버튼 로딩
-function btnLoad(id,on,label=''){
-  const el=typeof id==='string'?document.getElementById(id):id; if(!el)return;
-  if(on){el._orig=el.innerHTML;el.disabled=true;el.innerHTML='<span class="sp"></span>';}
-  else{el.disabled=false;el.innerHTML=label||el._orig||el.innerHTML;}
-}
-
-// ── 배너
-const showBnr=(id,msg,type='error')=>{const el=document.getElementById(id);if(!el)return;el.className=`bnr bnr-${type==='ok'?'o':type==='warn'?'w':'e'} show`;el.textContent=msg;if(type==='ok')setTimeout(()=>el.classList.remove('show'),3500);};
-const hideBnr=id=>document.getElementById(id)?.classList.remove('show');
-
-// ── 모달
-const openModal=id=>document.getElementById(id).classList.add('show');
-const closeModal=id=>document.getElementById(id).classList.remove('show');
-document.querySelectorAll('.ov').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov)closeModal(ov.id);}));
-
-// ── 토스트
-let _toast=null;
-function iconfirm(msg,danger=false){
-  return new Promise(resolve=>{
-    if(_toast){_toast.remove();_toast=null;}
-    const el=document.createElement('div'); el.className='iconf';
-    el.innerHTML=`<span>${msg}</span><button class="iconf-no">취소</button><button class="iconf-yes${danger?' danger':''}">확인</button>`;
-    document.body.appendChild(el); _toast=el;
-    const done=v=>{el.remove();_toast=null;resolve(v);};
-    el.querySelector('.iconf-yes').onclick=()=>done(true);
-    el.querySelector('.iconf-no').onclick=()=>done(false);
-    setTimeout(()=>{if(_toast===el)done(false);},6000);
-  });
-}
-
-// ── 텍스트 어디에 있든 링크(http로 시작하는 부분)만 뽑아내기
-// 인스타그램 "공유하기"로 복사하면 앞뒤에 한글 설명이 붙어서 복사되는 경우가 많아,
-// 순수 링크만 입력해야 통과되던 기존 방식(사실상 한글 섞이면 실패) 대신
-// 붙여넣은 텍스트 아무데나 링크가 있으면 자동으로 찾아서 추출한다.
-function extractUrl(text){
-  if(!text) return '';
-  const m = String(text).match(/https?:\/\/[^\s]+/);
-  if(!m) return '';
-  let url = m[0];
-  // 공백 없이 바로 이어붙은 한글이 있으면 그 앞까지만 링크로 인정
-  const koreanIdx = url.search(/[가-힣]/);
-  if(koreanIdx > -1) url = url.substring(0, koreanIdx);
-  // 링크 뒤에 흔히 붙는 문장부호 제거
-  url = url.replace(/[),.!?;:'"”’]+$/,'');
-  return url;
-}
-
-// ── 클립보드 복사 공통 헬퍼 (버튼에 "✓ 복사됨!" 표시)
-function copyText(txt, btn){
-  if(!txt){ showBnr('sok','복사할 내용이 없습니다'); return; }
-  const orig=btn?btn.innerHTML:null;
-  const done=()=>{ if(btn){ btn.innerHTML='✓ 복사됨!'; setTimeout(()=>{btn.innerHTML=orig;},1500); } };
-  navigator.clipboard.writeText(txt).then(done).catch(()=>{
-    const t=document.createElement('textarea'); t.value=txt;
-    document.body.appendChild(t); t.select(); document.execCommand('copy');
-    document.body.removeChild(t); done();
-  });
-}
-
-// ── 날짜
-// KST 기준 오늘 날짜 (UTC 기준 사용 시 9시간 차이로 전날이 될 수 있음)
-const td=()=>{const d=new Date();return new Date(d.getTime()+9*60*60*1000).toISOString().slice(0,10);};
-const nd=d=>{const x=new Date(d);x.setDate(x.getDate()+1);return x.toISOString().slice(0,10);};
-const lt=n=>n?n[0]:'?';
-
-// ── 이번 주 키
-// ── KST 날짜 안전 연산 헬퍼 (gs의 동일 로직과 완전히 통일 — 서버/클라 주차키 불일치 방지)
-// new Date(str).getDay() 같은 로컬 타임존 암묵의존 방식 대신 UTC 기반으로만 계산해서
-// 관리자 기기의 타임존 설정과 무관하게 항상 서버와 동일한 결과가 나오도록 함
-function kstDateParts_(dateStr){ const m=String(dateStr).match(/^(\d{4})-(\d{2})-(\d{2})/); return m?{y:+m[1],mo:+m[2],d:+m[3]}:null; }
-function utcMidnightOfKstDate_(dateStr){ const p=kstDateParts_(dateStr); return new Date(Date.UTC(p.y,p.mo-1,p.d)); }
-function weekdayOfKstDate_(dateStr){ return utcMidnightOfKstDate_(dateStr).getUTCDay(); }
-function addDaysToKstDate_(dateStr,n){ const d=utcMidnightOfKstDate_(dateStr); d.setUTCDate(d.getUTCDate()+n); return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0'); }
-function weekKeyOf(dateStr){
-  const day=weekdayOfKstDate_(dateStr); // 0=일...6=토
-  const thuStr=addDaysToKstDate_(dateStr, 4-(day||7));
-  const thuParts=kstDateParts_(thuStr);
-  const thuUTC=utcMidnightOfKstDate_(thuStr).getTime();
-  const ysUTC=Date.UTC(thuParts.y,0,1);
-  const wn=Math.ceil(((thuUTC-ysUTC)/86400000+1)/7);
-  return thuParts.y+'_W'+String(wn).padStart(2,'0');
-}
-function thisWeekKey(){
-  return weekKeyOf(td());
-}
-
-// ── 네비게이션
-document.querySelector('.sidebar').addEventListener('click',e=>{
-  const ni=e.target.closest('.ni'); if(!ni)return;
-  switchPanel(ni.dataset.panel);
-});
-function switchPanel(name){
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
-  document.getElementById('panel-'+name).classList.add('active');
-  document.querySelector(`.ni[data-panel="${name}"]`).classList.add('on');
-  if(name==='dashboard') loadDash();
-  if(name==='rooms') loadAR(); // loadAR이 오늘룸+전체 둘 다 처리, 재진입 시 항상 새로고침
-  if(name==='monitor'&&!loaded.monitor) loadMon();
-  if(name==='members'&&!loaded.members) loadM();
-  if(name==='settle') { loadSI(); document.getElementById('log-date').value=td(); }
-  if(name==='weekly') { document.getElementById('wk-input').value=thisWeekKey(); loadWeekSheet(); }
-  if(name==='logs') initLogs();
-}
-
-// ── 로그인
-document.getElementById('btnLogin').addEventListener('click',doLogin);
-document.getElementById('apw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-document.getElementById('btnLogout').addEventListener('click',doLogout);
-
-const ADMIN_CRED = 'plane_admin_cred';
-
-async function doLogin(){
-  const nick=document.getElementById('aid').value.trim(), insta=document.getElementById('apw').value.trim();
-  hideBnr('lerr');
-  if(!nick||!insta){showBnr('lerr','닉네임과 인스타 아이디를 입력해주세요');return;}
-  btnLoad('btnLogin',true);
-  const d=await api('admin_login',{nickname:nick,insta_id:insta});
-  btnLoad('btnLogin',false,'로그인');
-  if(!d.ok){showBnr('lerr',d.error||'로그인 실패');return;}
-  // 자격증명 저장
-  try { localStorage.setItem(ADMIN_CRED, JSON.stringify({nickname:nick, insta_id:insta})); } catch(e){}
-  adminInfo=d.admin; saveS(adminInfo);
-  document.getElementById('admbdg').textContent='👤 '+adminInfo.nickname;
-  document.getElementById('pg-login').classList.add('hide');
-  document.getElementById('pg-dash').classList.add('show');
-  loadDash();
-}
-function doLogout(){
-  adminInfo=null;memberList=[];roomCache=[];clearS();
-  // 자격증명 삭제
-  try { localStorage.removeItem(ADMIN_CRED); } catch(e){}
-  Object.keys(loaded).forEach(k=>loaded[k]=false);
-  document.getElementById('pg-login').classList.remove('hide');
-  document.getElementById('pg-dash').classList.remove('show');
-  document.getElementById('aid').value='';
-  document.getElementById('apw').value='';
-}
-window.addEventListener('load',()=>{
-  const s=loadS();
-  if(s?.admin_id){
-    adminInfo=s;
-    document.getElementById('admbdg').textContent='👤 '+adminInfo.nickname;
-    document.getElementById('pg-login').classList.add('hide');
-    document.getElementById('pg-dash').classList.add('show');
-    loadDash();
-    return;
-  }
-  // 세션 없으면 저장된 자격증명으로 자동 로그인 시도
+function handle(e) {
   try {
-    const cred=JSON.parse(localStorage.getItem(ADMIN_CRED)||'null');
-    if(cred?.nickname && cred?.insta_id){
-      document.getElementById('aid').value=cred.nickname;
-      document.getElementById('apw').value=cred.insta_id;
-      doLogin();
-    }
-  } catch(e){}
-});
-
-// ══════════════════════════════════════════════
-// 대시보드
-// ══════════════════════════════════════════════
-document.getElementById('btnDashRefresh').addEventListener('click',loadDash);
-document.getElementById('btn-daily-d').addEventListener('click',doDailyD);
-document.getElementById('btn-weekly-d').addEventListener('click',doWeeklyD);
-document.getElementById('btn-wt-copy').addEventListener('click',e=>copyWarnTargets(e.currentTarget));
-
-let dashWarnTargets=[];
-
-function copyWarnTargets(btn){
-  if(!dashWarnTargets.length){ showBnr('dok','복사할 미착륙자가 없습니다'); return; }
-  // 방별로 그룹핑해서 톡방 공유하기 좋은 형태로 구성
-  const byRoom={};
-  dashWarnTargets.forEach(p=>{
-    const key=`#${p.room_number}`;
-    if(!byRoom[key]) byRoom[key]=[];
-    byRoom[key].push(`${p.already_warned?'✓ ':''}${p.nickname} @${p.insta_id}`);
-  });
-  const lines=[`[${document.getElementById('ddate').textContent} 미착륙자]`];
-  Object.keys(byRoom).sort().forEach(k=>{
-    lines.push(''); lines.push(`📍 ${k}`);
-    byRoom[k].forEach(l=>lines.push('- '+l));
-  });
-  copyText(lines.join('\n'), btn);
+    var b = parseBody(e);
+    var routes = {
+      // 인증
+      login: function () {
+        return login(b);
+      },
+      admin_login: function () {
+        return adminLogin(b);
+      },
+      // 룸
+      get_rooms: function () {
+        return getRooms(b);
+      },
+      get_all_rooms: function () {
+        return getAllRooms(b);
+      },
+      get_room_detail: function () {
+        return getRoomDetail(b);
+      },
+      create_room: function () {
+        return createRoom(b);
+      },
+      create_preset: function () {
+        return createPreset(b);
+      },
+      update_room: function () {
+        return updateRoom(b);
+      },
+      delete_room: function () {
+        return deleteRoom(b);
+      },
+      // 참여
+      ticket: function () {
+        return doTicket(b);
+      },
+      register_link: function () {
+        return registerLink(b);
+      },
+      update_link: function () {
+        return updateLink(b);
+      },
+      admin_update_link: function () {
+        return adminUpdateLink(b);
+      },
+      land: function () {
+        return doLand(b);
+      },
+      get_my_week_count: function () {
+        return getMyWeekCount(b);
+      },
+      // 관리자 참여
+      admin_land: function () {
+        return adminLand(b);
+      },
+      admin_delete_part: function () {
+        return adminDeletePart(b);
+      },
+      // 현황
+      get_daily: function () {
+        return getDailyStatus();
+      },
+      // 정산
+      run_daily: function () {
+        return runDailySettle(b);
+      },
+      run_weekly: function () {
+        return runWeeklySettle(b);
+      },
+      init_week_sheet: function () {
+        return initWeekSheet(b);
+      },
+      get_week_sheet: function () {
+        return getWeekSheet(b);
+      },
+      // 경고
+      get_warnings: function () {
+        return getWarnings();
+      },
+      manual_warn: function () {
+        return manualWarn(b);
+      },
+      resolve_warning: function () {
+        return resolveWarning(b);
+      },
+      // 멤버
+      get_members: function () {
+        return getMembers();
+      },
+      add_member: function () {
+        return addMember(b);
+      },
+      update_member: function () {
+        return updateMember(b);
+      },
+      adjust_warn: function () {
+        return adjustWarn(b);
+      },
+      adjust_excellent: function () {
+        return adjustExcellent(b);
+      },
+      adjust_honorary: function () {
+        return adjustHonorary(b);
+      },
+      toggle_lock: function () {
+        return toggleLock(b);
+      },
+      // 기타
+      get_presets: function () {
+        return res({ ok: true, presets: PRESETS });
+      },
+      get_parts: function () {
+        return getParts(b);
+      },
+      get_logs: function () {
+        return getLogs(b);
+      },
+    };
+    if (!routes[b.action])
+      return res({ ok: false, error: "unknown_action: " + b.action });
+    return routes[b.action]();
+  } catch (err) {
+    Logger.log(err);
+    return res({ ok: false, error: err.message });
+  }
 }
 
-async function loadDash(){
-  document.getElementById('wkl').innerHTML='<div class="empty"><span class="sp spd"></span></div>';
-  const d=await api('get_daily'); if(!d.ok)return;
-  const rs=d.room_stats||[],wt=d.warn_targets||[],ws=d.week_stats||[];
-  dashWarnTargets=wt;
-  document.getElementById('ddate').textContent=d.date||'';
-  document.getElementById('dwrange').textContent=d.week_range||'';
-  document.getElementById('ds-r').textContent=rs.length;
-  document.getElementById('ds-j').textContent=rs.reduce((s,r)=>s+r.total,0);
-  document.getElementById('ds-l').textContent=rs.reduce((s,r)=>s+r.landed_count,0);
-  // 헤드라인 숫자는 "아직 처리 안 된" 대상만 카운트 — 이미 경고 처리된 사람은 제외
-  const pendingWt=wt.filter(p=>!p.already_warned);
-  document.getElementById('ds-w').textContent=pendingWt.length;
-  const wtc=document.getElementById('wt-card');
-  if(wt.length){
-    wtc.style.display='';
-    document.getElementById('wt-list').innerHTML=wt.map(p=>`<div class="pr"><div class="av">${lt(p.nickname)}</div><div style="flex:1;margin-left:8px"><div style="font-size:12px;font-weight:600">${p.nickname} <span style="font-size:10px;color:var(--text3);font-weight:400">#${p.room_number}</span></div><div style="font-size:11px;color:var(--text3)">@${p.insta_id}</div></div>${p.already_warned?'<span class="badge bdg">✓ 처리완료</span>':'<span class="badge bdm">미착륙</span>'}</div>`).join('');
-  } else wtc.style.display='none';
-  const wpass=ws.filter(m=>m.is_pass).length;
-  document.getElementById('ds-wp').textContent=wpass;
-  document.getElementById('ds-wf').textContent=ws.length-wpass;
-  document.getElementById('ds-ww').textContent=ws.filter(m=>m.is_warned).length;
-  const row=m=>{
-    const pct=Math.min(100,Math.round((m.week_land/2)*100));
-    const bc=m.is_pass?'var(--green)':m.week_land>0?'var(--amber)':'var(--red)';
-    return `<div style="display:flex;align-items:center;padding:7px 14px;border-bottom:1px solid var(--border)">
-      <div style="min-width:80px;font-size:12px;font-weight:600">${m.nickname}</div>
-      <div style="min-width:90px;font-size:11px;color:var(--text3)">@${m.insta_id}</div>
-      <div class="wb" style="margin:0 8px"><div class="wbi" style="width:${pct}%;background:${bc}"></div></div>
-      <div style="font-size:12px;font-weight:700;min-width:26px;text-align:right">${m.week_land}회</div>
-      <div style="margin-left:5px">${m.is_pass?'<span class="badge bdk">통과</span>':'<span class="badge bdm">미달</span>'}${m.is_warned?' <span class="badge bdr">경고</span>':''}</div>
-    </div>`;
+// ============================================================
+// 공통 헬퍼
+// ============================================================
+function res(d) {
+  return ContentService.createTextOutput(JSON.stringify(d)).setMimeType(
+    ContentService.MimeType.JSON,
+  );
+}
+function parseBody(e) {
+  try {
+    if (e.postData && e.postData.contents)
+      return JSON.parse(e.postData.contents);
+  } catch (_) {}
+  return e.parameter || {};
+}
+function uuid() {
+  return Utilities.getUuid();
+}
+function nowKST() {
+  return Utilities.formatDate(new Date(), "Asia/Seoul", "yyyy-MM-dd HH:mm");
+}
+function toKST(d) {
+  return Utilities.formatDate(new Date(d), "Asia/Seoul", "yyyy-MM-dd HH:mm");
+}
+
+function fmtDisp(str) {
+  if (!str) return "-";
+  try {
+    var s = String(str).trim().replace(" ", "T");
+    if (s.length === 16) s += ":00";
+    var d = new Date(s + "+09:00");
+    if (isNaN(d.getTime())) return String(str).substring(0, 16);
+    return (
+      d.getMonth() +
+      1 +
+      "/" +
+      d.getDate() +
+      " " +
+      ("0" + d.getHours()).slice(-2) +
+      ":" +
+      ("0" + d.getMinutes()).slice(-2)
+    );
+  } catch (e) {
+    return String(str).substring(0, 16);
+  }
+}
+function normTime(v) {
+  if (!v) return "";
+  var s = String(v).trim();
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}/.test(s)) return s.substring(0, 16);
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(s))
+    return s.substring(0, 10) + " " + s.substring(11, 16);
+  return s;
+}
+function parseKST(str) {
+  if (!str) return null;
+  var m = String(str)
+    .trim()
+    .match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/);
+  if (!m) return null;
+  var d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4] - 9, +m[5], 0));
+  return isNaN(d.getTime()) ? null : d;
+}
+
+// ════════════════════════════════════════════════════════════
+// KST 달력 날짜("yyyy-MM-dd") 안전 연산 헬퍼
+// ────────────────────────────────────────────────────────────
+// new Date(str).getDay() / .setDate() 같은 "로컬 타임존 암묵 의존" 방식은
+// Apps Script 프로젝트의 기본 타임존 설정이 Asia/Seoul이 아니면 하루가 밀리는
+// 사고로 이어짐 (이 프로젝트에서 반복된 버그 패턴 — weekRange() 요일 오계산 등).
+// 아래 헬퍼들은 전부 Date.UTC / getUTCDay / setUTCDate만 사용해서 프로젝트
+// 타임존 설정과 완전히 무관하게 항상 정확히 동작함 (달력 날짜의 요일/일수 차이는
+// 애초에 시각대와 무관한 값이므로 UTC로 계산해도 결과가 같음).
+// ════════════════════════════════════════════════════════════
+function kstDateParts_(dateStr) {
+  var m = String(dateStr).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? { y: +m[1], mo: +m[2], d: +m[3] } : null;
+}
+function utcMidnightOfKstDate_(dateStr) {
+  var p = kstDateParts_(dateStr);
+  return new Date(Date.UTC(p.y, p.mo - 1, p.d));
+}
+// 0=일 1=월 2=화 ... 6=토 — 타임존 설정과 무관하게 항상 정확
+function weekdayOfKstDate_(dateStr) {
+  return utcMidnightOfKstDate_(dateStr).getUTCDay();
+}
+function addDaysToKstDate_(dateStr, n) {
+  var d = utcMidnightOfKstDate_(dateStr);
+  d.setUTCDate(d.getUTCDate() + n);
+  return Utilities.formatDate(d, "UTC", "yyyy-MM-dd");
+}
+
+function nextDayAt10(from) {
+  var kst = Utilities.formatDate(new Date(from), "Asia/Seoul", "yyyy-MM-dd");
+  return addDaysToKstDate_(kst, 1) + " 10:00";
+}
+function addDays(dateStr, n) {
+  return addDaysToKstDate_(dateStr, n);
+}
+
+// 주차 키: YYYY_Wnn (ISO 주차 계산 — 해당 주의 목요일이 속한 연도 기준)
+function weekKey(date) {
+  var kst = Utilities.formatDate(new Date(date), "Asia/Seoul", "yyyy-MM-dd");
+  var day = weekdayOfKstDate_(kst); // 0=일...6=토
+  var thuStr = addDaysToKstDate_(kst, 4 - (day || 7));
+  var thuParts = kstDateParts_(thuStr);
+  var thuUTC = utcMidnightOfKstDate_(thuStr).getTime();
+  var ysUTC = Date.UTC(thuParts.y, 0, 1);
+  var wn = Math.ceil(((thuUTC - ysUTC) / 86400000 + 1) / 7);
+  return thuParts.y + "_W" + ("0" + wn).slice(-2);
+}
+// 주 시작(월)/종료(일) 구하기
+function weekRange(anyDate) {
+  var kst = Utilities.formatDate(new Date(anyDate), "Asia/Seoul", "yyyy-MM-dd");
+  var day = weekdayOfKstDate_(kst); // 0=일...6=토 — 타임존 설정과 무관하게 항상 정확
+  var monStr = addDaysToKstDate_(kst, day === 0 ? -6 : 1 - day);
+  var sunStr = addDaysToKstDate_(monStr, 6);
+  return {
+    monStr: monStr,
+    sunStr: sunStr,
+    start: new Date(monStr + "T10:00:00+09:00"),
+    end: new Date(sunStr + "T22:00:00+09:00"),
   };
-  const inPart=ws.filter(m=>m.week_participate>0), noPart=ws.filter(m=>m.week_participate===0);
-  document.getElementById('wkl').innerHTML=inPart.map(row).join('')
-    +(noPart.length?`<details style="border-top:1px solid var(--border)"><summary style="padding:8px 14px;cursor:pointer;font-size:12px;color:var(--text2)">미참여 ${noPart.length}명 보기</summary>${noPart.map(row).join('')}</details>`:'');
-  loaded.dashboard=true;
 }
 
-async function doDailyD(){
-  if(!await iconfirm('일간 정산 실행할까요?'))return;
-  btnLoad('btn-daily-d',true);
-  const d=await api('run_daily',{admin_id:adminInfo.admin_id});
-  btnLoad('btn-daily-d',false,'일간 정산');
-  if(d.ok){showBnr('dok','일간 정산 완료 — 경고 '+d.warned+'명'+(d.skipped?` · 중복스킵 ${d.skipped}명`:''),'ok');loadDash();}
-  else showBnr('derr',d.error||'실패');
-}
-async function doWeeklyD(){
-  if(!await iconfirm('주간 정산 실행할까요?'))return;
-  btnLoad('btn-weekly-d',true);
-  const d=await api('run_weekly',{admin_id:adminInfo.admin_id});
-  btnLoad('btn-weekly-d',false,'주간 정산');
-  if(d.ok){showBnr('dok',`완료 — 통과 ${d.passed}명 · 경고 ${d.warned}명${d.already_warned?` · 이미처리 ${d.already_warned}명`:''}`,'ok');loadDash();}
-  else showBnr('derr',d.error||'실패');
-}
-
-// ══════════════════════════════════════════════
-// 룸 관리
-// ══════════════════════════════════════════════
-document.getElementById('btnARRefresh').addEventListener('click',()=>loadAR());
-document.getElementById('rfd').addEventListener('input',()=>{ document.getElementById('rfw').value=''; filterAR(); });
-document.getElementById('rfw').addEventListener('input',()=>{ document.getElementById('rfd').value=''; filterAR(); });
-document.getElementById('btnRFWThis').addEventListener('click',()=>{ document.getElementById('rfw').value=thisWeekKey(); document.getElementById('rfd').value=''; filterAR(); });
-document.getElementById('btn-preset-all').addEventListener('click',doAllPresets);
-document.getElementById('btnOpenCR').addEventListener('click',openCR);
-document.getElementById('btnCRClose').addEventListener('click',()=>closeModal('mcr'));
-document.getElementById('btnCR').addEventListener('click',doCreateRoom);
-document.getElementById('btnERClose').addEventListener('click',()=>closeModal('mer'));
-document.getElementById('btnER').addEventListener('click',doUpdateRoom);
-document.getElementById('ichips').addEventListener('click',e=>{const c=e.target.closest('.chip');if(!c)return;c.classList.toggle('on');document.getElementById('sitems').textContent=[...document.querySelectorAll('#ichips .chip.on')].map(x=>x.textContent).join(',')||'없음';});
-document.getElementById('echips').addEventListener('click',e=>{const c=e.target.closest('.chip');if(!c)return;c.classList.toggle('on');});
-
-const stBadge=s=>s==='locked'?'<span class="badge bdr">잠금</span>':s==='warned'?'<span class="badge bdm">경고</span>':s==='inactive'?'<span class="badge bdg">비활성</span>':'<span class="badge bdk">활성</span>';
-
-async function loadTR(){
-  const el=document.getElementById('today-rooms');
-  el.innerHTML='<div class="empty"><span class="sp spd"></span></div>';
-  // get_all_rooms에서 오늘 날짜만 필터 — 마감 여부 관계없이 전부 표시
-  const d=await api('get_all_rooms');
-  const today=td();
-  const rooms=(d.rooms||[]).filter(r=>r.room_date===today);
-  if(!rooms.length){el.innerHTML='<div class="empty">오늘 생성된 룸 없음</div>';return;}
-  el.innerHTML='<table class="tbl"><thead><tr><th>룸</th><th>품앗이</th><th>티켓팅</th><th>착륙</th><th>인원</th><th>상태</th><th></th></tr></thead><tbody>'
-    +rooms.map(r=>`<tr><td style="font-weight:600;white-space:nowrap">${r.room_date} #${r.room_number}</td><td>${(r.items||'').split(',').map(t=>`<span class="tag">${t.trim()}</span>`).join('')}</td><td style="font-size:11px;white-space:nowrap">${r.ticket_start_fmt||''} ~ ${r.ticket_end_fmt||''}</td><td style="font-size:11px;white-space:nowrap">${r.land_start_fmt||''} ~ ${r.land_end_fmt||''}</td><td>${r.joined}/${Number(r.max_members)>=9999?"무제한":r.max_members}(+${(r.total_joined||r.joined)-r.joined}운영진)</td><td>${r.status==='open'?'<span class="badge bdk">open</span>':'<span class="badge bdg">closed</span>'}</td><td><div class="act-cell"><button class="btn bo bsm" data-action="mon" data-rid="${r.room_id}">현황</button><button class="btn bo bsm" data-action="edit" data-rid="${r.room_id}">수정</button><button class="btn bsm btn-danger" data-action="del" data-rid="${r.room_id}" data-date="${r.room_date}" data-num="${r.room_number}">삭제</button></div></td></tr>`).join('')+'</tbody></table>';
-  loaded.rooms=true;
-}
-async function loadAR(){
-  const el=document.getElementById('all-rooms');
-  el.innerHTML='<div class="empty"><span class="sp spd"></span></div>';
-  const d=await api('get_all_rooms');
-  roomCache=d.rooms||[];
-  filterAR();
-  // loadTR도 roomCache 재활용
-  const today=td();
-  const todayRooms=roomCache.filter(r=>r.room_date===today);
-  const tel=document.getElementById('today-rooms');
-  if(!todayRooms.length){tel.innerHTML='<div class="empty">오늘 생성된 룸 없음</div>';loaded.rooms=true;return;}
-  tel.innerHTML='<table class="tbl"><thead><tr><th>룸</th><th>품앗이</th><th>티켓팅</th><th>착륙</th><th>인원</th><th>상태</th><th></th></tr></thead><tbody>'
-    +todayRooms.map(r=>`<tr><td style="font-weight:600;white-space:nowrap">${r.room_date} #${r.room_number}</td><td>${(r.items||'').split(',').map(t=>`<span class="tag">${t.trim()}</span>`).join('')}</td><td style="font-size:11px;white-space:nowrap">${r.ticket_start_fmt||''} ~ ${r.ticket_end_fmt||''}</td><td style="font-size:11px;white-space:nowrap">${r.land_start_fmt||''} ~ ${r.land_end_fmt||''}</td><td>${r.joined}/${Number(r.max_members)>=9999?"무제한":r.max_members}(+${(r.total_joined||r.joined)-r.joined}운영진)</td><td>${r.status==='open'?'<span class="badge bdk">open</span>':'<span class="badge bdg">closed</span>'}</td><td><div class="act-cell"><button class="btn bo bsm" data-action="mon" data-rid="${r.room_id}">현황</button><button class="btn bo bsm" data-action="edit" data-rid="${r.room_id}">수정</button><button class="btn bsm btn-danger" data-action="del" data-rid="${r.room_id}" data-date="${r.room_date}" data-num="${r.room_number}">삭제</button></div></td></tr>`).join('')+'</tbody></table>';
-  loaded.rooms=true;
-}
-function filterAR(){
-  const wf=document.getElementById('rfw')?.value.trim()||'';
-  const df=document.getElementById('rfd')?.value||'';
-  let rooms;
-  if(wf) rooms=roomCache.filter(r=>weekKeyOf(r.room_date)===wf);
-  else if(df) rooms=roomCache.filter(r=>r.room_date===df);
-  else rooms=roomCache;
-  const el=document.getElementById('all-rooms');
-  if(!rooms.length){el.innerHTML=`<div class="empty">${wf?wf+' 주차에 ':df?df+'에 ':''}생성된 룸 없음</div>`;return;}
-  el.innerHTML='<table class="tbl"><thead><tr><th>날짜</th><th>#</th><th>품앗이</th><th>티켓팅</th><th>착륙</th><th>인원</th><th>상태</th><th></th></tr></thead><tbody>'
-    +rooms.map(r=>`<tr><td style="font-weight:600">${r.room_date}</td><td>#${r.room_number}</td><td>${(r.items||'').split(',').map(t=>`<span class="tag">${t.trim()}</span>`).join('')}</td><td style="font-size:11px;white-space:nowrap">${r.ticket_start_fmt||''} ~ ${r.ticket_end_fmt||''}</td><td style="font-size:11px;white-space:nowrap">${r.land_start_fmt||''} ~ ${r.land_end_fmt||''}</td><td>${r.joined}/${Number(r.max_members)>=9999?"무제한":r.max_members}(+${(r.total_joined||r.joined)-r.joined}운영진)</td><td>${r.status==='open'?'<span class="badge bdk">open</span>':'<span class="badge bdg">closed</span>'}</td><td><div class="act-cell"><button class="btn bo bsm" data-action="mon" data-rid="${r.room_id}">현황</button><button class="btn bo bsm" data-action="edit" data-rid="${r.room_id}">수정</button><button class="btn bsm btn-danger" data-action="del" data-rid="${r.room_id}" data-date="${r.room_date}" data-num="${r.room_number}">삭제</button></div></td></tr>`).join('')+'</tbody></table>';
-}
-
-['today-rooms','all-rooms'].forEach(id=>{
-  document.getElementById(id).addEventListener('click',e=>{
-    const btn=e.target.closest('[data-action]');if(!btn)return;
-    const{action,rid,date,num}=btn.dataset;
-    if(action==='mon'){openRoomHistory(rid);}
-    if(action==='edit'){const r=roomCache.find(x=>x.room_id===rid);if(r)openER(r);else api('get_all_rooms').then(d=>{roomCache=d.rooms||[];const ro=roomCache.find(x=>x.room_id===rid);if(ro)openER(ro);});}
-    if(action==='del') doDeleteRoom(rid,date,num);
-  });
-});
-
-// 룸 히스토리 상세보기 — 오늘 방이든 몇 달 전 방이든 날짜 구분 없이 동작
-// (get_room_detail은 시간/날짜 제약이 없어서 마감된 옛날 방도 그대로 조회됨)
-document.getElementById('btnRHClose').addEventListener('click',()=>closeModal('mrh'));
-async function openRoomHistory(rid){
-  document.getElementById('rhTitle').textContent='룸 상세';
-  document.getElementById('rhBody').innerHTML='<div class="empty"><span class="sp spd"></span></div>';
-  openModal('mrh');
-  const d=await api('get_room_detail',{room_id:rid});
-  if(!d.ok){document.getElementById('rhBody').innerHTML=`<div class="empty">${d.error||'불러오기 실패'}</div>`;return;}
-  const room=d.room, parts=d.participants||[];
-  document.getElementById('rhTitle').textContent=`${room.room_date} #${room.room_number} 상세`;
-  const icon={normal:'',excellent:'⭐',honorary:'🏅',staff:'🎖'};
-  const landed=parts.filter(p=>p.status==='landed'), notLanded=parts.filter(p=>p.status!=='landed');
-  document.getElementById('rhBody').innerHTML=`
-    <div style="font-size:12px;color:var(--text2);margin-bottom:10px">
-      🎫 ${room.ticket_start_fmt||''} ~ ${room.ticket_end_fmt||''} &nbsp; 🛬 ${room.land_start_fmt||''} ~ ${room.land_end_fmt||''}
-      &nbsp; ${(room.items||'').split(',').map(t=>`<span class="tag">${t.trim()}</span>`).join('')}
-    </div>
-    <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:6px">✓ 착륙 완료 (${landed.length}명)</div>
-    ${landed.length?landed.map(p=>`
-      <div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">
-        <span style="font-weight:600;min-width:70px">${p.nickname}</span>
-        <span style="color:var(--text3);min-width:110px">@${p.insta_id}</span>
-        <span>${icon[p.ticket_type||'normal']||''}</span>
-        ${p.post_url?`<a href="${p.post_url}" target="_blank" style="color:var(--primary);word-break:break-all">${p.post_url}</a>`:'<span style="color:var(--text3)">링크없음</span>'}
-      </div>`).join(''):'<div class="empty" style="padding:10px">없음</div>'}
-    ${notLanded.length?`
-    <div style="font-size:12px;font-weight:700;color:var(--red);margin:12px 0 6px">⚠ 미착륙 (${notLanded.length}명)</div>
-    ${notLanded.map(p=>`
-      <div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">
-        <span style="font-weight:600;min-width:70px">${p.nickname}</span>
-        <span style="color:var(--text3);min-width:110px">@${p.insta_id}</span>
-        ${p.post_url?`<a href="${p.post_url}" target="_blank" style="color:var(--primary);word-break:break-all">${p.post_url}</a>`:'<span style="color:var(--text3)">링크없음</span>'}
-      </div>`).join('')}`:''}
-    ${!parts.length?'<div class="empty" style="padding:16px">참여자 없음</div>':''}
-  `;
-}
-
-function openCR(){
-  document.getElementById('crd').value=td();
-  document.getElementById('crn').value=roomCache.filter(r=>r.room_date===td()).length+1;
-  document.querySelectorAll('#ichips .chip').forEach(c=>c.classList.remove('on'));
-  document.getElementById('sitems').textContent='없음';
-  document.getElementById('crmo').value='';
-  hideBnr('crerr');openModal('mcr');
-}
-function openER(r){
-  document.getElementById('erid').value=r.room_id;
-  document.getElementById('erdate').value=r.room_date;
-  document.getElementById('ermax').value=r.max_members;
-  document.getElementById('erst').value=r.status||'open';
-  document.getElementById('ermo').value=r.memo||'';
-  const to=s=>s?String(s).replace(/.*(\d{2}:\d{2}).*/,'$1'):'';
-  document.getElementById('erts').value=to(r.ticket_start);
-  document.getElementById('erte').value=to(r.ticket_end);
-  document.getElementById('erls').value=to(r.land_start);
-  document.getElementById('erle').value=to(r.land_end);
-  const sel=(r.items||'').split(',').map(s=>s.trim());
-  document.querySelectorAll('#echips .chip').forEach(c=>c.classList.toggle('on',sel.includes(c.textContent.trim())));
-  hideBnr('ererr');openModal('mer');
-}
-async function doCreateRoom(){
-  hideBnr('crerr');
-  const date=document.getElementById('crd').value,num=document.getElementById('crn').value;
-  const ts=document.getElementById('crts').value,te=document.getElementById('crte').value;
-  const ls=document.getElementById('crls').value,le=document.getElementById('crle').value;
-  const items=[...document.querySelectorAll('#ichips .chip.on')].map(c=>c.textContent).join(',');
-  const memo=document.getElementById('crmo').value,max=document.getElementById('crm').value;
-  if(!date||!ts||!te||!ls||!le){showBnr('crerr','날짜와 시간을 입력해주세요');return;}
-  if(!items){showBnr('crerr','품앗이 항목을 선택해주세요');return;}
-  const teD=te<=ts?nd(date):date,lsD=ls<ts?nd(date):date,leD=le<=ls?nd(lsD):lsD;
-  btnLoad('btnCR',true);
-  const d=await api('create_room',{admin_id:adminInfo.admin_id,room_date:date,room_number:Number(num),items,max_members:Number(max),ticket_start:date+' '+ts,ticket_end:teD+' '+te,land_start:lsD+' '+ls,land_end:leD+' '+le,memo});
-  btnLoad('btnCR',false,'생성');
-  if(!d.ok){showBnr('crerr',d.error||'실패');return;}
-  closeModal('mcr');showBnr('rok','룸 생성 완료','ok');loadTR();loadAR();
-}
-async function doUpdateRoom(){
-  hideBnr('ererr');
-  const rid=document.getElementById('erid').value,date=document.getElementById('erdate').value;
-  const ts=document.getElementById('erts').value,te=document.getElementById('erte').value;
-  const ls=document.getElementById('erls').value,le=document.getElementById('erle').value;
-  const items=[...document.querySelectorAll('#echips .chip.on')].map(c=>c.textContent).join(',');
-  if(!items){showBnr('ererr','품앗이 항목을 선택해주세요');return;}
-  const teD=te<=ts?nd(date):date,lsD=ls<ts?nd(date):date,leD=le<=ls?nd(lsD):lsD;
-  btnLoad('btnER',true);
-  const d=await api('update_room',{room_id:rid,items,max_members:Number(document.getElementById('ermax').value),memo:document.getElementById('ermo').value,status:document.getElementById('erst').value,ticket_start:date+' '+ts,ticket_end:teD+' '+te,land_start:lsD+' '+ls,land_end:leD+' '+le});
-  btnLoad('btnER',false,'수정 완료');
-  if(!d.ok){showBnr('ererr',d.error||'실패');return;}
-  closeModal('mer');showBnr('rok','수정 완료','ok');loadTR();loadAR();
-}
-async function doDeleteRoom(rid,date,num){
-  if(!await iconfirm(`${date} #${num} 룸 삭제?`,true))return;
-  const d=await api('delete_room',{room_id:rid});
-  if(d.ok){showBnr('rok','삭제 완료','ok');loadTR();loadAR();}
-  else showBnr('rerr',d.error||'실패');
-}
-async function doAllPresets(){
-  if(!await iconfirm(`오늘(${td()}) 프리셋 6종 생성할까요?`))return;
-  const btn=document.getElementById('btn-preset-all');
-  btn.disabled=true;
-  let ok=0,skip=0,fail=[];
-  for(const p of PRESETS){
-    // 진행 중 표시 (몇 번째 생성 중인지)
-    btn.innerHTML=`<span class="sp"></span> ${ok+skip+fail.length+1}/6 생성 중...`;
-    const d=await api('create_preset',{admin_id:adminInfo.admin_id,preset_num:p.num,room_date:td()});
-    if(d.ok)ok++;else if(d.error?.includes('이미'))skip++;else fail.push(p.num+'번');
-  }
-  btn.disabled=false;
-  btn.innerHTML='⚡ 프리셋 6종';
-  showBnr('rok',`생성 ${ok}개${skip?` · 건너뜀 ${skip}개`:''}${fail.length?` · 실패 ${fail.join(',')}`:''}`,'ok');
-  loadTR();loadAR();
-}
-
-// ══════════════════════════════════════════════
-// 참여 현황 — 오늘 전체 룸, 미착륙자 복사/경고
-// ══════════════════════════════════════════════
-document.getElementById('btnMonRefresh').addEventListener('click',()=>loadMon());
-document.getElementById('btnMonCopyAll').addEventListener('click',e=>copyAllNoLand(e.currentTarget));
-
-function copyAllNoLand(btn){
-  if(!monStats.length){ showBnr('sok','불러온 룸이 없습니다'); return; }
-  const lines=[`[${td()} 미착륙자 전체]`];
-  let total=0;
-  monStats.forEach(r=>{
-    const nl=(r.participants||[]).filter(p=>p.status!=='landed');
-    if(!nl.length) return;
-    lines.push(''); lines.push(`📍 #${r.room_number} (${(r.items||'').split(',').join('/')})`);
-    nl.forEach(p=>{ lines.push(`- ${p.nickname} @${p.insta_id}`); total++; });
-  });
-  if(!total){ showBnr('sok','현재 미착륙자가 없습니다','ok'); return; }
-  copyText(lines.join('\n'), btn);
-}
-
-async function loadMon(){
-  const el=document.getElementById('mon-content');
-  el.innerHTML='<div class="empty"><span class="sp spd"></span></div>';
-  const d=await api('get_daily');
-  if(!d.ok){el.innerHTML='<div class="empty">불러오기 실패</div>';return;}
-  const rs=d.room_stats||[];
-  if(!rs.length){el.innerHTML='<div class="empty">오늘 비행기가 없습니다</div>';return;}
-  monStats=rs;
-  const icon={normal:'',excellent:'⭐',honorary:'🏅',staff:'🎖'};
-
-  el.innerHTML=rs.map((r,ri)=>{
-    const parts=r.participants||[], nl=r.no_land_list||[];
-    const landed=parts.filter(p=>p.status==='landed');
-    const notLanded=parts.filter(p=>p.status!=='landed');
-    const isClosed=r.is_land_closed;
-    const isSettled=r.is_settled;
-    // 상태 배지: 진행중(초록) / 착륙마감·정산대기(빨강) / 정산완료(회색)
-    const stateBadge = isSettled
-      ? '<span class="badge bdg" style="margin-left:4px">✓ 정산완료</span>'
-      : isClosed
-        ? '<span class="badge bdr" style="margin-left:4px">착륙마감 · 정산대기</span>'
-        : '<span class="badge bdk" style="margin-left:4px">진행중</span>';
-    // 정산 이미 끝난 방은 중복 클릭 방지를 위해 일괄 경고 버튼 문구를 다르게
-    const bulkWarnLabel = isSettled ? '⚠ 경고 재부여(예외처리)' : `⚠ 경고 부여 (${notLanded.length}명)`;
-
-    return `<div class="rca">
-      <!-- 룸 헤더 -->
-      <div class="rcah">
-        <div>
-          <div style="font-size:14px;font-weight:700">
-            #${r.room_number} ${(r.items||'').split(',').map(t=>`<span class="tag">${t.trim()}</span>`).join('')}
-            ${stateBadge}
-          </div>
-          <div style="font-size:11px;color:var(--text2);margin-top:3px">
-            🎫 ${r.ticket_start_fmt||''} ~ ${r.ticket_end_fmt||''}
-            &nbsp;🛬 ${r.land_start_fmt||''} ~ ${r.land_end_fmt||''}
-          </div>
-        </div>
-        <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:22px;font-weight:800;color:${isClosed?'var(--green)':'var(--text)'}">${landed.length}<span style="font-size:13px;font-weight:400;color:var(--text3)">/${parts.length}</span></div>
-          <div style="font-size:11px;color:var(--text3)">착륙/참여</div>
-        </div>
-      </div>
-
-      <!-- 미착륙자 섹션 (착륙 마감 후 강조) -->
-      ${notLanded.length?`
-      <div style="background:${isClosed?'var(--red-bg)':'var(--amber-bg)'};border-bottom:1px solid ${isClosed?'#FECACA':'#FDE68A'};padding:8px 14px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-          <div style="font-size:12px;font-weight:700;color:${isClosed?'var(--red)':'var(--amber)'}">
-            ${isClosed?'⚠ 미착륙 — 경고 대상':'⏳ 착륙 미완료'}
-            <span style="font-weight:400">(${notLanded.length}명)</span>
-          </div>
-          <div style="display:flex;gap:5px">
-            <button class="btn bsm" style="background:transparent;border:1px solid ${isClosed?'var(--red)':'var(--amber)'};color:${isClosed?'var(--red)':'var(--amber)'}" 
-              data-action="cp-nl" data-ri="${ri}">📋 닉네임 복사</button>
-            ${isClosed?`<button class="btn bsm bred" data-action="warn-nl" data-ri="${ri}">${bulkWarnLabel}</button>`:''}
-          </div>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:4px">
-          ${notLanded.map(p=>`
-            <div style="display:flex;align-items:center;gap:4px;background:#fff;border-radius:6px;padding:3px 8px;font-size:12px">
-              <span style="font-weight:600">${p.nickname}</span>
-              <span style="color:var(--text3)">@${p.insta_id}</span>
-              ${p.already_warned?'<span class="badge bdg" style="font-size:9px">✓ 경고완료</span>':''}
-              ${p.post_url?`<a href="${p.post_url}" target="_blank" style="font-size:10px;color:var(--primary)">링크</a>`:'<span style="font-size:10px;color:var(--text3)">링크없음</span>'}
-              <button class="btn bsm" style="padding:1px 5px;font-size:10px"
-                data-action="edit-link" data-rid="${r.room_id}" data-mid="${p.member_id}" data-nick="${p.nickname}" data-url="${(p.post_url||'').replace(/"/g,'&quot;')}">✏</button>
-              <button class="btn bsm" style="padding:1px 6px;font-size:10px" 
-                data-action="land" data-rid="${r.room_id}" data-mid="${p.member_id}" data-nick="${p.nickname}">🛬</button>
-              <button class="btn bsm btn-danger" style="padding:1px 6px;font-size:10px"
-                data-action="del-p" data-rid="${r.room_id}" data-mid="${p.member_id}" data-nick="${p.nickname}">✕</button>
-            </div>`).join('')}
-        </div>
-      </div>`:''}
-
-      <!-- 착륙 완료자 -->
-      ${landed.length?`
-      <div style="padding:6px 14px;border-bottom:${notLanded.length?'0':'1px solid var(--border)'}">
-        <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:4px">✓ 착륙 완료 (${landed.length}명)</div>
-        <div style="display:flex;flex-wrap:wrap;gap:3px">
-          ${landed.map(p=>`
-            <div style="display:flex;align-items:center;gap:3px;background:var(--green-bg);border-radius:6px;padding:2px 8px;font-size:11px">
-              <span style="font-weight:600">${p.nickname}</span>
-              ${icon[p.ticket_type||'normal']?`<span>${icon[p.ticket_type]}</span>`:''}
-              ${p.post_url?`<a href="${p.post_url}" target="_blank" style="color:var(--primary);font-size:10px">링크</a>`:'<span style="font-size:10px;color:var(--text3)">링크없음</span>'}
-              <button class="btn bsm" style="padding:1px 5px;font-size:10px"
-                data-action="edit-link" data-rid="${r.room_id}" data-mid="${p.member_id}" data-nick="${p.nickname}" data-url="${(p.post_url||'').replace(/"/g,'&quot;')}">✏</button>
-              <button class="btn bsm btn-danger" style="padding:1px 5px;font-size:10px"
-                data-action="del-p" data-rid="${r.room_id}" data-mid="${p.member_id}" data-nick="${p.nickname}">✕</button>
-            </div>`).join('')}
-        </div>
-      </div>`:''}
-
-      ${!parts.length?'<div class="empty" style="padding:14px;font-size:12px">아직 탑승자 없음</div>':''}
-    </div>`;
-  }).join('');
-  loaded.monitor=true;
-}
-
-document.getElementById('mon-content').addEventListener('click',async e=>{
-  const btn=e.target.closest('[data-action]');if(!btn)return;
-  const{action,rid,mid,nick,ri}=btn.dataset;
-
-  if(action==='cp-nl'){ cpNoLand(Number(ri)); return; }
-
-  if(action==='edit-link'){
-    if(!mid){showBnr('sok','member_id 없음');return;}
-    const curUrl=btn.dataset.url||'';
-    const input=prompt(`${nick}님의 링크를 수정합니다.\n(카톡 등에서 복사한 텍스트를 통째로 붙여넣어도 링크만 자동으로 추출됩니다)`, curUrl);
-    if(input===null) return; // 취소
-    const url=extractUrl(input);
-    if(!url){ showBnr('sok','올바른 링크(http로 시작)를 찾을 수 없습니다'); return; }
-    btn.disabled=true;
-    const d=await api('admin_update_link',{room_id:rid,member_id:mid,post_url:url});
-    if(d.ok){ showBnr('sok','링크 수정 완료','ok'); loadMon(); }
-    else { showBnr('sok',d.error||'실패'); btn.disabled=false; }
-    return;
-  }
-
-  if(action==='warn-nl'){
-    const r=monStats[Number(ri)]; if(!r) return;
-    const nl=r.no_land_list||r.participants?.filter(p=>p.status!=='landed')||[];
-    if(!nl.length){showBnr('sok','미착륙자 없음');return;}
-    if(!await iconfirm(`미착륙 ${nl.length}명에게 경고를 부여할까요? (이미 처리된 사람은 자동으로 건너뜁니다)`,true)) return;
-    btn.disabled=true; btn.textContent='경고 부여 중...';
-    let ok=0,dup=0,fail=[];
-    for(const p of nl){
-      if(!p.member_id){fail.push(p.nickname);continue;}
-      const d=await api('manual_warn',{
-        member_id:p.member_id,
-        room_id:r.room_id,
-        admin_nickname:adminInfo.nickname,
-        reason:`착륙 미완료 — ${r.room_date||''} #${r.room_number}`
+// ── 시트 한 번에 읽기 (Date 객체 → KST 문자열 자동 변환)
+function readSheet(sheet) {
+  var raw = sheet.getDataRange().getValues();
+  if (raw.length < 2)
+    return { headers: raw[0] || [], rows: [], raw: raw, sheet: sheet };
+  var rows = raw
+    .slice(1)
+    .filter(function (r) {
+      return r.some(function (c) {
+        return c !== "" && c !== null && c !== undefined;
       });
-      if(d.ok) ok++; else if(d.duplicate) dup++; else fail.push(p.nickname);
-    }
-    btn.disabled=false;
-    showBnr('sok',`경고 부여 완료 ${ok}명${dup?` · 이미처리 ${dup}명`:''}${fail.length?` · 실패: ${fail.join(',')}`:''}`,'ok');
-    loadMon();
-    return;
+    })
+    .map(function (r) {
+      return r.map(function (c) {
+        // Date 객체면 KST 문자열로 변환
+        return c instanceof Date ? toKST(c) : c;
+      });
+    });
+  return { headers: raw[0], rows: rows, raw: raw, sheet: sheet };
+}
+function findRow(sd, colName, value) {
+  var ci = sd.headers.indexOf(colName);
+  for (var i = 0; i < sd.rows.length; i++) {
+    if (String(sd.rows[i][ci]) === String(value))
+      return { rowNum: i + 2, data: sd.rows[i] };
   }
-
-  if(action==='land'){
-    if(!mid){showBnr('sok','member_id 없음');return;}
-    if(!await iconfirm(`${nick}님 착륙 처리?`))return;
-    btn.disabled=true;
-    const d=await api('admin_land',{room_id:rid,member_id:mid,admin_id:adminInfo.admin_id});
-    if(d.ok){showBnr('sok',d.message,'ok');loadMon();}
-    else{showBnr('sok',d.error||'실패');btn.disabled=false;}
+  return null;
+}
+// 행 전체를 한 번에 씀
+function writeRow(sheet, rowNum, headers, patches, original) {
+  var row = original ? original.slice() : new Array(headers.length).fill("");
+  for (var k in patches) {
+    var ci = headers.indexOf(k);
+    if (ci >= 0) row[ci] = patches[k];
   }
-
-  if(action==='del-p'){
-    if(!mid){showBnr('sok','member_id 없음');return;}
-    if(!await iconfirm(`${nick}님 참여 기록 삭제? (복구 불가)`,true))return;
-    btn.disabled=true;
-    const d=await api('admin_delete_part',{room_id:rid,member_id:mid,admin_id:adminInfo.admin_id});
-    if(d.ok){showBnr('sok',d.message,'ok');loadMon();}
-    else{showBnr('sok',d.error||'실패');btn.disabled=false;}
-  }
-});
-
-function cpNoLand(ri){
-  const r=monStats[ri]; if(!r) return;
-  const nl=r.participants?.filter(p=>p.status!=='landed')||[];
-  if(!nl.length){showBnr('sok','미착륙자 없음');return;}
-  const txt=nl.map(p=>`${p.nickname} @${p.insta_id}`).join('\n');
-  const btn=document.querySelector(`[data-action="cp-nl"][data-ri="${ri}"]`);
-  copyText(txt, btn);
+  sheet.getRange(rowNum, 1, 1, row.length).setValues([row]);
+  return row;
 }
 
-// ══════════════════════════════════════════════
-// 정산
-// ══════════════════════════════════════════════
-document.getElementById('btn-daily-s').addEventListener('click',doDailyS);
-document.getElementById('btn-weekly-s').addEventListener('click',doWeeklyS);
-document.getElementById('btn-init-week').addEventListener('click',doInitWeek);
-
-document.getElementById('btnLogHistory').addEventListener('click', loadLogHistory);
-document.getElementById('log-date').addEventListener('change', loadLogHistory);
-
-async function loadLogHistory(){
-  const dateVal = document.getElementById('log-date').value;
-  if(!dateVal) return;
-  const el = document.getElementById('log-history');
-  el.innerHTML = '<div class="empty"><span class="sp spd"></span></div>';
-  // 정산 로그와 함께, 그 날짜에 실제로 방이 있었는지도 같이 조회
-  // → "정산이 안 된 것"과 "애초에 방이 없어서 정산할 게 없는 것"을 구분하기 위함
-  const [d, roomsD] = await Promise.all([
-    api('get_logs', {log_date: dateVal}),
-    api('get_all_rooms'),
-  ]);
-  if(!d.ok){el.innerHTML='<div class="empty">불러오기 실패</div>';return;}
-  const logs = d.logs||[];
-  const roomsThatDay = (roomsD.rooms||[]).filter(r=>r.room_date===dateVal);
-
-  if(!logs.length){
-    if(!roomsThatDay.length){
-      el.innerHTML=`<div class="empty">${dateVal}에 생성된 방이 없습니다 (정상 — 정산할 대상 없음)</div>`;
-    } else {
-      const stillOpen = roomsThatDay.filter(r=>r.status==='open');
-      el.innerHTML=`<div style="padding:16px">
-        <div class="bnr bnr-w show" style="margin-bottom:10px">
-          ⚠ ${dateVal}에 방 ${roomsThatDay.length}개가 있었지만 정산 기록이 없습니다.
-          ${stillOpen.length?` (그중 ${stillOpen.length}개는 아직 open 상태 — 착륙 마감 전이거나 정산 트리거가 아직 실행되지 않았을 수 있습니다)`:' 방은 모두 마감(closed) 상태인데 정산 로그가 없어 확인이 필요합니다.'}
-        </div>
-        <table class="tbl"><thead><tr><th>룸</th><th>상태</th><th>착륙마감</th></tr></thead><tbody>
-        ${roomsThatDay.map(r=>`<tr><td>#${r.room_number}</td><td>${r.status==='open'?'<span class="badge bdk">open</span>':'<span class="badge bdg">closed</span>'}</td><td style="font-size:11px">${r.land_end_fmt||''}</td></tr>`).join('')}
-        </tbody></table>
-      </div>`;
+// ============================================================
+// 인증
+// ============================================================
+function login(b) {
+  if (!b.nickname || !b.insta_id)
+    return res({ ok: false, error: "닉네임과 인스타 아이디를 입력해주세요" });
+  var sd = readSheet(SH.MEMBERS());
+  var h = sd.headers;
+  var ni = h.indexOf("nickname"),
+    ii = h.indexOf("insta_id");
+  var found = null,
+    rowNum = -1;
+  for (var i = 0; i < sd.rows.length; i++) {
+    if (
+      String(sd.rows[i][ni]).trim() === String(b.nickname).trim() &&
+      String(sd.rows[i][ii]).trim() === String(b.insta_id).trim()
+    ) {
+      found = sd.rows[i];
+      rowNum = i + 2;
+      break;
     }
-    return;
   }
-  // settle 로그와 warn 로그 분리
-  const settles = logs.filter(l=>l.log_type==='daily_settle');
-  const warns   = logs.filter(l=>l.log_type==='daily_warn');
-  const skips   = logs.filter(l=>l.log_type==='daily_settle_skip');
-  el.innerHTML = `
-    <div style="padding:14px">
-      <div style="font-size:13px;font-weight:700;margin-bottom:10px">${dateVal} 일간 정산 결과</div>
-      ${settles.map(s=>`
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rsm);padding:10px 14px;margin-bottom:8px">
-          <div style="font-size:12px;font-weight:700">${s.room_date||''} #${s.room_number||''}</div>
-          <div style="font-size:11px;color:var(--text2);margin-top:3px">${s.detail||''}</div>
-        </div>`).join('')}
-      ${warns.length?`
-        <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-          <span style="font-size:12px;font-weight:700;color:var(--red)">⚠ 경고 부여 (${warns.length}명)</span>
-          <button class="btn bo bsm" id="btn-warns-copy">📋 복사</button>
-        </div>
-        <table class="tbl"><thead><tr><th>닉네임</th><th>아이디</th><th>룸</th><th>시각</th></tr></thead><tbody>
-        ${warns.map(w=>`<tr>
-          <td style="font-weight:600">${w.nickname||''}</td>
-          <td style="font-size:12px;color:var(--text2)">@${w.insta_id||''}</td>
-          <td style="font-size:11px">${w.room_date||''} #${w.room_number||''}</td>
-          <td style="font-size:11px;color:var(--text2)">${w.created_at||''}</td>
-        </tr>`).join('')}
-        </tbody></table>`:'<div style="font-size:12px;color:var(--green);margin-top:8px">✅ 경고 부여 없음</div>'}
-    </div>`;
-  if(warns.length){
-    document.getElementById('btn-warns-copy').addEventListener('click',e=>{
-      const txt=`[${dateVal} 경고 부여 명단]\n`+warns.map(w=>`${w.nickname} @${w.insta_id} (#${w.room_number})`).join('\n');
-      copyText(txt, e.currentTarget);
+  if (!found) return res({ ok: false, error: "등록되지 않은 계정입니다" });
+  var st = found[h.indexOf("status")];
+  if (st === "locked")
+    return res({
+      ok: false,
+      error: "locked",
+      message: "계정이 잠금 상태입니다",
+    });
+  if (st === "inactive")
+    return res({ ok: false, error: "inactive", message: "비활성 계정입니다" });
+  // member_id 없으면 생성, 로그인 시각 갱신
+  var patches = { last_login_at: nowKST() };
+  if (
+    !found[h.indexOf("member_id")] ||
+    String(found[h.indexOf("member_id")]).trim() === ""
+  )
+    patches["member_id"] = uuid();
+  var newRow = writeRow(SH.MEMBERS(), rowNum, h, patches, found);
+  var mid = newRow[h.indexOf("member_id")];
+  // status는 writeRow 후 newRow에서 읽기 (최신 상태 반영)
+  var currentSt = newRow[h.indexOf("status")];
+  // active 경고 조회 — 만료시각뿐 아니라 "언제 어느 방 때문에" 받았는지도 함께 반환
+  // (room_id가 있으면 plane_Rooms에서 날짜/번호를 찾아 붙여줌 — 크루가 그 방을 바로 열어볼 수 있게)
+  var isWarned = currentSt === "warned";
+  var warnExpires = null;
+  var myWarnings = [];
+  if (isWarned) {
+    var wsd = readSheet(SH.WARNINGS());
+    var wh = wsd.headers,
+      wmIdx = wh.indexOf("member_id"),
+      wstIdx = wh.indexOf("status"),
+      wexpIdx = wh.indexOf("expires_at"),
+      wReasonIdx = wh.indexOf("reason"),
+      wRoomIdIdx = wh.indexOf("room_id"),
+      wAtIdx = wh.indexOf("warned_at");
+    var roomLookupLogin = null; // room_id -> {room_date, room_number} — 필요할 때만 읽음
+    for (var j = 0; j < wsd.rows.length; j++) {
+      var wrow = wsd.rows[j];
+      if (String(wrow[wmIdx]) !== String(mid) || wrow[wstIdx] !== "active")
+        continue;
+      if (!warnExpires) warnExpires = fmtDisp(wrow[wexpIdx]);
+      var roomIdLogin = wRoomIdIdx >= 0 ? String(wrow[wRoomIdIdx] || "") : "";
+      var roomInfoLogin = null;
+      if (roomIdLogin) {
+        if (!roomLookupLogin) {
+          var rsdLogin = readSheet(SH.ROOMS());
+          var rlh = rsdLogin.headers;
+          roomLookupLogin = {};
+          rsdLogin.rows.forEach(function (rr) {
+            roomLookupLogin[String(rr[rlh.indexOf("room_id")])] = {
+              room_date: String(rr[rlh.indexOf("room_date")]).substring(0, 10),
+              room_number: rr[rlh.indexOf("room_number")],
+            };
+          });
+        }
+        roomInfoLogin = roomLookupLogin[roomIdLogin] || null;
+      }
+      myWarnings.push({
+        warn_id: wrow[wh.indexOf("warn_id")],
+        reason: wrow[wReasonIdx],
+        room_id: roomIdLogin,
+        room_date: roomInfoLogin ? roomInfoLogin.room_date : "",
+        room_number: roomInfoLogin ? roomInfoLogin.room_number : "",
+        warned_at: fmtDisp(wrow[wAtIdx]),
+        expires_at: fmtDisp(wrow[wexpIdx]),
+      });
+    }
+  }
+  return res({
+    ok: true,
+    member: {
+      member_id: mid,
+      nickname: newRow[h.indexOf("nickname")],
+      insta_id: newRow[h.indexOf("insta_id")],
+      status: currentSt,
+      grade: newRow[h.indexOf("grade")],
+      warning_count: newRow[h.indexOf("warning_count")],
+      excellent_count: Number(newRow[h.indexOf("excellent_count")]) || 0,
+      excellent_granted_at: newRow[h.indexOf("excellent_granted_at")] || "",
+      honorary_count: Number(newRow[h.indexOf("honorary_count")]) || 0,
+      honorary_granted_at: newRow[h.indexOf("honorary_granted_at")] || "",
+      is_warned: isWarned,
+      warn_expires: warnExpires,
+      warnings: myWarnings,
+    },
+  });
+}
+
+function adminLogin(b) {
+  if (!b.nickname || !b.insta_id)
+    return res({ ok: false, error: "필수값 누락" });
+  var sd = readSheet(SH.ADMINS()),
+    h = sd.headers;
+  var ni = h.indexOf("nickname"),
+    ii = h.indexOf("insta_id"),
+    si = h.indexOf("status");
+  for (var i = 0; i < sd.rows.length; i++) {
+    var r = sd.rows[i];
+    if (
+      String(r[ni]).trim() === String(b.nickname).trim() &&
+      String(r[ii]).trim() === String(b.insta_id).trim() &&
+      r[si] === "active"
+    )
+      return res({
+        ok: true,
+        admin: { admin_id: r[h.indexOf("admin_id")], nickname: r[ni] },
+      });
+  }
+  return res({ ok: false, error: "등록되지 않은 관리자 계정입니다" });
+}
+
+// ============================================================
+// 룸
+// ============================================================
+function getRooms(b) {
+  var myMid = b && b.member_id ? String(b.member_id) : null;
+  var now = new Date();
+  var todayStr = Utilities.formatDate(now, "Asia/Seoul", "yyyy-MM-dd");
+  var kstH = Number(Utilities.formatDate(now, "Asia/Seoul", "HH"));
+  var ydStr =
+    kstH < 11
+      ? Utilities.formatDate(
+          new Date(now.getTime() - 86400000),
+          "Asia/Seoul",
+          "yyyy-MM-dd",
+        )
+      : "";
+
+  var rsd = readSheet(SH.ROOMS());
+  var psd = readSheet(SH.PARTS());
+  var rh = rsd.headers,
+    ph = psd.headers;
+  var pRid = ph.indexOf("room_id"),
+    pSt = ph.indexOf("status"),
+    pMid = ph.indexOf("member_id"),
+    pTT = ph.indexOf("ticket_type");
+
+  // room_id별로 참여기록을 미리 한 번만 묶어둠 (방 개수 × 참여기록 전체 이중순회 방지)
+  var partsByRoomGR = {};
+  for (var j0 = 0; j0 < psd.rows.length; j0++) {
+    var rid0 = String(psd.rows[j0][pRid]);
+    if (!partsByRoomGR[rid0]) partsByRoomGR[rid0] = [];
+    partsByRoomGR[rid0].push(psd.rows[j0]);
+  }
+
+  var result = [];
+  for (var i = 0; i < rsd.rows.length; i++) {
+    var r = rsd.rows[i];
+    var rd = String(r[rh.indexOf("room_date")]).substring(0, 10);
+    if (rd !== todayStr && (!ydStr || rd !== ydStr)) continue;
+    if (r[rh.indexOf("status")] === "closed") continue;
+
+    var rid = String(r[rh.indexOf("room_id")]);
+    var joined = 0,
+      normalJoined = 0,
+      landed = 0;
+    var myStatus = null,
+      myTicketType = null;
+    var roomParts = partsByRoomGR[rid] || [];
+    for (var j = 0; j < roomParts.length; j++) {
+      joined++;
+      if ((roomParts[j][pTT] || "normal") === "normal") normalJoined++;
+      if (roomParts[j][pSt] === "landed") landed++;
+      if (myMid && String(roomParts[j][pMid]) === myMid) {
+        myStatus = roomParts[j][pSt]; // 'ticketed' | 'landed'
+        myTicketType = roomParts[j][pTT] || "normal";
+      }
+    }
+
+    // land_end 지났어도 — 착륙 완료자가 있으면 목록에 유지 (참여자가 확인할 수 있게)
+    // 단, 아무도 없는 룸은 land_end 1시간 후 숨김
+    var le = parseKST(normTime(r[rh.indexOf("land_end")]));
+    if (le && now >= le) {
+      var hideAfter = new Date(le.getTime() + 60 * 60 * 1000); // land_end + 1시간
+      if (joined === 0 || now >= hideAfter) continue;
+    }
+
+    var ts = normTime(r[rh.indexOf("ticket_start")]),
+      te = normTime(r[rh.indexOf("ticket_end")]);
+    var ls = normTime(r[rh.indexOf("land_start")]),
+      leN = normTime(r[rh.indexOf("land_end")]);
+    var maxM = r[rh.indexOf("max_members")];
+    result.push({
+      room_id: rid,
+      room_date: rd,
+      room_number: r[rh.indexOf("room_number")],
+      items: r[rh.indexOf("items")],
+      max_members: Number(maxM) >= 9999 ? "무제한" : maxM,
+      ticket_start: ts,
+      ticket_end: te,
+      land_start: ls,
+      land_end: leN,
+      ticket_start_fmt: fmtDisp(ts),
+      ticket_end_fmt: fmtDisp(te),
+      land_start_fmt: fmtDisp(ls),
+      land_end_fmt: fmtDisp(leN),
+      status: r[rh.indexOf("status")],
+      joined: normalJoined,
+      total_joined: joined,
+      landed_count: landed,
+      memo: r[rh.indexOf("memo")] || "",
+      preset_num: r[rh.indexOf("preset_num")] || "",
+      my_status: myStatus,
+      my_ticket_type: myTicketType,
     });
   }
+  return res({ ok: true, rooms: result });
 }
 
-function loadSI(){
-  const now=new Date(),day=now.getDay(),tm=day===0?-6:1-day,mon=new Date(now);
-  mon.setDate(now.getDate()+tm);mon.setHours(10,0,0,0);
-  const sun=new Date(mon);sun.setDate(mon.getDate()+6);sun.setHours(22,0,0,0);
-  const f=d=>`${d.getMonth()+1}/${d.getDate()} ${('0'+d.getHours()).slice(-2)}:00`;
-  document.getElementById('sinfo').innerHTML=`주간: <strong>${f(mon)} ~ ${f(sun)}</strong> · 필참 2회`;
-}
-async function doDailyS(){
-  if(!await iconfirm('일간 정산 실행할까요?'))return;
-  btnLoad('btn-daily-s',true);
-  const d=await api('run_daily',{admin_id:adminInfo.admin_id});
-  btnLoad('btn-daily-s',false,'일간 정산 실행');
-  if(d.ok)showBnr('skok',`일간 정산 완료 — 경고 ${d.warned}명${d.skipped?` · 중복스킵 ${d.skipped}명`:''}`,'ok');
-  else showBnr('serr',d.error||'실패');
-}
-async function doWeeklyS(){
-  if(!await iconfirm('주간 정산 실행할까요? (경고·우수명예 초기화)'))return;
-  btnLoad('btn-weekly-s',true);
-  const d=await api('run_weekly',{admin_id:adminInfo.admin_id});
-  btnLoad('btn-weekly-s',false,'주간 정산 실행');
-  if(!d.ok){showBnr('serr',d.error||'실패');return;}
-  showBnr('skok',`완료 — 통과 ${d.passed}명 · 경고 ${d.warned}명${d.already_warned?` · 이미처리 ${d.already_warned}명`:''} · 우수초기화 ${d.reset_excellent||0} · 명예초기화 ${d.reset_honorary||0}`,'ok');
-  document.getElementById('sresult').innerHTML=`<div class="card"><div class="ch"><span class="ct">${d.week_key} 결과</span></div><div class="cb"><div style="font-size:12px;color:var(--text2)">경고 이월: ${d.carry_over_warns}건</div></div></div>`;
-}
-async function doInitWeek(){
-  if(!await iconfirm('이번주 시트를 초기화할까요?\n기존 기록이 삭제됩니다.',true))return;
-  btnLoad('btn-init-week',true);
-  const d=await api('init_week_sheet',{admin_id:adminInfo.admin_id,week_key:thisWeekKey()});
-  btnLoad('btn-init-week',false,'📋 이번주 시트 초기화');
-  if(d.ok)showBnr('skok',d.message,'ok');else showBnr('serr',d.error||'실패');
-}
+function getAllRooms(b) {
+  var dateFilter = b && b.room_date ? String(b.room_date) : null;
+  var weekFilter = b && b.week_key ? String(b.week_key) : null;
+  var rsd = readSheet(SH.ROOMS()),
+    psd = readSheet(SH.PARTS());
+  var rh = rsd.headers,
+    ph = psd.headers;
+  var pRid = ph.indexOf("room_id"),
+    pTT2 = ph.indexOf("ticket_type"),
+    pRD = ph.indexOf("room_date");
 
-// ══════════════════════════════════════════════
-// 주간 시트 조회
-// ══════════════════════════════════════════════
-document.getElementById('btn-wk-load').addEventListener('click',loadWeekSheet);
-document.getElementById('wk-input').addEventListener('keydown',e=>{if(e.key==='Enter')loadWeekSheet();});
-
-async function loadWeekSheet(){
-  const wk=document.getElementById('wk-input').value.trim()||thisWeekKey();
-  const el=document.getElementById('week-sheet-content');
-  el.innerHTML='<div class="empty"><span class="sp spd"></span></div>';
-  const d=await api('get_week_sheet',{week_key:wk});
-  if(!d.ok){el.innerHTML='<div class="empty">불러오기 실패</div>';return;}
-  if(!d.headers||d.headers.length<3){
-    el.innerHTML=`<div class="empty">${wk} 시트 없음<br><span style="font-size:11px">첫 탑승 시 자동 생성됩니다</span></div>`;return;
+  function matchesFilter(roomDateStr) {
+    if (!dateFilter && !weekFilter) return true;
+    if (dateFilter) return roomDateStr === dateFilter;
+    return weekKey(roomDateStr) === weekFilter;
   }
 
-  const headers=d.headers, rows=d.rows;
-  // gs에서 이미 member_id 제외됨
-  const sumIdx=headers.indexOf('주간합계');
+  // room_id별로 참여기록을 미리 한 번만 묶어둠 (방 개수 × 참여기록 전체 이중순회 방지)
+  // 필터가 있으면 관련없는 참여기록은 애초에 버킷에 안 넣어서 이후 연산량도 줄임
+  // (시트 자체를 덜 읽는 건 아니지만 — Apps Script 특성상 한 번 읽은 뒤엔 필터링해도
+  //  네트워크 비용은 동일 — 이후 처리 단계의 반복 횟수는 필터링된 만큼 줄어듦)
+  var countsByRoom = {};
+  for (var j = 0; j < psd.rows.length; j++) {
+    if (!matchesFilter(String(psd.rows[j][pRD]).substring(0, 10))) continue;
+    var rid0 = String(psd.rows[j][pRid]);
+    if (!countsByRoom[rid0]) countsByRoom[rid0] = { total: 0, normal: 0 };
+    countsByRoom[rid0].total++;
+    if ((psd.rows[j][pTT2] || "normal") === "normal")
+      countsByRoom[rid0].normal++;
+  }
+  var rooms = rsd.rows
+    .filter(function (r) {
+      return matchesFilter(String(r[rh.indexOf("room_date")]).substring(0, 10));
+    })
+    .map(function (r) {
+      var rid = String(r[rh.indexOf("room_id")]);
+      var c = countsByRoom[rid] || { total: 0, normal: 0 };
+      var ts = normTime(r[rh.indexOf("ticket_start")]),
+        te = normTime(r[rh.indexOf("ticket_end")]);
+      var ls = normTime(r[rh.indexOf("land_start")]),
+        le = normTime(r[rh.indexOf("land_end")]);
+      return {
+        room_id: rid,
+        room_date: String(r[rh.indexOf("room_date")]).substring(0, 10),
+        room_number: r[rh.indexOf("room_number")],
+        items: r[rh.indexOf("items")],
+        max_members: r[rh.indexOf("max_members")],
+        memo: r[rh.indexOf("memo")] || "",
+        ticket_start: ts,
+        ticket_end: te,
+        land_start: ls,
+        land_end: le,
+        ticket_start_fmt: fmtDisp(ts),
+        ticket_end_fmt: fmtDisp(te),
+        land_start_fmt: fmtDisp(ls),
+        land_end_fmt: fmtDisp(le),
+        status: r[rh.indexOf("status")],
+        joined: c.normal,
+        total_joined: c.total,
+        preset_num: r[rh.indexOf("preset_num")] || "",
+        created_at: r[rh.indexOf("created_at")] || "",
+      };
+    })
+    .filter(function (r) {
+      return r.room_id;
+    })
+    .sort(function (a, b) {
+      return (
+        b.room_date.localeCompare(a.room_date) ||
+        Number(a.room_number) - Number(b.room_number)
+      );
+    });
+  return res({ ok: true, rooms: rooms });
+}
 
-  const markHtml=v=>{
-    if(v==='✓'||v==='⭐'||v==='🏅'||v==='🎖') return `<span class="mark-land">${v}</span>`;
-    if(v==='⚠') return `<span style="color:var(--red);font-weight:700">⚠</span>`;
-    if(v==='●') return `<span class="mark-tick">●</span>`;
-    return v||'';
+function getRoomDetail(b) {
+  if (!b.room_id) return res({ ok: false, error: "필수값 누락" });
+  var rsd = readSheet(SH.ROOMS()),
+    psd = readSheet(SH.PARTS());
+  var rf = findRow(rsd, "room_id", b.room_id);
+  if (!rf) return res({ ok: false, error: "비행기를 찾을 수 없습니다" });
+  var rh = rsd.headers,
+    r = rf.data;
+  var ts = normTime(r[rh.indexOf("ticket_start")]),
+    te = normTime(r[rh.indexOf("ticket_end")]);
+  var ls = normTime(r[rh.indexOf("land_start")]),
+    le = normTime(r[rh.indexOf("land_end")]);
+  var ph = psd.headers,
+    pRid = ph.indexOf("room_id");
+  var parts = [];
+  for (var i = 0; i < psd.rows.length; i++) {
+    var p = psd.rows[i];
+    if (String(p[pRid]) !== String(b.room_id)) continue;
+    parts.push({
+      part_id: p[ph.indexOf("part_id")],
+      member_id: p[ph.indexOf("member_id")],
+      nickname: p[ph.indexOf("nickname")],
+      insta_id: p[ph.indexOf("insta_id")],
+      post_url: p[ph.indexOf("post_url")],
+      ticket_at: fmtDisp(p[ph.indexOf("ticket_at")]),
+      landed_at: fmtDisp(p[ph.indexOf("landed_at")]),
+      status: p[ph.indexOf("status")],
+      ticket_type: p[ph.indexOf("ticket_type")] || "normal",
+    });
+  }
+  var out = {
+    ok: true,
+    room: {
+      room_id: b.room_id,
+      room_date: String(r[rh.indexOf("room_date")]).substring(0, 10),
+      room_number: r[rh.indexOf("room_number")],
+      items: r[rh.indexOf("items")],
+      max_members: r[rh.indexOf("max_members")],
+      memo: r[rh.indexOf("memo")] || "",
+      status: r[rh.indexOf("status")],
+      preset_num: r[rh.indexOf("preset_num")] || "",
+      ticket_start: ts,
+      ticket_end: te,
+      land_start: ls,
+      land_end: le,
+      ticket_start_fmt: fmtDisp(ts),
+      ticket_end_fmt: fmtDisp(te),
+      land_start_fmt: fmtDisp(ls),
+      land_end_fmt: fmtDisp(le),
+    },
+    participants: parts,
   };
+  // member_id가 함께 오면, 이미 읽어둔 psd를 재사용해서 주간현황까지 같이 내려줌
+  // (크루가 방 열 때 get_my_week_count를 별도로 또 호출해 참여기록 전체를 다시 읽는 걸 방지)
+  if (b.member_id) {
+    out.my_week = computeMemberWeekStatus(psd, b.member_id);
+  }
+  return res(out);
+}
 
-  // 헤더 렌더
-  el.innerHTML=`
-    <div style="padding:10px 14px;display:flex;justify-content:flex-end">
-      <button class="btn bo bsm" id="btn-wk-download">⬇ 엑셀 다운로드</button>
-    </div>
-    <div class="week-tbl-wrap">
-      <table class="week-tbl">
-        <thead><tr>${headers.map((h,i)=>`<th style="${i<2?'min-width:80px':'min-width:55px'}${i===sumIdx?' background:var(--green-bg);color:var(--green)':''}">${h}</th>`).join('')}</tr></thead>
-        <tbody id="week-tbl-body"></tbody>
-      </table>
-    </div>`;
+function appendRoom(data) {
+  var sh = SH.ROOMS(),
+    h = sh.getDataRange().getValues()[0];
+  var row = new Array(h.length).fill("");
+  h.forEach(function (k, i) {
+    if (data[k] !== undefined) row[i] = data[k];
+  });
+  sh.appendRow(row);
+}
 
-  // 다운로드 버튼 이벤트
-  document.getElementById('btn-wk-download').onclick=()=>downloadWeekSheet(wk, headers, rows);
+function createRoom(b) {
+  if (
+    !b.room_date ||
+    !b.items ||
+    !b.ticket_start ||
+    !b.ticket_end ||
+    !b.land_start ||
+    !b.land_end
+  )
+    return res({ ok: false, error: "필수값 누락" });
+  var sd = readSheet(SH.ROOMS());
+  var h = sd.headers;
+  var rdI = h.indexOf("room_date"),
+    rnI = h.indexOf("room_number");
+  for (var i = 0; i < sd.rows.length; i++) {
+    if (
+      String(sd.rows[i][rdI]).substring(0, 10) === b.room_date &&
+      String(sd.rows[i][rnI]) === String(b.room_number)
+    )
+      return res({
+        ok: false,
+        error: "같은 날짜에 같은 번호의 비행기가 이미 있습니다",
+      });
+  }
+  var rid = uuid();
+  appendRoom({
+    room_id: rid,
+    room_date: b.room_date,
+    room_number: b.room_number,
+    items: b.items,
+    max_members: b.max_members || 20,
+    ticket_start: b.ticket_start,
+    ticket_end: b.ticket_end,
+    land_start: b.land_start,
+    land_end: b.land_end,
+    status: "open",
+    created_by: b.admin_id || "admin",
+    created_at: nowKST(),
+    memo: b.memo || "",
+    preset_num: "",
+  });
+  return res({ ok: true, room_id: rid });
+}
 
-  // requestAnimationFrame으로 50행씩 렌더링 (브라우저 블록 방지)
-  const tbody=document.getElementById('week-tbl-body');
-  const CHUNK=50; let idx=0;
-  function renderChunk(){
-    const frag=document.createDocumentFragment();
-    const end=Math.min(idx+CHUNK, rows.length);
-    for(;idx<end;idx++){
-      const r=rows[idx];
-      const tr=document.createElement('tr');
-      // 미착륙 경고 있는 행 배경 표시
-      const hasWarn=r.some(v=>v==='⚠');
-      if(hasWarn) tr.style.background='#FFF8F8';
-      tr.innerHTML=r.map((v,i)=>{
-        const isSum=i===sumIdx;
-        return `<td${isSum?' class="mark-sum"':''}>${isSum?(v||0):markHtml(v)}</td>`;
-      }).join('');
-      frag.appendChild(tr);
+function createPreset(b) {
+  var pn = Number(b.preset_num),
+    rd = b.room_date;
+  var r = createPresetInternal(pn, rd, b.admin_id || "admin");
+  return res(r);
+}
+
+// createPreset의 실제 로직 — API 라우트(createPreset)와 자동생성(autoCreateTodayPresets)
+// 양쪽에서 재사용하기 위해 순수 함수 형태로 분리. ContentService 응답이 아닌 plain object 반환.
+function createPresetInternal(pn, rd, createdBy) {
+  if (!pn || !rd) return { ok: false, error: "필수값 누락" };
+  var p = null;
+  for (var i = 0; i < PRESETS.length; i++) {
+    if (PRESETS[i].num === pn) {
+      p = PRESETS[i];
+      break;
     }
-    tbody.appendChild(frag);
-    if(idx<rows.length) requestAnimationFrame(renderChunk);
   }
-  requestAnimationFrame(renderChunk);
+  if (!p) return { ok: false, error: "존재하지 않는 프리셋" };
+
+  // 매번 시트 새로 읽어서 최신 room_number 반영
+  var sd = readSheet(SH.ROOMS());
+  var rdIdx = sd.headers.indexOf("room_date"),
+    pnIdx = sd.headers.indexOf("preset_num"),
+    rnIdx = sd.headers.indexOf("room_number");
+  var today = sd.rows.filter(function (r) {
+    return String(r[rdIdx]).substring(0, 10) === rd;
+  });
+  for (var j = 0; j < today.length; j++) {
+    // Number 비교로 통일 (문자열 '6' vs 숫자 6 불일치 방지)
+    if (Number(today[j][pnIdx]) === pn)
+      return { ok: false, error: "오늘 이미 같은 프리셋(" + pn + "번)이 있습니다" };
+  }
+  var maxRn = 0;
+  today.forEach(function (r) {
+    var rn = Number(r[rnIdx]) || 0;
+    if (rn > maxRn) maxRn = rn;
+  });
+  var rn = maxRn + 1;
+
+  var ts = rd + " " + p.ts;
+  var te = rd + " " + p.te;
+  var lsDate = p.lsNextDay ? addDays(rd, 1) : rd;
+  var leDate = p.leNextDay ? addDays(rd, 1) : rd;
+  var ls = lsDate + " " + p.ls;
+  var le = leDate + " " + p.le;
+
+  var rid = uuid();
+  appendRoom({
+    room_id: rid,
+    room_date: rd,
+    room_number: rn,
+    items: p.items,
+    max_members: p.max,
+    ticket_start: ts,
+    ticket_end: te,
+    land_start: ls,
+    land_end: le,
+    status: "open",
+    created_by: createdBy || "admin",
+    created_at: nowKST(),
+    memo: p.label,
+    preset_num: String(pn),
+  });
+  return { ok: true, room_id: rid, room_number: rn, preset: p.label };
 }
 
-// 엑셀 다운로드 (CSV 방식 — 별도 라이브러리 불필요)
-function downloadWeekSheet(wk, headers, rows){
-  const BOM='\uFEFF'; // 한글 깨짐 방지
-  const esc=v=>'"'+String(v||'').replace(/"/g,'""')+'"';
-  const lines=[headers.map(esc).join(',')];
-  rows.forEach(r=>lines.push(r.map(esc).join(',')));
-  const csv=BOM+lines.join('\n');
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url; a.download=wk+'.csv'; a.click();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
+function updateRoom(b) {
+  if (!b.room_id) return res({ ok: false, error: "필수값 누락" });
+  var sd = readSheet(SH.ROOMS()),
+    f = findRow(sd, "room_id", b.room_id);
+  if (!f) return res({ ok: false, error: "비행기를 찾을 수 없습니다" });
+  var patches = {};
+  [
+    "items",
+    "max_members",
+    "ticket_start",
+    "ticket_end",
+    "land_start",
+    "land_end",
+    "status",
+    "memo",
+  ].forEach(function (k) {
+    if (b[k] !== undefined) patches[k] = b[k];
+  });
+  writeRow(SH.ROOMS(), f.rowNum, sd.headers, patches, f.data);
+  return res({ ok: true, message: "수정 완료" });
 }
 
-// ══════════════════════════════════════════════
-// 멤버 관리
-// ══════════════════════════════════════════════
-document.getElementById('msrch').addEventListener('input',filterM);
-document.getElementById('msf').addEventListener('change',filterM);
-document.getElementById('btnOpenAM').addEventListener('click',openAM);
-document.getElementById('btnMBClose').addEventListener('click',()=>closeModal('mmb'));
-document.getElementById('btnMB').addEventListener('click',subMB);
-
-async function loadM(){
-  const d=await api('get_members'); memberList=d.members||[]; filterM(); loaded.members=true;
-}
-let currentList = [];
-
-function filterM(){
-  const q=document.getElementById('msrch')?.value.toLowerCase()||'';
-  const st=document.getElementById('msf')?.value||'';
-  currentList=memberList.filter(m=>(!st||m.status===st)&&(m.nickname.toLowerCase().includes(q)||m.insta_id.toLowerCase().includes(q)));
-  renderM(currentList);
+function deleteRoom(b) {
+  if (!b.room_id) return res({ ok: false, error: "필수값 누락" });
+  var psd = readSheet(SH.PARTS());
+  var pRid = psd.headers.indexOf("room_id");
+  for (var i = 0; i < psd.rows.length; i++) {
+    if (String(psd.rows[i][pRid]) === String(b.room_id))
+      return res({
+        ok: false,
+        error: "참여자가 있는 비행기는 삭제할 수 없습니다",
+      });
+  }
+  var sd = readSheet(SH.ROOMS()),
+    f = findRow(sd, "room_id", b.room_id);
+  if (!f) return res({ ok: false, error: "비행기를 찾을 수 없습니다" });
+  SH.ROOMS().deleteRow(f.rowNum);
+  return res({ ok: true, message: "삭제 완료" });
 }
 
-function renderM(list){
-  const el=document.getElementById('mtbl');
-  if(!list.length){el.innerHTML='<div class="empty">멤버 없음</div>';return;}
+// ============================================================
+// 탑승 / 링크 / 착륙
+// ============================================================
+function doTicket(b) {
+  var room_id = b.room_id,
+    member_id = b.member_id,
+    tt = b.ticket_type || "normal";
+  if (!room_id || !member_id) return res({ ok: false, error: "필수값 누락" });
 
-  // 테이블 헤더 먼저 그리기
-  el.innerHTML=`<table class="tbl">
-    <thead><tr><th>#</th><th>닉네임</th><th>아이디</th><th>상태</th><th>경고</th><th>우수⭐</th><th>명예🏅</th><th>마지막 로그인</th><th></th></tr></thead>
-    <tbody id="mtbl-body"></tbody>
-  </table>`;
-  const tbody=document.getElementById('mtbl-body');
+  var rsd = readSheet(SH.ROOMS()),
+    psd = readSheet(SH.PARTS()),
+    msd = readSheet(SH.MEMBERS());
+  var rf = findRow(rsd, "room_id", room_id);
+  if (!rf) return res({ ok: false, error: "비행기를 찾을 수 없습니다" });
+  var rh = rsd.headers,
+    r = rf.data;
+  if (r[rh.indexOf("status")] === "closed")
+    return res({ ok: false, error: "마감된 비행기입니다" });
 
-  // requestAnimationFrame으로 30명씩 나눠 그리기 — UI 블록 없음
-  const CHUNK=30;
-  let idx=0;
-  function renderChunk(){
-    const end=Math.min(idx+CHUNK, list.length);
-    const frag=document.createDocumentFragment();
-    for(;idx<end;idx++){
-      const m=list[idx], i=idx;
-      const wc=Number(m.warning_count)||0,ec=Number(m.excellent_count)||0,hc=Number(m.honorary_count)||0,mid=m.member_id;
-      const tr=document.createElement('tr');
-      tr.dataset.mid=mid;
-      tr.innerHTML=`
-        <td style="color:var(--text3)">${i+1}</td>
-        <td style="font-weight:600">${m.nickname}</td>
-        <td style="font-size:12px;color:var(--text2)">@${m.insta_id}</td>
-        <td>${stBadge(m.status)}</td>
-        <td><div style="display:flex;align-items:center;gap:3px">
-          <button class="cbtn" data-a="w-" data-mid="${mid}" ${wc<=0?'disabled':''}>−</button>
-          <span class="cv" style="${wc>0?'color:var(--red)':''}" data-f="wc">${wc}</span>
-          <button class="cbtn" data-a="w+" data-mid="${mid}">+</button>
-        </div></td>
-        <td><div style="display:flex;align-items:center;gap:3px">
-          <button class="cbtn" data-a="e-" data-mid="${mid}" ${ec<=0?'disabled':''}>−</button>
-          <span class="cv" style="${ec>0?'color:var(--primary)':''}" data-f="ec">⭐${ec}</span>
-          <button class="cbtn" data-a="e+" data-mid="${mid}">+</button>
-        </div></td>
-        <td><div style="display:flex;align-items:center;gap:3px">
-          <button class="cbtn" data-a="h-" data-mid="${mid}" ${hc<=0?'disabled':''}>−</button>
-          <span class="cv" style="${hc>0?'color:var(--purple)':''}" data-f="hc">🏅${hc}</span>
-          <button class="cbtn" data-a="h+" data-mid="${mid}">+</button>
-        </div></td>
-        <td style="font-size:11px;color:var(--text2)">${m.last_login_at||'-'}</td>
-        <td><div class="act-cell" data-mid="${mid}">
-          <button class="btn bo bsm" data-a="memo" data-mid="${mid}">메모</button>
-          ${m.status==='locked'?`<button class="btn bsm btn-success" data-a="unlock" data-mid="${mid}">잠금해제</button>`:`<button class="btn bsm btn-danger" data-a="lock" data-mid="${mid}">잠금</button>`}
-        </div></td>`;
-      frag.appendChild(tr);
+  var now = new Date();
+  var ts = parseKST(normTime(r[rh.indexOf("ticket_start")]));
+  var te = parseKST(normTime(r[rh.indexOf("ticket_end")]));
+  if (ts && now < ts) return res({ ok: false, error: "티켓팅 시작 전입니다" });
+  if (te && now >= te)
+    return res({ ok: false, error: "티켓팅이 마감되었습니다" });
+
+  var ph = psd.headers,
+    pRid = ph.indexOf("room_id"),
+    pMid = ph.indexOf("member_id"),
+    pTT = ph.indexOf("ticket_type");
+  var normalCount = 0,
+    alreadySame = false;
+  for (var i = 0; i < psd.rows.length; i++) {
+    var p = psd.rows[i];
+    if (String(p[pRid]) !== String(room_id)) continue;
+    // 일반 탑승만 정원 카운트
+    var ptt = p[pTT] || "normal";
+    if (ptt === "normal") normalCount++;
+    if (String(p[pMid]) === String(member_id) && ptt === tt) alreadySame = true;
+  }
+  if (alreadySame)
+    return res({ ok: false, error: "이미 이 유형으로 참여한 비행기입니다" });
+
+  var mf = findRow(msd, "member_id", member_id);
+  if (!mf) return res({ ok: false, error: "멤버를 찾을 수 없습니다" });
+  var mh = msd.headers,
+    m = mf.data;
+  if (m[mh.indexOf("status")] === "locked")
+    return res({ ok: false, error: "잠금 상태로 탑승할 수 없습니다" });
+  if (tt !== "staff" && m[mh.indexOf("status")] === "warned")
+    return res({
+      ok: false,
+      error: "경고 보유 중입니다. 차감 후 탑승 가능합니다.",
+    });
+
+  // 우수/명예 티켓 차감
+  if (tt === "excellent") {
+    var ec = Number(m[mh.indexOf("excellent_count")]) || 0;
+    if (ec <= 0) return res({ ok: false, error: "우수 티켓이 없습니다" });
+    setCells(SH.MEMBERS(), mf.rowNum, mh, { excellent_count: ec - 1 });
+  }
+  if (tt === "honorary") {
+    var hc = Number(m[mh.indexOf("honorary_count")]) || 0;
+    if (hc <= 0) return res({ ok: false, error: "명예 티켓이 없습니다" });
+    setCells(SH.MEMBERS(), mf.rowNum, mh, { honorary_count: hc - 1 });
+  }
+
+  // 정원 체크 — 일반 탑승(normal)만 카운트, 운영진/명예/우수 제외
+  var maxM = Number(r[rh.indexOf("max_members")]) || 20;
+  if (tt === "normal" && maxM < 9999 && normalCount >= maxM)
+    return res({
+      ok: false,
+      error: "정원이 가득 찼습니다 (" + normalCount + "/" + maxM + ")",
+    });
+
+  var nowStr = nowKST();
+  var roomDate = String(r[rh.indexOf("room_date")]).substring(0, 10);
+  var roomNum = r[rh.indexOf("room_number")];
+  var presetNum = r[rh.indexOf("preset_num")] || "";
+  var instant = tt === "excellent" || tt === "honorary" || tt === "staff";
+  var status = instant ? "landed" : "ticketed";
+  var landedAt = instant ? nowStr : "";
+  var postUrl = b.post_url || ""; // 명예/운영진도 링크 등록 가능
+
+  SH.PARTS().appendRow([
+    uuid(),
+    room_id,
+    roomDate,
+    roomNum,
+    member_id,
+    b.nickname || m[mh.indexOf("nickname")],
+    b.insta_id || m[mh.indexOf("insta_id")],
+    postUrl,
+    nowStr,
+    landedAt,
+    status,
+    tt,
+    nowKST(),
+    postUrl ? nowStr : "",
+    presetNum,
+    "",
+  ]);
+
+  // 주차 시트 업데이트
+  updateWeekSheet(
+    member_id,
+    b.nickname || m[mh.indexOf("nickname")],
+    b.insta_id || m[mh.indexOf("insta_id")],
+    roomDate,
+    roomNum,
+    status,
+    tt,
+  );
+
+  return res({
+    ok: true,
+    message: instant ? "탑승 및 즉시 착륙 완료" : "탑승 완료",
+    instant_land: instant,
+  });
+}
+
+function registerLink(b) {
+  if (!b.room_id || !b.member_id || !b.post_url)
+    return res({ ok: false, error: "필수값 누락" });
+  if (String(b.post_url).indexOf("http") !== 0)
+    return res({ ok: false, error: "올바른 URL을 입력하세요" });
+
+  var rsd = readSheet(SH.ROOMS()),
+    rf = findRow(rsd, "room_id", b.room_id);
+  if (rf) {
+    var te = parseKST(normTime(rf.data[rsd.headers.indexOf("ticket_end")]));
+    if (te && new Date() >= te)
+      return res({
+        ok: false,
+        error: "티켓팅 마감 후 링크를 등록할 수 없습니다",
+      });
+  }
+
+  var psd = readSheet(SH.PARTS()),
+    ph = psd.headers;
+  var pRid = ph.indexOf("room_id"),
+    pMid = ph.indexOf("member_id");
+  var pUrl = ph.indexOf("post_url"),
+    pSt = ph.indexOf("status"),
+    pLat = ph.indexOf("link_at");
+  for (var i = 0; i < psd.rows.length; i++) {
+    var p = psd.rows[i];
+    if (
+      String(p[pRid]) !== String(b.room_id) ||
+      String(p[pMid]) !== String(b.member_id)
+    )
+      continue;
+    if (p[pSt] === "landed")
+      return res({
+        ok: false,
+        error: "착륙 완료 후 링크를 수정할 수 없습니다",
+      });
+    if (p[pUrl] && p[pUrl] !== "")
+      return res({
+        ok: false,
+        error: "이미 링크가 등록되어 있습니다. 수정 버튼을 이용해주세요.",
+      });
+    var patches = { post_url: b.post_url };
+    if (pLat >= 0) patches["link_at"] = nowKST();
+    writeRow(SH.PARTS(), i + 2, ph, patches, p);
+    return res({ ok: true, message: "링크 등록 완료" });
+  }
+  return res({ ok: false, error: "탑승 기록이 없습니다" });
+}
+
+function updateLink(b) {
+  if (!b.room_id || !b.member_id || !b.post_url)
+    return res({ ok: false, error: "필수값 누락" });
+  if (String(b.post_url).indexOf("http") !== 0)
+    return res({ ok: false, error: "올바른 URL을 입력하세요" });
+
+  var rsd = readSheet(SH.ROOMS()),
+    rf = findRow(rsd, "room_id", b.room_id);
+  if (rf) {
+    var te = parseKST(normTime(rf.data[rsd.headers.indexOf("ticket_end")]));
+    if (te && new Date() >= te)
+      return res({
+        ok: false,
+        error: "티켓팅 마감 후 링크를 수정할 수 없습니다",
+      });
+  }
+
+  var psd = readSheet(SH.PARTS()),
+    ph = psd.headers;
+  var pRid = ph.indexOf("room_id"),
+    pMid = ph.indexOf("member_id");
+  var pSt = ph.indexOf("status"),
+    pLat = ph.indexOf("link_at");
+  var pUrl = ph.indexOf("post_url"),
+    pHist = ph.indexOf("link_history");
+  for (var i = 0; i < psd.rows.length; i++) {
+    var p = psd.rows[i];
+    if (
+      String(p[pRid]) !== String(b.room_id) ||
+      String(p[pMid]) !== String(b.member_id)
+    )
+      continue;
+    if (p[pSt] === "landed")
+      return res({ ok: false, error: "착륙 완료 후 수정할 수 없습니다" });
+    var nowStr = nowKST();
+    var oldUrl = p[pUrl] || "";
+    // 수정 이력 누적
+    var histEntry = nowStr + " | " + oldUrl + " → " + b.post_url;
+    var prevHist = pHist >= 0 ? String(p[pHist] || "") : "";
+    var newHist = prevHist ? prevHist + "\n" + histEntry : histEntry;
+    var patches = { post_url: b.post_url };
+    if (pLat >= 0) patches["link_at"] = nowStr;
+    if (pHist >= 0) patches["link_history"] = newHist;
+    writeRow(SH.PARTS(), i + 2, ph, patches, p);
+    return res({ ok: true, message: "링크 수정 완료" });
+  }
+  return res({ ok: false, error: "탑승 기록이 없습니다" });
+}
+
+// 관리자용 링크 수정 — 크루의 updateLink()와 달리 티켓팅 마감/착륙완료 여부와
+// 무관하게 언제든 수정 가능. (참여자가 잘못된 링크를 올렸을 때 관리자가 대신 정정)
+function adminUpdateLink(b) {
+  if (!b.room_id || !b.member_id || !b.post_url)
+    return res({ ok: false, error: "필수값 누락" });
+  if (String(b.post_url).indexOf("http") !== 0)
+    return res({ ok: false, error: "올바른 URL을 입력하세요" });
+
+  var psd = readSheet(SH.PARTS()),
+    ph = psd.headers;
+  var pRid = ph.indexOf("room_id"),
+    pMid = ph.indexOf("member_id");
+  var pUrl = ph.indexOf("post_url"),
+    pLat = ph.indexOf("link_at"),
+    pHist = ph.indexOf("link_history");
+  for (var i = 0; i < psd.rows.length; i++) {
+    var p = psd.rows[i];
+    if (
+      String(p[pRid]) !== String(b.room_id) ||
+      String(p[pMid]) !== String(b.member_id)
+    )
+      continue;
+    var nowStr = nowKST();
+    var oldUrl = p[pUrl] || "";
+    var histEntry =
+      nowStr + " | [관리자수정] " + oldUrl + " → " + b.post_url;
+    var prevHist = pHist >= 0 ? String(p[pHist] || "") : "";
+    var newHist = prevHist ? prevHist + "\n" + histEntry : histEntry;
+    var patches = { post_url: b.post_url };
+    if (pLat >= 0) patches["link_at"] = nowStr;
+    if (pHist >= 0) patches["link_history"] = newHist;
+    writeRow(SH.PARTS(), i + 2, ph, patches, p);
+    return res({ ok: true, message: "링크 수정 완료" });
+  }
+  return res({ ok: false, error: "참여 기록을 찾을 수 없습니다" });
+}
+
+function doLand(b) {
+  if (!b.room_id || !b.member_id)
+    return res({ ok: false, error: "필수값 누락" });
+  var rsd = readSheet(SH.ROOMS()),
+    rf = findRow(rsd, "room_id", b.room_id);
+  if (!rf) return res({ ok: false, error: "비행기를 찾을 수 없습니다" });
+  var rh = rsd.headers,
+    r = rf.data;
+  var now = new Date();
+  var ls = parseKST(normTime(r[rh.indexOf("land_start")]));
+  var le = parseKST(normTime(r[rh.indexOf("land_end")]));
+  if (ls && now < ls)
+    return res({ ok: false, error: "아직 착륙 시간이 아닙니다" });
+  if (le && now >= le)
+    return res({ ok: false, error: "착륙 시간이 마감되었습니다" });
+
+  var psd = readSheet(SH.PARTS()),
+    ph = psd.headers;
+  var pRid = ph.indexOf("room_id"),
+    pMid = ph.indexOf("member_id"),
+    pSt = ph.indexOf("status");
+  for (var i = 0; i < psd.rows.length; i++) {
+    var p = psd.rows[i];
+    if (
+      String(p[pRid]) !== String(b.room_id) ||
+      String(p[pMid]) !== String(b.member_id)
+    )
+      continue;
+    if (p[pSt] === "landed")
+      return res({ ok: false, error: "이미 착륙 완료된 비행기입니다" });
+    var nowStr = nowKST();
+    writeRow(SH.PARTS(), i + 2, ph, { landed_at: nowStr, status: "landed" }, p);
+    var tt = p[ph.indexOf("ticket_type")] || "normal";
+    var roomDate = String(r[rh.indexOf("room_date")]).substring(0, 10);
+    var roomNum = r[rh.indexOf("room_number")];
+    updateWeekSheet(
+      b.member_id,
+      p[ph.indexOf("nickname")],
+      p[ph.indexOf("insta_id")],
+      roomDate,
+      roomNum,
+      "landed",
+      tt,
+    );
+    return res({ ok: true, message: "착륙 완료!" });
+  }
+  return res({ ok: false, error: "탑승 기록이 없습니다" });
+}
+
+// 멤버의 "이번주 며칠 착륙했는지 / 오늘 참여했는지" 계산 — 이미 읽어둔 psd를 재사용할 수 있도록
+// 순수 함수로 분리. getMyWeekCount(단독 API)와 getRoomDetail(참여자 목록과 함께 반환) 양쪽에서 공용.
+function computeMemberWeekStatus(psd, memberId) {
+  var ph = psd.headers;
+  var pMid = ph.indexOf("member_id"),
+    pTT = ph.indexOf("ticket_type");
+  var pSt = ph.indexOf("status"),
+    pTA = ph.indexOf("ticket_at"),
+    pPN = ph.indexOf("preset_num");
+  var pRD = ph.indexOf("room_date");
+
+  var now = new Date();
+  var wr = weekRange(now);
+  var ws = Utilities.formatDate(wr.start, "Asia/Seoul", "yyyy-MM-dd HH:mm");
+  var we = Utilities.formatDate(wr.end, "Asia/Seoul", "yyyy-MM-dd HH:mm");
+  var todayStr = Utilities.formatDate(now, "Asia/Seoul", "yyyy-MM-dd");
+
+  // 날짜별로 착륙 완료 여부 수집 (당일 1회 카운트)
+  var landedDates = {};
+  var todayParticipated = false;
+
+  for (var i = 0; i < psd.rows.length; i++) {
+    var p = psd.rows[i];
+    if (String(p[pMid]) !== String(memberId)) continue;
+    var tt = p[pTT] || "normal";
+    if (tt === "excellent" || tt === "honorary" || tt === "staff") continue;
+    if (String(p[pPN]) === "6") continue;
+    var ta = normTime(String(p[pTA]));
+    if (!ta || ta < ws || ta > we) continue;
+    // 당일 참여 여부
+    var rd = String(p[pRD]).substring(0, 10);
+    if (rd === todayStr) todayParticipated = true;
+    // 착륙 완료된 날짜만 카운트 (날짜별 중복 제거)
+    if (p[pSt] === "landed") landedDates[rd] = true;
+  }
+  return {
+    week_land_count: Object.keys(landedDates).length,
+    today_participated: todayParticipated,
+  };
+}
+
+function getMyWeekCount(b) {
+  if (!b.member_id) return res({ ok: false, error: "필수값 누락" });
+  var psd = readSheet(SH.PARTS());
+  var w = computeMemberWeekStatus(psd, b.member_id);
+  return res({
+    ok: true,
+    week_land_count: w.week_land_count,
+    today_participated: w.today_participated,
+  });
+}
+
+// ============================================================
+// 관리자 참여 처리
+// ============================================================
+function adminLand(b) {
+  if (!b.room_id || !b.member_id)
+    return res({ ok: false, error: "필수값 누락" });
+  var psd = readSheet(SH.PARTS()),
+    ph = psd.headers;
+  var pRid = ph.indexOf("room_id"),
+    pMid = ph.indexOf("member_id"),
+    pSt = ph.indexOf("status");
+  for (var i = 0; i < psd.rows.length; i++) {
+    var p = psd.rows[i];
+    if (
+      String(p[pRid]) !== String(b.room_id) ||
+      String(p[pMid]) !== String(b.member_id)
+    )
+      continue;
+    if (p[pSt] === "landed")
+      return res({ ok: false, error: "이미 착륙 완료된 참여자입니다" });
+    var nowStr = nowKST();
+    writeRow(SH.PARTS(), i + 2, ph, { landed_at: nowStr, status: "landed" }, p);
+    var rsd = readSheet(SH.ROOMS()),
+      rf = findRow(rsd, "room_id", b.room_id);
+    if (rf) {
+      var rh = rsd.headers;
+      updateWeekSheet(
+        b.member_id,
+        p[ph.indexOf("nickname")],
+        p[ph.indexOf("insta_id")],
+        String(rf.data[rh.indexOf("room_date")]).substring(0, 10),
+        rf.data[rh.indexOf("room_number")],
+        "landed",
+        p[ph.indexOf("ticket_type")] || "normal",
+      );
     }
-    tbody.appendChild(frag);
-    if(idx<list.length) requestAnimationFrame(renderChunk);
+    return res({
+      ok: true,
+      message: p[ph.indexOf("nickname")] + " 착륙 처리 완료",
+    });
   }
-  requestAnimationFrame(renderChunk);
+  return res({ ok: false, error: "참여 기록을 찾을 수 없습니다" });
 }
 
-// 행 단위 업데이트 — innerHTML reflow 없이 셀만 직접 수정
-function updateRow(mid){
-  const m=memberList.find(x=>x.member_id===mid); if(!m)return;
-  const tr=document.querySelector(`#mtbl-body tr[data-mid="${mid}"]`); if(!tr)return;
-  const wc=Number(m.warning_count)||0,ec=Number(m.excellent_count)||0,hc=Number(m.honorary_count)||0;
+function adminDeletePart(b) {
+  if (!b.room_id || !b.member_id)
+    return res({ ok: false, error: "필수값 누락" });
+  var psd = readSheet(SH.PARTS()),
+    ph = psd.headers;
+  var pRid = ph.indexOf("room_id"),
+    pMid = ph.indexOf("member_id");
+  for (var i = 0; i < psd.rows.length; i++) {
+    var p = psd.rows[i];
+    if (
+      String(p[pRid]) !== String(b.room_id) ||
+      String(p[pMid]) !== String(b.member_id)
+    )
+      continue;
+    SH.PARTS().deleteRow(i + 2);
+    return res({
+      ok: true,
+      message: p[ph.indexOf("nickname")] + " 참여 기록 삭제 완료",
+    });
+  }
+  return res({ ok: false, error: "참여 기록을 찾을 수 없습니다" });
+}
 
-  // 상태 배지만 교체
-  const td4=tr.children[3];
-  if(td4) td4.innerHTML=stBadge(m.status);
+// ============================================================
+// 일간 현황
+// ============================================================
+function getDailyStatus() {
+  var now = new Date();
+  var kstH = Number(Utilities.formatDate(now, "Asia/Seoul", "HH"));
+  var baseDate =
+    kstH < 11
+      ? Utilities.formatDate(
+          new Date(now.getTime() - 86400000),
+          "Asia/Seoul",
+          "yyyy-MM-dd",
+        )
+      : Utilities.formatDate(now, "Asia/Seoul", "yyyy-MM-dd");
 
-  // 수치 텍스트만 변경 (innerHTML X)
-  const wcEl=tr.querySelector('[data-f="wc"]'); if(wcEl){wcEl.textContent=wc;wcEl.style.color=wc>0?'var(--red)':'';}
-  const ecEl=tr.querySelector('[data-f="ec"]'); if(ecEl){ecEl.textContent='⭐'+ec;ecEl.style.color=ec>0?'var(--primary)':'';}
-  const hcEl=tr.querySelector('[data-f="hc"]'); if(hcEl){hcEl.textContent='🏅'+hc;hcEl.style.color=hc>0?'var(--purple)':'';}
+  var rsd = readSheet(SH.ROOMS()),
+    psd = readSheet(SH.PARTS()),
+    msd = readSheet(SH.MEMBERS());
+  var wsd = readSheet(SH.WARNINGS());
+  var rh = rsd.headers,
+    ph = psd.headers,
+    mh = msd.headers,
+    wh = wsd.headers;
+  var wr = weekRange(now);
+  var wrS = Utilities.formatDate(wr.start, "Asia/Seoul", "yyyy-MM-dd HH:mm");
+  var wrE = Utilities.formatDate(wr.end, "Asia/Seoul", "yyyy-MM-dd HH:mm");
 
-  // - 버튼 disabled만 토글
-  const wb=tr.querySelector('[data-a="w-"]'); if(wb)wb.disabled=wc<=0;
-  const eb=tr.querySelector('[data-a="e-"]'); if(eb)eb.disabled=ec<=0;
-  const hb=tr.querySelector('[data-a="h-"]'); if(hb)hb.disabled=hc<=0;
+  var pRid = ph.indexOf("room_id"),
+    pMid = ph.indexOf("member_id");
+  var pSt = ph.indexOf("status"),
+    pTT = ph.indexOf("ticket_type"),
+    pTA = ph.indexOf("ticket_at");
 
-  // 잠금/비활성 버튼 — 잠금만 남김
-  const lockBtn=tr.querySelector('[data-a="lock"],[data-a="unlock"]');
-  if(lockBtn){
-    if(m.status==='locked'){lockBtn.dataset.a='unlock';lockBtn.textContent='잠금해제';lockBtn.className='btn bsm btn-success';}
-    else{lockBtn.dataset.a='lock';lockBtn.textContent='잠금';lockBtn.className='btn bsm btn-danger';}
+  // 경고 시트에서 방(room_id) 단위로 이미 active 경고를 받은 멤버 맵 구성
+  // (room_id 컬럼이 없는 구버전 시트는 자동으로 무시 — 항상 false로 처리)
+  var wRoomIdx = wh.indexOf("room_id");
+  var wMidIdxW = wh.indexOf("member_id");
+  var wStIdxW = wh.indexOf("status");
+  var activeWarnByRoom = {};
+  var activeWarnByMemberDS = {}; // member_id -> true (active 경고 보유 여부, weekStats용)
+  wsd.rows.forEach(function (w) {
+    if (w[wStIdxW] !== "active") return;
+    if (wRoomIdx >= 0 && w[wRoomIdx]) {
+      activeWarnByRoom[String(w[wMidIdxW]) + "|" + String(w[wRoomIdx])] = true;
+    }
+    activeWarnByMemberDS[String(w[wMidIdxW])] = true;
+  });
+
+  // 참여기록을 room_id별 / member_id별로 미리 한 번만 묶어둠
+  // (방 개수×전체참여기록, 멤버 수×전체참여기록 이중순회를 방지 — 데이터가 쌓일수록 효과 커짐)
+  var partsByRoomDS = {};
+  var partsByMemberDS = {};
+  for (var pi0 = 0; pi0 < psd.rows.length; pi0++) {
+    var prow = psd.rows[pi0];
+    var ridKey = String(prow[pRid]);
+    if (!partsByRoomDS[ridKey]) partsByRoomDS[ridKey] = [];
+    partsByRoomDS[ridKey].push(prow);
+    var midKey = String(prow[pMid]);
+    if (!partsByMemberDS[midKey]) partsByMemberDS[midKey] = [];
+    partsByMemberDS[midKey].push(prow);
+  }
+
+  // 당일 룸 목록
+  var todayRooms = rsd.rows.filter(function (r) {
+    return String(r[rh.indexOf("room_date")]).substring(0, 10) === baseDate;
+  });
+
+  var roomStats = todayRooms.map(function (r) {
+    var rid = String(r[rh.indexOf("room_id")]);
+    var ts = normTime(r[rh.indexOf("ticket_start")]),
+      te = normTime(r[rh.indexOf("ticket_end")]);
+    var ls = normTime(r[rh.indexOf("land_start")]),
+      le = normTime(r[rh.indexOf("land_end")]);
+    var leT = parseKST(le),
+      isLandClosed = leT && now >= leT;
+    var isSettled = r[rh.indexOf("status")] === "closed";
+    var parts = partsByRoomDS[rid] || [];
+    var landed = [],
+      ticketed = [];
+    for (var i = 0; i < parts.length; i++) {
+      if (parts[i][pSt] === "landed") landed.push(parts[i]);
+      else ticketed.push(parts[i]);
+    }
+    return {
+      room_id: rid,
+      room_date: String(r[rh.indexOf("room_date")]).substring(0, 10),
+      room_number: r[rh.indexOf("room_number")],
+      items: r[rh.indexOf("items")],
+      memo: r[rh.indexOf("memo")] || "",
+      preset_num: r[rh.indexOf("preset_num")] || "",
+      ticket_start_fmt: fmtDisp(ts),
+      ticket_end_fmt: fmtDisp(te),
+      land_start_fmt: fmtDisp(ls),
+      land_end_fmt: fmtDisp(le),
+      status: r[rh.indexOf("status")],
+      is_land_closed: !!isLandClosed,
+      is_settled: !!isSettled,
+      total: parts.length,
+      landed_count: landed.length,
+      ticketed_count: ticketed.length,
+      participants: parts.map(function (p) {
+        return {
+          member_id: p[pMid],
+          nickname: p[ph.indexOf("nickname")],
+          insta_id: p[ph.indexOf("insta_id")],
+          post_url: p[ph.indexOf("post_url")],
+          status: p[pSt],
+          ticket_type: p[pTT] || "normal",
+          ticket_at: fmtDisp(p[pTA]),
+          landed_at: fmtDisp(p[ph.indexOf("landed_at")]),
+          already_warned: !!activeWarnByRoom[String(p[pMid]) + "|" + rid],
+        };
+      }),
+      no_land_list: isLandClosed
+        ? ticketed.map(function (p) {
+            return {
+              member_id: p[pMid],
+              nickname: p[ph.indexOf("nickname")],
+              insta_id: p[ph.indexOf("insta_id")],
+              room_id: rid,
+              room_number: r[rh.indexOf("room_number")],
+              room_date: String(r[rh.indexOf("room_date")]).substring(0, 10),
+              already_warned: !!activeWarnByRoom[String(p[pMid]) + "|" + rid],
+            };
+          })
+        : [],
+    };
+  });
+
+  // 경고 대상 — 방별로 리스트 (같은 사람이 여러 방에 미착륙이면 방마다 표시)
+  var warnTargets = [];
+  roomStats.forEach(function (rs) {
+    if (!rs.is_land_closed) return;
+    rs.no_land_list.forEach(function (p) {
+      warnTargets.push(p);
+    });
+  });
+
+  // 주간 현황 (active 멤버별)
+  var weekStats = msd.rows
+    .filter(function (m) {
+      return (
+        m[mh.indexOf("status")] !== "inactive" && m[mh.indexOf("member_id")]
+      );
+    })
+    .map(function (m) {
+      var mid = String(m[mh.indexOf("member_id")]);
+      var pc = 0;
+      var landedDatesW = {};
+      var pPN2 = ph.indexOf("preset_num");
+      var pRD2 = ph.indexOf("room_date");
+      var memberParts = partsByMemberDS[mid] || [];
+      for (var i = 0; i < memberParts.length; i++) {
+        var p = memberParts[i];
+        var tt = p[pTT] || "normal";
+        if (tt === "excellent" || tt === "honorary" || tt === "staff") continue;
+        // 무한공유(preset_num=6) 제외
+        if (pPN2 >= 0 && String(p[pPN2]) === "6") continue;
+        var ta = normTime(String(p[pTA]));
+        if (!ta || ta < wrS || ta > wrE) continue;
+        pc++;
+        // 착륙은 날짜별 1회만 카운트 (같은 날 여러 룸 착륙해도 1일)
+        if (p[pSt] === "landed") {
+          var rd3 = String(p[pRD2]).substring(0, 10);
+          landedDatesW[rd3] = true;
+        }
+      }
+      var lc = Object.keys(landedDatesW).length;
+      var isWarn = !!activeWarnByMemberDS[mid];
+      return {
+        member_id: mid,
+        nickname: m[mh.indexOf("nickname")],
+        insta_id: m[mh.indexOf("insta_id")],
+        status: m[mh.indexOf("status")],
+        grade: m[mh.indexOf("grade")],
+        warning_count: m[mh.indexOf("warning_count")],
+        week_participate: pc,
+        week_land: lc,
+        is_pass: lc >= 2,
+        is_warned: isWarn,
+        excellent_count: Number(m[mh.indexOf("excellent_count")]) || 0,
+        honorary_count: Number(m[mh.indexOf("honorary_count")]) || 0,
+      };
+    })
+    .sort(function (a, b) {
+      return b.week_land - a.week_land;
+    });
+
+  return res({
+    ok: true,
+    date: baseDate,
+    week_range: fmtDisp(toKST(wr.start)) + " ~ " + fmtDisp(toKST(wr.end)),
+    week_key: weekKey(now),
+    room_stats: roomStats,
+    warn_targets: warnTargets,
+    week_stats: weekStats,
+  });
+}
+
+// 로그 기록 헬퍼 — log_date는 "지금 실행되는 시각"이 아니라 roomDate(해당 방의 날짜) 기준으로 남긴다.
+// (자정을 넘겨 익일 10:05에 정산이 실행되어도, 조회는 방이 열렸던 날짜로 하면 되도록)
+function addLog(
+  logType,
+  roomId,
+  roomDate,
+  roomNum,
+  memberId,
+  nickname,
+  instaId,
+  detail,
+) {
+  try {
+    var logDate =
+      roomDate || Utilities.formatDate(new Date(), "Asia/Seoul", "yyyy-MM-dd");
+    SH.LOGS().appendRow([
+      uuid(),
+      logType,
+      logDate,
+      roomId || "",
+      roomDate || "",
+      roomNum || "",
+      memberId || "",
+      nickname || "",
+      instaId || "",
+      detail || "",
+      nowKST(),
+    ]);
+  } catch (e) {
+    Logger.log("addLog error: " + e.message);
   }
 }
 
-// 이벤트 위임
-document.getElementById('mtbl').addEventListener('click',e=>{
-  const btn=e.target.closest('[data-a]');if(!btn||btn.disabled)return;
-  const{a:action,mid}=btn.dataset;if(!mid)return;
-  const m=memberList.find(x=>x.member_id===mid);
-  if(action==='memo'){openEM(m);return;}
-  if(['w+','w-','e+','e-','h+','h-'].includes(action)){doCount(action,mid,m,btn);return;}
-  if(action==='lock')   doLock(mid,'lock',btn);
-  if(action==='unlock') doLock(mid,'unlock',btn);
-});
+// 경고 시트에 헤더 기준으로 안전하게 append (room_id 컬럼이 없는 구버전 시트에도 안전)
+function appendWarning(data) {
+  var sh = SH.WARNINGS(),
+    h = sh.getDataRange().getValues()[0];
+  var row = new Array(h.length).fill("");
+  h.forEach(function (k, i) {
+    if (data[k] !== undefined) row[i] = data[k];
+  });
+  sh.appendRow(row);
+}
 
-// +/- : 낙관적 업데이트 — 즉시 반영, API 백그라운드, 실패 시 롤백만
-function doCount(action,mid,m,btn){
-  if(!m)return;
-  const delta=action.endsWith('+')?1:-1,type=action[0];
-  const prev={wc:m.warning_count,ec:m.excellent_count,hc:m.honorary_count,st:m.status};
+// ============================================================
+// 일간 정산 — 착륙 마감 룸 미착륙자 경고 + 로그 기록
+// ============================================================
+function runDailySettle(b) {
+  var now = new Date();
+  var rsd = readSheet(SH.ROOMS()),
+    psd = readSheet(SH.PARTS());
+  var rh = rsd.headers,
+    ph = psd.headers;
+  var pRid = ph.indexOf("room_id"),
+    pSt = ph.indexOf("status"),
+    pMid = ph.indexOf("member_id");
+  var warned = [],
+    skipped = [];
 
-  // 즉시 캐시 업데이트
-  if(type==='w'){
-    const cur=Number(m.warning_count)||0;
-    if(delta<0&&cur<=0)return;
-    m.warning_count=Math.max(0,cur+delta);
-    if(delta>0&&m.status==='active')m.status='warned';
-    if(delta<0&&m.warning_count===0)m.status='active';
-  } else if(type==='e'){
-    const cur=Number(m.excellent_count)||0;
-    if(delta<0&&cur<=0)return;
-    m.excellent_count=Math.max(0,cur+delta);
+  // 정산 스캔 범위: 최근 2일(오늘/어제) 방만 대상으로 함.
+  // - 트리거가 밀려도 당일 안에 문제(정산 안 됨)가 눈에 띄는 구조라 2일이면 충분.
+  // - 몇 달 전 방이 실수로 open 상태로 남아있어도 재소환되어 옛날 사람들에게
+  //   뜬금없이 경고가 나가는 사고를 방지. (버그 이력: 재소환 방지)
+  // - plane_Rooms가 계속 쌓여도 정산 속도가 매일 고정되도록(성능) 함께 개선.
+  var todayStrDS = Utilities.formatDate(now, "Asia/Seoul", "yyyy-MM-dd");
+  var yesterdayStrDS = Utilities.formatDate(
+    new Date(now.getTime() - 86400000),
+    "Asia/Seoul",
+    "yyyy-MM-dd",
+  );
+  var scanDates = { };
+  scanDates[todayStrDS] = true;
+  scanDates[yesterdayStrDS] = true;
+
+  // 경고 시트 한 번만 읽기
+  var wsd = readSheet(SH.WARNINGS()),
+    wh = wsd.headers;
+  var wRoomIdx = wh.indexOf("room_id");
+  var wMidIdxDS = wh.indexOf("member_id");
+  var wStIdxDS = wh.indexOf("status");
+
+  // "이미 이 방으로 이 사람에게 active 경고가 있는지" O(1) 조회용 Set
+  // (기존엔 미착륙자 1명마다 전체 경고시트를 매번 훑었음 — 경고가 쌓일수록 느려지는 구조였음)
+  var activeWarnSetDS = {};
+  if (wRoomIdx >= 0) {
+    wsd.rows.forEach(function (w) {
+      if (w[wStIdxDS] === "active") {
+        activeWarnSetDS[String(w[wMidIdxDS]) + "|" + String(w[wRoomIdx])] = true;
+      }
+    });
+  }
+
+  // 참여기록을 room_id별로 미리 한 번만 묶어둠 (방 개수 × 전체참여기록 이중순회 방지)
+  var partsByRoomDaily = {};
+  for (var pi2 = 0; pi2 < psd.rows.length; pi2++) {
+    var prow2 = psd.rows[pi2];
+    var ridKey2 = String(prow2[pRid]);
+    if (!partsByRoomDaily[ridKey2]) partsByRoomDaily[ridKey2] = [];
+    partsByRoomDaily[ridKey2].push(prow2);
+  }
+
+  // 멤버 시트 한 번만 읽기 — mid → {rowNum, data, headers, sheet} 맵 구성
+  var msh = SH.MEMBERS();
+  var mdata = msh.getDataRange().getValues();
+  var mh = mdata[0];
+  var mMidIdx = mh.indexOf("member_id"),
+    mWcIdx = mh.indexOf("warning_count"),
+    mStIdx = mh.indexOf("status");
+  var memberMap = {};
+  for (var mi = 1; mi < mdata.length; mi++) {
+    var mid0 = String(mdata[mi][mMidIdx]);
+    if (mid0) memberMap[mid0] = { rowNum: mi + 1, data: mdata[mi] };
+  }
+
+  for (var ri = 0; ri < rsd.rows.length; ri++) {
+    var r = rsd.rows[ri];
+    var roomDateDS = String(r[rh.indexOf("room_date")]).substring(0, 10);
+    if (!scanDates[roomDateDS]) continue; // 스캔 범위(최근 2일) 밖이면 건너뜀
+    var le = parseKST(normTime(r[rh.indexOf("land_end")]));
+    if (!le || now < le) continue;
+    if (r[rh.indexOf("status")] === "closed") continue;
+    var roomId = String(r[rh.indexOf("room_id")]);
+    var roomDate = String(r[rh.indexOf("room_date")]).substring(0, 10);
+    var roomNum = r[rh.indexOf("room_number")];
+    var presetNum = String(r[rh.indexOf("preset_num")] || "");
+
+    if (presetNum === "6") {
+      setCells(SH.ROOMS(), ri + 2, rh, { status: "closed" });
+      addLog(
+        "daily_settle_skip",
+        roomId,
+        roomDate,
+        roomNum,
+        "",
+        "",
+        "",
+        "무한공유 룸 — 경고 없이 closed",
+      );
+      continue;
+    }
+
+    var roomWarned = [],
+      roomLanded = [],
+      roomTotal = 0;
+    var roomParticipants = partsByRoomDaily[roomId] || [];
+    for (var pi = 0; pi < roomParticipants.length; pi++) {
+      var p = roomParticipants[pi];
+      roomTotal++;
+      if (p[pSt] === "landed") {
+        roomLanded.push(p[ph.indexOf("nickname")]);
+        continue;
+      }
+      var mid = String(p[pMid]);
+      var nick = p[ph.indexOf("nickname")],
+        insta = p[ph.indexOf("insta_id")];
+
+      // 중복 경고 체크 — room_id 컬럼 기준 (구버전 시트에서 컬럼이 없으면 항상 false)
+      var alreadyWarn = wRoomIdx >= 0 && !!activeWarnSetDS[mid + "|" + roomId];
+      if (alreadyWarn) {
+        skipped.push(nick);
+        continue;
+      }
+
+      // 경고 부여
+      var exp = nextDayAt10(now);
+      appendWarning({
+        warn_id: uuid(),
+        member_id: mid,
+        nickname: nick,
+        insta_id: insta,
+        reason: "착륙 미완료 — " + roomDate + " #" + roomNum,
+        warned_at: nowKST(),
+        expires_at: exp,
+        status: "active",
+        room_id: roomId,
+      });
+      // Set에도 반영 (같은 방/사람 재처리 대비)
+      if (wRoomIdx >= 0) activeWarnSetDS[mid + "|" + roomId] = true;
+
+      // 멤버 상태 업데이트 — 맵에서 직접 접근 (300행 순회 없음)
+      var mf = memberMap[mid];
+      if (mf) {
+        var curWc = Number(mf.data[mWcIdx]) || 0;
+        msh.getRange(mf.rowNum, mStIdx + 1).setValue("warned");
+        msh.getRange(mf.rowNum, mWcIdx + 1).setValue(curWc + 1);
+        // 메모리도 업데이트 (같은 멤버 중복 처리 대비)
+        mf.data[mStIdx] = "warned";
+        mf.data[mWcIdx] = curWc + 1;
+      }
+
+      // 주간 시트 ⚠ 마크
+      updateWeekSheet(mid, nick, insta, roomDate, roomNum, "warned", "normal");
+      warned.push(nick);
+      roomWarned.push(nick);
+      addLog(
+        "daily_warn",
+        roomId,
+        roomDate,
+        roomNum,
+        mid,
+        nick,
+        insta,
+        "미착륙 경고 부여",
+      );
+    }
+
+    addLog(
+      "daily_settle",
+      roomId,
+      roomDate,
+      roomNum,
+      "",
+      "",
+      "",
+      "총 " +
+        roomTotal +
+        "명 | 착륙 " +
+        roomLanded.length +
+        "명 | 경고 " +
+        roomWarned.length +
+        "명" +
+        (roomWarned.length ? " | 대상: " + roomWarned.join(",") : ""),
+    );
+
+    setCells(SH.ROOMS(), ri + 2, rh, { status: "closed" });
+  }
+  return res({
+    ok: true,
+    warned: warned.length,
+    warned_list: warned,
+    skipped: skipped.length,
+  });
+}
+
+// ============================================================
+// 주간 정산
+// ============================================================
+function runWeeklySettle(b) {
+  if (!b.admin_id) return res({ ok: false, error: "관리자 권한 필요" });
+  var now = new Date(),
+    wr = weekRange(now),
+    wk = weekKey(now);
+  var wrS = Utilities.formatDate(wr.start, "Asia/Seoul", "yyyy-MM-dd HH:mm");
+  var wrE = Utilities.formatDate(wr.end, "Asia/Seoul", "yyyy-MM-dd HH:mm");
+
+  var msd = readSheet(SH.MEMBERS()),
+    psd = readSheet(SH.PARTS());
+  var mh = msd.headers,
+    ph = psd.headers;
+  var mMid = mh.indexOf("member_id"),
+    mSt = mh.indexOf("status");
+  var pMid = ph.indexOf("member_id"),
+    pTT = ph.indexOf("ticket_type");
+  var pSt = ph.indexOf("status"),
+    pTA = ph.indexOf("ticket_at"),
+    pPN = ph.indexOf("preset_num");
+
+  // 이번 주 이미 경고를 받았는지 체크하기 위한 사전 읽기 (멱등성 가드)
+  var wsdForDedup = readSheet(SH.WARNINGS());
+  var wdhForDedup = wsdForDedup.headers;
+  var wDedupMid = wdhForDedup.indexOf("member_id");
+  var wDedupSt = wdhForDedup.indexOf("status");
+  var wDedupReason = wdhForDedup.indexOf("reason");
+  var weeklyReasonTag = "주간 정산 경고 — " + wk;
+
+  // 참여기록 / active 경고를 member_id별로 미리 한 번만 묶어둠
+  // (멤버 수 × 전체기록 이중순회 방지 — 멤버·기록이 쌓일수록 효과 커짐)
+  var partsByMemberWS = {};
+  for (var pi1 = 0; pi1 < psd.rows.length; pi1++) {
+    var prow1 = psd.rows[pi1];
+    var midKey1 = String(prow1[pMid]);
+    if (!partsByMemberWS[midKey1]) partsByMemberWS[midKey1] = [];
+    partsByMemberWS[midKey1].push(prow1);
+  }
+  var activeWarnReasonsByMember = {};
+  for (var wi1 = 0; wi1 < wsdForDedup.rows.length; wi1++) {
+    var wrow1 = wsdForDedup.rows[wi1];
+    if (wrow1[wDedupSt] !== "active") continue;
+    var wmid1 = String(wrow1[wDedupMid]);
+    if (!activeWarnReasonsByMember[wmid1]) activeWarnReasonsByMember[wmid1] = [];
+    activeWarnReasonsByMember[wmid1].push(String(wrow1[wDedupReason]));
+  }
+
+  var warned = [],
+    skippedAlreadyWeekly = [],
+    resetE = 0,
+    resetH = 0;
+
+  msd.rows.forEach(function (m, idx) {
+    if (m[mSt] === "inactive" || !m[mMid]) return;
+    var mid = String(m[mMid]);
+    var pc = 0;
+    var landedDates = {};
+    var memberParts = partsByMemberWS[mid] || [];
+    for (var i = 0; i < memberParts.length; i++) {
+      var p = memberParts[i];
+      var tt = p[pTT] || "normal";
+      if (tt === "excellent" || tt === "honorary" || tt === "staff") continue;
+      if (String(p[pPN]) === "6") continue;
+      var ta = normTime(String(p[pTA]));
+      if (!ta || ta < wrS || ta > wrE) continue;
+      pc++;
+      // 날짜별 1회 카운트 (같은 날 여러 룸 착륙해도 1일)
+      if (p[pSt] === "landed") {
+        var rd2 = String(p[ph.indexOf("room_date")]).substring(0, 10);
+        landedDates[rd2] = true;
+      }
+    }
+    var lc = Object.keys(landedDates).length;
+    if (lc < 2) {
+      var myActiveReasons = activeWarnReasonsByMember[mid] || [];
+      var alreadyThisWeek = myActiveReasons.some(function (reasonStr) {
+        return reasonStr.indexOf(weeklyReasonTag) !== -1;
+      });
+      if (alreadyThisWeek) {
+        skippedAlreadyWeekly.push(m[mh.indexOf("nickname")]);
+      } else {
+        warned.push({ idx: idx, data: m, nickname: m[mh.indexOf("nickname")] });
+        var exp = nextDayAt10(wr.end);
+        appendWarning({
+          warn_id: uuid(),
+          member_id: mid,
+          nickname: m[mh.indexOf("nickname")],
+          insta_id: m[mh.indexOf("insta_id")],
+          reason: weeklyReasonTag,
+          warned_at: nowKST(),
+          expires_at: exp,
+          status: "active",
+          room_id: "",
+        });
+        setCells(msd.sheet, idx + 2, mh, {
+          status: "warned",
+          warning_count: (Number(m[mh.indexOf("warning_count")]) || 0) + 1,
+        });
+      }
+    }
+    // 우수/명예 초기화
+    var ec = Number(m[mh.indexOf("excellent_count")]) || 0;
+    var hc = Number(m[mh.indexOf("honorary_count")]) || 0;
+    var patches = {};
+    if (ec > 0) {
+      patches["excellent_count"] = 0;
+      patches["excellent_granted_at"] = "";
+      resetE++;
+    }
+    if (hc > 0) {
+      patches["honorary_count"] = 0;
+      patches["honorary_granted_at"] = "";
+      resetH++;
+    }
+    if (Object.keys(patches).length > 0)
+      setCells(msd.sheet, idx + 2, mh, patches);
+  });
+
+  // active 경고 만료일 → 다음 주 월요일 10:00으로 이월
+  // (기존엔 이 자리에 별도로 setDate/setHours를 다시 계산했는데, nextDayAt10과 완전히 같은
+  //  로직이 중복돼있었고 동일한 타임존 버그도 있었음 — 검증된 헬퍼로 통일)
+  var nextMonStr = nextDayAt10(wr.end);
+  var wsd = readSheet(SH.WARNINGS()),
+    wh2 = wsd.headers;
+  var wSt2 = wh2.indexOf("status"),
+    wExp = wh2.indexOf("expires_at");
+  var carryOver = 0;
+  wsd.rows.forEach(function (w, idx) {
+    if (w[wSt2] !== "active") return;
+    writeRow(SH.WARNINGS(), idx + 2, wh2, { expires_at: nextMonStr }, w);
+    carryOver++;
+  });
+
+  return res({
+    ok: true,
+    week_key: wk,
+    total: msd.rows.filter(function (m) {
+      return m[mSt] !== "inactive" && m[mMid];
+    }).length,
+    passed:
+      msd.rows.filter(function (m) {
+        return m[mSt] !== "inactive" && m[mMid];
+      }).length - warned.length,
+    warned: warned.length,
+    warned_list: warned.map(function (w) {
+      return w.nickname;
+    }),
+    already_warned: skippedAlreadyWeekly.length,
+    already_warned_list: skippedAlreadyWeekly,
+    reset_excellent: resetE,
+    reset_honorary: resetH,
+    carry_over_warns: carryOver,
+  });
+}
+
+// ============================================================
+// 주차별 시트 — YYYY_Wnn
+// ============================================================
+function getOrCreateWeekSheet(wk) {
+  var sh = SS.getSheetByName(wk);
+  if (!sh) {
+    sh = SS.insertSheet(wk);
+    // 헤더: member_id | nickname | insta_id | 합계
+    sh.getRange(1, 1, 1, 4).setValues([
+      ["member_id", "nickname", "insta_id", "주간합계"],
+    ]);
+    sh.setFrozenRows(1);
+    sh.setFrozenColumns(3);
+    sh.getRange(1, 1, 1, 4).setFontWeight("bold").setBackground("#E8F0FE");
+    // 활성 멤버 행 추가
+    var msd = readSheet(SH.MEMBERS()),
+      mh = msd.headers;
+    var mMid = mh.indexOf("member_id"),
+      mNick = mh.indexOf("nickname"),
+      mInsta = mh.indexOf("insta_id"),
+      mSt = mh.indexOf("status");
+    var rows = [];
+    msd.rows.forEach(function (m) {
+      if (m[mSt] === "inactive" || !m[mMid]) return;
+      rows.push([m[mMid], m[mNick], m[mInsta], 0]);
+    });
+    if (rows.length > 0) sh.getRange(2, 1, rows.length, 4).setValues(rows);
+  }
+  return sh;
+}
+
+// 열 헤더: "5/24_룸1" 형식
+function colLabel(roomDate, roomNum) {
+  var d = new Date(roomDate + "T00:00:00+09:00");
+  return d.getMonth() + 1 + "/" + d.getDate() + "_룸" + roomNum;
+}
+
+function updateWeekSheet(
+  member_id,
+  nickname,
+  insta_id,
+  roomDate,
+  roomNum,
+  status,
+  ticket_type,
+) {
+  var wk = weekKey(new Date(roomDate + "T00:00:00+09:00"));
+  var sh = getOrCreateWeekSheet(wk);
+  var col = colLabel(roomDate, roomNum);
+  var mark;
+  if (status === "landed") {
+    mark =
+      ticket_type === "excellent"
+        ? "⭐"
+        : ticket_type === "honorary"
+          ? "🏅"
+          : ticket_type === "staff"
+            ? "🎖"
+            : "✓";
+  } else if (status === "warned") {
+    mark = "⚠"; // 미착륙 경고
   } else {
-    const cur=Number(m.honorary_count)||0;
-    if(delta<0&&cur<=0)return;
-    m.honorary_count=Math.max(0,cur+delta);
+    mark = "●"; // 탑승중
   }
 
-  // 즉시 화면 반영 + 로딩 표시
-  updateRow(mid);
-  // 같은 행의 +/-버튼 전부 비활성 (API 응답까지)
-  const tr=btn.closest('tr');
-  const rowBtns=tr?tr.querySelectorAll('.cbtn'):[];
-  rowBtns.forEach(b=>b.disabled=true);
-  // 수치 옆에 로딩 스피너 표시
-  const fieldMap={w:'wc',e:'ec',h:'hc'};
-  const valEl=tr?.querySelector(`[data-f="${fieldMap[type]}"]`);
-  const origText=valEl?.textContent;
-  if(valEl) valEl.innerHTML=`${origText} <span class="sp" style="width:10px;height:10px;vertical-align:middle"></span>`;
+  var data = sh.getDataRange().getValues();
+  var headers = data[0];
+  var midIdx = headers.indexOf("member_id");
+  var sumIdx = headers.indexOf("주간합계");
+  var nickIdx = headers.indexOf("nickname");
+  var instaIdx = headers.indexOf("insta_id");
 
-  const call=type==='w'
-    ?(delta>0
-      ?api('manual_warn',{member_id:mid,admin_nickname:adminInfo.nickname,reason:'관리자 수동 경고 +1'})
-      :api('adjust_warn',{member_id:mid,delta:-1}))
-    :type==='e'
-      ?api('adjust_excellent',{member_id:mid,delta})
-      :api('adjust_honorary',{member_id:mid,delta});
-
-  call.then(d=>{
-    if(!d.ok){
-      // 실패 시 롤백
-      m.warning_count=prev.wc;m.excellent_count=prev.ec;
-      m.honorary_count=prev.hc;m.status=prev.st;
-      showBnr('merr',d.error||'실패');
-    }
-    // 성공/실패 모두 화면 갱신 후 버튼 복원
-    updateRow(mid);
-    rowBtns.forEach(b=>{
-      // -버튼은 값이 0이면 disabled 유지
-      const f=b.dataset.a;
-      if(f==='w-') b.disabled=(Number(m.warning_count)||0)<=0;
-      else if(f==='e-') b.disabled=(Number(m.excellent_count)||0)<=0;
-      else if(f==='h-') b.disabled=(Number(m.honorary_count)||0)<=0;
-      else b.disabled=false;
-    });
-  }).catch(()=>{
-    m.warning_count=prev.wc;m.excellent_count=prev.ec;
-    m.honorary_count=prev.hc;m.status=prev.st;
-    updateRow(mid);
-    rowBtns.forEach(b=>b.disabled=false);
-    showBnr('merr','네트워크 오류');
-  });
-}
-
-// 잠금/해제 : 낙관적 업데이트
-async function doLock(mid,lockAction,btn){
-  if(!await iconfirm(lockAction==='lock'?'잠금 처리할까요?':'잠금 해제할까요?',lockAction==='lock'))return;
-  const m=memberList.find(x=>x.member_id===mid);
-  const prev=m?.status;
-  if(m) m.status=lockAction==='lock'?'locked':(Number(m.warning_count)>0?'warned':'active');
-  updateRow(mid); // 즉시 반영
-  btn.disabled=true;
-  api('toggle_lock',{member_id:mid,lock_action:lockAction}).then(d=>{
-    if(!d.ok){
-      if(m)m.status=prev;
-      updateRow(mid); // 실패 시만 롤백
-      showBnr('merr',d.error||'실패');
-    }
-    // 성공 시 updateRow 호출 안 함
-    btn.disabled=false;
-  }).catch(()=>{
-    if(m)m.status=prev;
-    updateRow(mid);
-    showBnr('merr','오류');
-    btn.disabled=false;
-  });
-}
-
-// 비활성/활성 : 낙관적 업데이트
-async function doStatus(mid,newStatus,btn){
-  if(!await iconfirm(newStatus==='inactive'?'비활성 처리할까요?':'활성화할까요?',newStatus==='inactive'))return;
-  const m=memberList.find(x=>x.member_id===mid);
-  const prev=m?.status;
-  if(m) m.status=newStatus;
-  updateRow(mid); // 즉시 반영
-  btn.disabled=true;
-  api('update_member',{member_id:mid,status:newStatus}).then(d=>{
-    if(!d.ok){
-      if(m)m.status=prev;
-      updateRow(mid); // 실패 시만 롤백
-      showBnr('merr',d.error||'실패');
-    }
-    // 성공 시 updateRow 호출 안 함
-    btn.disabled=false;
-  }).catch(()=>{
-    if(m)m.status=prev;
-    updateRow(mid);
-    showBnr('merr','오류');
-    btn.disabled=false;
-  });
-}
-
-// ══════════════════════════════════════════════
-// 활동 로그
-// ══════════════════════════════════════════════
-document.getElementById('btnLogRefresh').addEventListener('click', loadLogs);
-document.getElementById('btnLogSearch').addEventListener('click', loadLogs);
-
-function initLogs() {
-  // 멤버 셀렉트 채우기
-  const sel = document.getElementById('logm');
-  if (sel && sel.options.length <= 1 && memberList.length > 0) {
-    memberList.forEach(m => {
-      const opt = document.createElement('option');
-      opt.value = m.member_id;
-      opt.textContent = m.nickname + ' @' + m.insta_id;
-      sel.appendChild(opt);
-    });
+  // 열 찾기 or 추가
+  var colIdx = headers.indexOf(col);
+  if (colIdx < 0) {
+    var insertAt = sumIdx >= 0 ? sumIdx + 1 : headers.length + 1;
+    sh.insertColumnBefore(insertAt);
+    sh.getRange(1, insertAt).setValue(col);
+    sh.getRange(1, insertAt).setFontWeight("bold").setBackground("#E8F0FE");
+    data = sh.getDataRange().getValues();
+    headers = data[0];
+    colIdx = headers.indexOf(col);
+    sumIdx = headers.indexOf("주간합계");
   }
-}
 
-async function loadLogs() {
-  const el = document.getElementById('ltbl');
-  el.innerHTML = '<div class="empty"><span class="sp spd"></span></div>';
-  const mid = document.getElementById('logm')?.value || '';
-  const act = document.getElementById('loga')?.value || '';
-
-  // get_room_detail 로 참여 기록 조회 대신 plane_Participations에서 멤버별 필터
-  // API: get_member_parts (새로 추가 필요) 대신 get_daily로 오늘치 조회
-  // 현재 gs에 로그 API가 없으므로 plane_Participations 전체를 get_all_parts로 조회
-  const d = await api('get_parts', {member_id: mid, action: act});
-  if (!d.ok) {
-    el.innerHTML = '<div class="empty">불러오기 실패 — gs에 get_parts 액션을 추가해주세요</div>';
+  // 멤버 행 찾기
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][midIdx]) !== String(member_id)) continue;
+    var cur = String(data[i][colIdx]);
+    // 우선순위: ✓/⭐/🏅/🎖 > ⚠ > ● > 빈칸
+    var canWrite = false;
+    if (status === "landed")
+      canWrite = true; // 착륙은 항상 덮어씀
+    else if (status === "warned" && (cur === "" || cur === "●"))
+      canWrite = true; // 경고는 빈칸/탑승중만
+    else if (status === "ticketed" || status === "boarding") {
+      // 탑승중(●)은 빈칸일 때만
+      if (cur === "" || cur === undefined) canWrite = true;
+    } else if (cur === "" || cur === undefined) canWrite = true; // 기타 상태도 빈칸이면 씀
+    if (canWrite) {
+      sh.getRange(i + 1, colIdx + 1).setValue(mark);
+      data[i][colIdx] = mark; // 메모리 업데이트
+    }
+    // 주간합계: canWrite 여부와 무관하게 항상 재집계
+    // ✓(일반착륙) + ⚠(미착륙경고) 카운트 — 우수⭐/명예🏅/운영진🎖 제외
+    if (sumIdx >= 0) {
+      var cnt = 0;
+      for (var c = 0; c < headers.length; c++) {
+        if (c === sumIdx || c === midIdx || c === nickIdx || c === instaIdx)
+          continue;
+        var v = String(data[i][c]);
+        if (v === "✓" || v === "⚠") cnt++;
+      }
+      sh.getRange(i + 1, sumIdx + 1).setValue(cnt);
+    }
     return;
   }
-  const parts = d.parts || [];
-  if (!parts.length) { el.innerHTML = '<div class="empty">기록 없음</div>'; return; }
-  el.innerHTML = '<table class="tbl"><thead><tr><th>탑승일시</th><th>닉네임</th><th>아이디</th><th>룸</th><th>링크등록시각</th><th>착륙시각</th><th>상태</th><th>링크</th><th>수정이력</th></tr></thead><tbody>'
-    + parts.map(p => `<tr>
-      <td style="font-size:11px;white-space:nowrap;color:var(--text2)">${p.ticket_at||''}</td>
-      <td style="font-weight:600">${p.nickname||''}</td>
-      <td style="font-size:12px;color:var(--text2)">@${p.insta_id||''}</td>
-      <td style="font-size:11px">${p.room_date||''} #${p.room_number||''}</td>
-      <td style="font-size:11px;color:var(--text2)">${p.link_at||'-'}</td>
-      <td style="font-size:11px;color:var(--text2)">${p.landed_at||'-'}</td>
-      <td>${p.status==='landed'?'<span class="badge bdk">착륙✓</span>':'<span class="badge bdb">탑승</span>'}</td>
-      <td style="font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-        ${p.post_url?`<a href="${p.post_url}" target="_blank" style="color:var(--primary)">${p.post_url}</a>`:'<span style="color:var(--text3)">-</span>'}
-      </td>
-      <td style="font-size:10px;color:var(--amber);white-space:pre-line;max-width:160px">${p.link_history||''}</td>
-    </tr>`).join('') + '</tbody></table>';
+  // 멤버 행 없으면 추가
+  var newRow = new Array(headers.length).fill("");
+  newRow[midIdx] = member_id;
+  if (nickIdx >= 0) newRow[nickIdx] = nickname;
+  if (instaIdx >= 0) newRow[instaIdx] = insta_id || "";
+  newRow[colIdx] = mark;
+  // 새 행 합계: 일반착륙(✓) 또는 미착륙경고(⚠)면 1, 우수/명예/운영진/탑승중은 0
+  if (sumIdx >= 0)
+    newRow[sumIdx] =
+      (status === "landed" && ticket_type === "normal") || status === "warned" ? 1 : 0;
+  sh.appendRow(newRow);
 }
 
-function openAM(){
-  editMemberId=null;
-  document.getElementById('mmbt').textContent='멤버 등록';
-  document.getElementById('btnMB').textContent='등록 완료';
-  document.getElementById('mmb-fields').style.display='';
-  document.getElementById('amnk').value='';
-  document.getElementById('amin').value='';
-  document.getElementById('ammo').value='';
-  hideBnr('mberr');openModal('mmb');
+// 주차 시트 초기화 (수동 실행 or API 호출 모두 가능)
+function initWeekSheet(b) {
+  var wk = b && b.week_key ? b.week_key : weekKey(new Date());
+  var old = SS.getSheetByName(wk);
+  if (old) SS.deleteSheet(old);
+  getOrCreateWeekSheet(wk);
+  Logger.log(wk + " 주차 시트 초기화 완료");
+  return res({ ok: true, message: wk + " 주차 시트 초기화 완료" });
 }
-function openEM(m){
-  if(!m)return;
-  editMemberId=m.member_id;
-  document.getElementById('mmbt').textContent=m.nickname+' 메모 수정';
-  document.getElementById('btnMB').textContent='수정 완료';
-  document.getElementById('mmb-fields').style.display='none';
-  document.getElementById('ammo').value=m.memo||'';
-  hideBnr('mberr');openModal('mmb');
+
+// 주차 시트 데이터 반환 (최적화)
+function getWeekSheet(b) {
+  var wk = b && b.week_key ? b.week_key : weekKey(new Date());
+  var sh = SS.getSheetByName(wk);
+  if (!sh) return res({ ok: true, week_key: wk, headers: [], rows: [] });
+  var data = sh.getDataRange().getValues();
+  if (data.length < 2)
+    return res({ ok: true, week_key: wk, headers: data[0] || [], rows: [] });
+
+  var headers = data[0];
+  var midIdx = headers.indexOf("member_id");
+
+  // member_id 컬럼 제외한 헤더
+  var dispHeaders = headers.filter(function (_, i) {
+    return i !== midIdx;
+  });
+
+  // 빈 행 제외 + member_id 컬럼 제외한 데이터만 반환
+  var rows = [];
+  for (var i = 1; i < data.length; i++) {
+    var r = data[i];
+    // nickname이 없는 빈 행 스킵
+    var nickIdx = headers.indexOf("nickname");
+    if (!r[nickIdx] || String(r[nickIdx]).trim() === "") continue;
+    rows.push(
+      r.filter(function (_, j) {
+        return j !== midIdx;
+      }),
+    );
+  }
+
+  return res({ ok: true, week_key: wk, headers: dispHeaders, rows: rows });
 }
-async function subMB(){
-  hideBnr('mberr');
-  const memo=document.getElementById('ammo').value;
-  if(!editMemberId){
-    const nick=document.getElementById('amnk').value.trim(),insta=document.getElementById('amin').value.trim();
-    if(!nick||!insta){showBnr('mberr','닉네임과 아이디는 필수');return;}
-    btnLoad('btnMB',true);
-    const d=await api('add_member',{nickname:nick,insta_id:insta,memo});
-    btnLoad('btnMB',false,'등록 완료');
-    if(!d.ok){showBnr('mberr',d.error||'실패');return;}
-    closeModal('mmb');showBnr('mok','등록 완료','ok');loadM();
-  } else {
-    btnLoad('btnMB',true);
-    const d=await api('update_member',{member_id:editMemberId,memo});
-    btnLoad('btnMB',false,'수정 완료');
-    if(!d.ok){showBnr('mberr',d.error||'실패');return;}
-    const m=memberList.find(x=>x.member_id===editMemberId);if(m)m.memo=memo;
-    closeModal('mmb');showBnr('mok','메모 수정 완료','ok');
+
+// ============================================================
+// 경고
+// ============================================================
+function getWarnings() {
+  var wsd = readSheet(SH.WARNINGS()),
+    wh = wsd.headers;
+  return res({
+    ok: true,
+    warnings: wsd.rows
+      .map(function (w) {
+        return {
+          warn_id: w[wh.indexOf("warn_id")],
+          member_id: w[wh.indexOf("member_id")],
+          nickname: w[wh.indexOf("nickname")],
+          insta_id: w[wh.indexOf("insta_id")],
+          reason: w[wh.indexOf("reason")],
+          warned_at: fmtDisp(w[wh.indexOf("warned_at")]),
+          expires_at: fmtDisp(w[wh.indexOf("expires_at")]),
+          status: w[wh.indexOf("status")],
+        };
+      })
+      .sort(function (a, b) {
+        return new Date(b.warned_at) - new Date(a.warned_at);
+      }),
+  });
+}
+
+function resolveWarning(b) {
+  if (!b.warn_id) return res({ ok: false, error: "필수값 누락" });
+  var wsh = SH.WARNINGS();
+  var wdata = wsh.getDataRange().getValues();
+  var wh = wdata[0];
+  var wIdIdx = wh.indexOf("warn_id"),
+    wStIdx = wh.indexOf("status"),
+    wMidIdx = wh.indexOf("member_id");
+  var targetRow = -1,
+    mid = "";
+  for (var i = 1; i < wdata.length; i++) {
+    if (String(wdata[i][wIdIdx]) === String(b.warn_id)) {
+      targetRow = i + 1;
+      mid = String(wdata[i][wMidIdx]);
+      break;
+    }
+  }
+  if (targetRow < 0)
+    return res({ ok: false, error: "경고 내역을 찾을 수 없습니다" });
+
+  // 삭제 대신 resolved로 변경
+  wsh.getRange(targetRow, wStIdx + 1).setValue("resolved");
+
+  // 남은 active 경고 확인 (방금 resolved 처리한 행 제외)
+  var remActive = false;
+  for (var j = 1; j < wdata.length; j++) {
+    if (j + 1 === targetRow) continue; // 방금 resolved 한 행 제외
+    if (String(wdata[j][wMidIdx]) === mid && wdata[j][wStIdx] === "active") {
+      remActive = true;
+      break;
+    }
+  }
+  if (!remActive) {
+    var mf2 = getMemberRow(mid);
+    if (mf2)
+      setCells(mf2.sheet, mf2.rowNum, mf2.headers, {
+        status: "active",
+        locked_at: "",
+        lock_expires: "",
+        warning_count: Math.max(
+          0,
+          (Number(mf2.data[mf2.headers.indexOf("warning_count")]) || 1) - 1,
+        ),
+      });
+  }
+  return res({ ok: true, message: "경고 해제 완료" });
+}
+
+// ============================================================
+// 멤버
+// ============================================================
+function getMembers() {
+  var sh = SH.MEMBERS();
+  var data = sh.getDataRange().getValues();
+  var h = data[0];
+  var midI = h.indexOf("member_id"),
+    nickI = h.indexOf("nickname"),
+    instaI = h.indexOf("insta_id");
+  var stI = h.indexOf("status"),
+    grI = h.indexOf("grade"),
+    wcI = h.indexOf("warning_count");
+  var ecI = h.indexOf("excellent_count"),
+    hcI = h.indexOf("honorary_count");
+  var loginI = h.indexOf("last_login_at"),
+    memoI = h.indexOf("memo");
+  var members = [];
+  for (var i = 1; i < data.length; i++) {
+    var r = data[i];
+    if (!r[midI] || String(r[midI]).trim() === "") continue;
+    var login = r[loginI];
+    members.push({
+      member_id: r[midI],
+      nickname: r[nickI],
+      insta_id: r[instaI],
+      status: r[stI],
+      grade: r[grI],
+      warning_count: r[wcI] || 0,
+      excellent_count: Number(r[ecI]) || 0,
+      honorary_count: Number(r[hcI]) || 0,
+      last_login_at: login instanceof Date ? toKST(login) : login || "",
+      memo: r[memoI] || "",
+    });
+  }
+  return res({ ok: true, members: members });
+}
+
+function addMember(b) {
+  if (!b.nickname || !b.insta_id)
+    return res({ ok: false, error: "닉네임과 인스타 아이디는 필수입니다" });
+  var sd = readSheet(SH.MEMBERS()),
+    h = sd.headers;
+  var ni = h.indexOf("nickname");
+  for (var i = 0; i < sd.rows.length; i++) {
+    if (String(sd.rows[i][ni]) === String(b.nickname))
+      return res({ ok: false, error: "이미 존재하는 닉네임입니다" });
+  }
+  var sh = SH.MEMBERS(),
+    headers = sh.getDataRange().getValues()[0];
+  var row = new Array(headers.length).fill("");
+  var set = function (k, v) {
+    var i = headers.indexOf(k);
+    if (i >= 0) row[i] = v;
+  };
+  set("member_id", uuid());
+  set("nickname", b.nickname);
+  set("insta_id", b.insta_id);
+  set("status", "active");
+  set("warning_count", 0);
+  set("excellent_count", 0);
+  set("honorary_count", 0);
+  set("registered_at", nowKST());
+  set("memo", b.memo || "");
+  sh.appendRow(row);
+  return res({ ok: true, message: "멤버 등록 완료" });
+}
+
+// ── 멤버 1행만 읽기 (행 번호 직접 사용)
+// ── 멤버 1행만 읽기 — 찾으면 즉시 중단
+function getMemberRow(member_id) {
+  var sh = SH.MEMBERS();
+  var data = sh.getDataRange().getValues();
+  var h = data[0];
+  var midI = h.indexOf("member_id");
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][midI]) === String(member_id)) {
+      var row = data[i].map(function (c) {
+        return c instanceof Date ? toKST(c) : c;
+      });
+      return { rowNum: i + 1, data: row, headers: h, sheet: sh };
+    }
+  }
+  return null;
+}
+
+// ── 변경된 셀만 개별 setValue — 열기구방과 동일한 방식
+function setCells(sheet, rowNum, headers, patches) {
+  for (var k in patches) {
+    var ci = headers.indexOf(k);
+    if (ci >= 0) sheet.getRange(rowNum, ci + 1).setValue(patches[k]);
   }
 }
-</script>
-</body>
-</html>
+
+function updateMember(b) {
+  if (!b.member_id) return res({ ok: false, error: "필수값 누락" });
+  var f = getMemberRow(b.member_id);
+  if (!f) return res({ ok: false, error: "멤버를 찾을 수 없습니다" });
+  var patches = {};
+  ["nickname", "insta_id", "memo", "status"].forEach(function (k) {
+    if (b[k] !== undefined) patches[k] = b[k];
+  });
+  setCells(f.sheet, f.rowNum, f.headers, patches);
+  return res({ ok: true, message: "수정 완료" });
+}
+
+function adjustWarn(b) {
+  var delta = Number(b.delta);
+  if (!b.member_id) return res({ ok: false, error: "member_id 누락" });
+  var f = getMemberRow(b.member_id);
+  if (!f) return res({ ok: false, error: "멤버를 찾을 수 없습니다" });
+  var mh = f.headers,
+    m = f.data;
+  var cur = Number(m[mh.indexOf("warning_count")]) || 0;
+  var nv = Math.max(0, cur + delta);
+  var remActive = false;
+
+  if (delta < 0) {
+    var wsh = SH.WARNINGS();
+    var wdata = wsh.getDataRange().getValues();
+    var wh = wdata[0];
+    var wMid = wh.indexOf("member_id"),
+      wSt = wh.indexOf("status"),
+      wAt = wh.indexOf("warned_at");
+    var actives = [];
+    for (var i = 1; i < wdata.length; i++) {
+      if (
+        String(wdata[i][wMid]) === String(b.member_id) &&
+        wdata[i][wSt] === "active"
+      )
+        actives.push({ rowNum: i + 1, warned_at: wdata[i][wAt] });
+    }
+    actives.sort(function (a, b2) {
+      return new Date(a.warned_at) - new Date(b2.warned_at);
+    });
+    if (actives.length > 0) {
+      // 삭제 대신 resolved로 상태 변경 (행 번호 밀림 방지)
+      wsh.getRange(actives[0].rowNum, wSt + 1).setValue("resolved");
+      remActive = actives.length > 1;
+    }
+  } else {
+    remActive = nv > 0;
+  }
+
+  var newStatus = nv <= 0 && !remActive ? "active" : "warned";
+  // 셀 개별 setValue — 행 전체 쓰기 X
+  setCells(f.sheet, f.rowNum, mh, {
+    warning_count: nv,
+    status: newStatus,
+    locked_at: newStatus === "active" ? "" : m[mh.indexOf("locked_at")],
+    lock_expires: newStatus === "active" ? "" : m[mh.indexOf("lock_expires")],
+  });
+  return res({
+    ok: true,
+    message: "경고 횟수 변경: " + cur + " → " + nv,
+    member: {
+      member_id: b.member_id,
+      warning_count: nv,
+      status: newStatus,
+      is_warned: remActive,
+    },
+  });
+}
+
+function adjustExcellent(b) {
+  if (!b.member_id) return res({ ok: false, error: "필수값 누락" });
+  var f = getMemberRow(b.member_id);
+  if (!f) return res({ ok: false, error: "멤버를 찾을 수 없습니다" });
+  var mh = f.headers,
+    m = f.data;
+  var cur = Number(m[mh.indexOf("excellent_count")]) || 0,
+    nv = Math.max(0, cur + Number(b.delta));
+  var patches = { excellent_count: nv };
+  if (Number(b.delta) > 0)
+    patches["excellent_granted_at"] = Utilities.formatDate(
+      new Date(),
+      "Asia/Seoul",
+      "yyyy-MM-dd",
+    );
+  setCells(f.sheet, f.rowNum, mh, patches);
+  return res({
+    ok: true,
+    message: "우수 티켓 변경: " + cur + " → " + nv,
+    member: { member_id: b.member_id, excellent_count: nv },
+  });
+}
+
+function adjustHonorary(b) {
+  if (!b.member_id) return res({ ok: false, error: "필수값 누락" });
+  var f = getMemberRow(b.member_id);
+  if (!f) return res({ ok: false, error: "멤버를 찾을 수 없습니다" });
+  var mh = f.headers,
+    m = f.data;
+  var cur = Number(m[mh.indexOf("honorary_count")]) || 0,
+    nv = Math.max(0, cur + Number(b.delta));
+  var patches = { honorary_count: nv };
+  if (Number(b.delta) > 0)
+    patches["honorary_granted_at"] = Utilities.formatDate(
+      new Date(),
+      "Asia/Seoul",
+      "yyyy-MM-dd",
+    );
+  setCells(f.sheet, f.rowNum, mh, patches);
+  return res({
+    ok: true,
+    message: "명예 티켓 변경: " + cur + " → " + nv,
+    member: { member_id: b.member_id, honorary_count: nv },
+  });
+}
+
+function toggleLock(b) {
+  if (!b.member_id || !(b.lock_action || b.action))
+    return res({ ok: false, error: "필수값 누락" });
+  var action = b.lock_action || b.action;
+  var f = getMemberRow(b.member_id);
+  if (!f) return res({ ok: false, error: "멤버를 찾을 수 없습니다" });
+  setCells(
+    f.sheet,
+    f.rowNum,
+    f.headers,
+    action === "lock"
+      ? { status: "locked", locked_at: nowKST() }
+      : { status: "active", locked_at: "", lock_expires: "" },
+  );
+  return res({
+    ok: true,
+    message: action === "lock" ? "잠금 완료" : "잠금 해제 완료",
+  });
+}
+
+function manualWarn(b) {
+  if (!b.member_id) return res({ ok: false, error: "member_id 누락" });
+  var f = getMemberRow(b.member_id);
+  if (!f) return res({ ok: false, error: "멤버를 찾을 수 없습니다" });
+  var mh = f.headers,
+    m = f.data;
+
+  // room_id가 함께 넘어온 경우(참여현황 탭에서의 방별 경고) — 같은 방으로 이미 active 경고를
+  // 받았다면 중복 경고를 막는다. (room_id 없이 호출되는 멤버관리 +버튼 수동경고는 그대로 허용)
+  if (b.room_id) {
+    var wsdCheck = readSheet(SH.WARNINGS());
+    var whCheck = wsdCheck.headers;
+    var wRoomIdxCheck = whCheck.indexOf("room_id");
+    if (wRoomIdxCheck >= 0) {
+      var dup = wsdCheck.rows.some(function (w) {
+        return (
+          String(w[whCheck.indexOf("member_id")]) === String(b.member_id) &&
+          String(w[wRoomIdxCheck]) === String(b.room_id) &&
+          w[whCheck.indexOf("status")] === "active"
+        );
+      });
+      if (dup) {
+        return res({
+          ok: false,
+          duplicate: true,
+          error: "이미 이 방으로 경고를 받았습니다",
+        });
+      }
+    }
+  }
+
+  var exp = nextDayAt10(new Date());
+  appendWarning({
+    warn_id: uuid(),
+    member_id: b.member_id,
+    nickname: m[mh.indexOf("nickname")],
+    insta_id: m[mh.indexOf("insta_id")],
+    reason: b.reason || "관리자 수동 경고",
+    warned_at: nowKST(),
+    expires_at: exp,
+    status: "active",
+    room_id: b.room_id || "",
+  });
+  setCells(f.sheet, f.rowNum, mh, {
+    status: "warned",
+    warning_count: (Number(m[mh.indexOf("warning_count")]) || 0) + 1,
+  });
+  return res({ ok: true, message: "경고 부여 완료" });
+}
+
+// ============================================================
+// 자동 잠금 트리거 (매시간)
+// ============================================================
+function autoLockExpired() {
+  var now = new Date();
+  var wsh = SH.WARNINGS();
+  var wdata = wsh.getDataRange().getValues();
+  if (wdata.length < 2) return;
+  var wh = wdata[0];
+  var wSt = wh.indexOf("status"),
+    wExp = wh.indexOf("expires_at"),
+    wMid = wh.indexOf("member_id");
+
+  // 만료된 경고 수집
+  var expiredMids = {};
+  for (var i = 1; i < wdata.length; i++) {
+    var w = wdata[i];
+    if (w[wSt] !== "active" || !w[wExp]) continue;
+    var exp = parseKST(normTime(String(w[wExp])));
+    if (!exp || now < exp) continue;
+    // status를 expired로 변경 (삭제 X — 행 번호 밀림 방지)
+    wsh.getRange(i + 1, wSt + 1).setValue("expired");
+    expiredMids[String(w[wMid])] = true;
+  }
+
+  if (!Object.keys(expiredMids).length) return;
+
+  // 멤버 잠금 처리
+  var msh = SH.MEMBERS();
+  var mdata = msh.getDataRange().getValues();
+  var mh = mdata[0];
+  var mMidIdx = mh.indexOf("member_id"),
+    mStIdx = mh.indexOf("status"),
+    mLkIdx = mh.indexOf("locked_at");
+
+  for (var j = 1; j < mdata.length; j++) {
+    var mid = String(mdata[j][mMidIdx]);
+    if (!expiredMids[mid]) continue;
+    if (mdata[j][mStIdx] === "locked") continue; // 이미 잠김이면 스킵
+    msh.getRange(j + 1, mStIdx + 1).setValue("locked");
+    msh.getRange(j + 1, mLkIdx + 1).setValue(nowKST());
+    Logger.log("autoLock: " + mdata[j][mh.indexOf("nickname")]);
+  }
+}
+
+function autoRunDailySettle() {
+  runDailySettle({ admin_id: "auto" });
+}
+function autoRunWeeklySettle() {
+  runWeeklySettle({ admin_id: "auto" });
+}
+
+// 매일 아침 오늘 날짜로 프리셋 6종을 자동 생성.
+// runDailySettle과는 인과관계 없이 독립적으로 실행됨(같은 시각 트리거일 뿐).
+// 정산 쪽에서 예외가 나도 이 로직에 영향 주지 않도록 트리거 함수(autoDailyJob)에서
+// 각각 별도 try/catch로 감쌈.
+function autoCreateTodayPresets() {
+  var today = Utilities.formatDate(new Date(), "Asia/Seoul", "yyyy-MM-dd");
+  var created = 0,
+    skipped = 0,
+    failed = [];
+  PRESETS.forEach(function (p) {
+    try {
+      var r = createPresetInternal(p.num, today, "auto");
+      if (r.ok) created++;
+      else if (r.error && r.error.indexOf("이미") !== -1) skipped++;
+      else failed.push(p.num + "번: " + r.error);
+    } catch (e) {
+      failed.push(p.num + "번: " + e.message);
+    }
+  });
+  Logger.log(
+    "autoCreateTodayPresets(" +
+      today +
+      "): 생성 " +
+      created +
+      "개, 스킵 " +
+      skipped +
+      "개" +
+      (failed.length ? ", 실패 " + failed.join(" / ") : ""),
+  );
+}
+
+// 매일 10:05 트리거가 실제로 호출하는 함수.
+// 정산과 방생성을 각각 독립적으로 실행 — 한쪽이 예외로 죽어도 다른 쪽은 정상 수행되도록 분리.
+function autoDailyJob() {
+  try {
+    runDailySettle({ admin_id: "auto" });
+  } catch (e) {
+    Logger.log("autoDailyJob: runDailySettle 실패 — " + e.message);
+  }
+  try {
+    autoCreateTodayPresets();
+  } catch (e) {
+    Logger.log("autoDailyJob: autoCreateTodayPresets 실패 — " + e.message);
+  }
+}
+
+// 워밍업 (5분마다)
+function warmup() {
+  try {
+    SS.getName();
+    Logger.log("warmup ok");
+  } catch (e) {}
+}
+
+// ============================================================
+// 트리거 등록 (1회 실행)
+// ============================================================
+function registerAllTriggers() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger("warmup").timeBased().everyMinutes(5).create();
+  ScriptApp.newTrigger("autoLockExpired").timeBased().everyHours(1).create();
+  ScriptApp.newTrigger("autoDailyJob")
+    .timeBased()
+    .everyDays(1)
+    .atHour(10)
+    .nearMinute(5)
+    .create();
+  ScriptApp.newTrigger("autoRunWeeklySettle")
+    .timeBased()
+    .onWeekDay(ScriptApp.WeekDay.SUNDAY)
+    .atHour(22)
+    .nearMinute(5)
+    .create();
+  Logger.log("트리거 등록 완료");
+}
+
+// 로그 조회
+function getLogs(b) {
+  var sh = SH.LOGS();
+  var data = sh.getDataRange().getValues();
+  if (data.length < 2) return res({ ok: true, logs: [] });
+  var h = data[0];
+  var logs = data
+    .slice(1)
+    .map(function (r) {
+      return {
+        log_id: r[h.indexOf("log_id")],
+        log_type: r[h.indexOf("log_type")],
+        log_date: r[h.indexOf("log_date")],
+        room_date: r[h.indexOf("room_date")],
+        room_number: r[h.indexOf("room_number")],
+        nickname: r[h.indexOf("nickname")],
+        insta_id: r[h.indexOf("insta_id")],
+        detail: r[h.indexOf("detail")],
+        created_at: r[h.indexOf("created_at")],
+      };
+    })
+    .filter(function (l) {
+      if (b.log_date && l.log_date !== b.log_date) return false;
+      if (b.log_type && l.log_type !== b.log_type) return false;
+      return true;
+    })
+    .sort(function (a, b2) {
+      return b2.created_at.localeCompare(a.created_at);
+    });
+  return res({ ok: true, logs: logs });
+}
+
+// 멤버별 참여 기록 조회
+function getParts(b) {
+  var psd = readSheet(SH.PARTS());
+  var ph = psd.headers;
+  var pMid = ph.indexOf("member_id");
+  var rows = psd.rows;
+  if (b.member_id) {
+    rows = rows.filter(function (r) {
+      return String(r[pMid]) === String(b.member_id);
+    });
+  }
+  var parts = rows
+    .map(function (r) {
+      return {
+        part_id: r[ph.indexOf("part_id")],
+        room_date: String(r[ph.indexOf("room_date")]).substring(0, 10),
+        room_number: r[ph.indexOf("room_number")],
+        member_id: r[pMid],
+        nickname: r[ph.indexOf("nickname")],
+        insta_id: r[ph.indexOf("insta_id")],
+        post_url: r[ph.indexOf("post_url")],
+        ticket_at: fmtDisp(r[ph.indexOf("ticket_at")]),
+        landed_at: fmtDisp(r[ph.indexOf("landed_at")]),
+        link_at: fmtDisp(r[ph.indexOf("link_at")]),
+        link_history: r[ph.indexOf("link_history")] || "",
+        status: r[ph.indexOf("status")],
+        ticket_type: r[ph.indexOf("ticket_type")] || "normal",
+      };
+    })
+    .sort(function (a, b2) {
+      return b2.ticket_at.localeCompare(a.ticket_at);
+    });
+  return res({ ok: true, parts: parts });
+}
+
+// ============================================================
+// member_id 일괄 부여 (1회 실행)
+// plane_Members에 member_id 없는 멤버 전체에 UUID 자동 생성
+// ============================================================
+function fixAllMemberIds() {
+  var sh = SH.MEMBERS();
+  var data = sh.getDataRange().getValues();
+  var h = data[0];
+  var midIdx = h.indexOf("member_id");
+  if (midIdx < 0) {
+    Logger.log("member_id 컬럼 없음");
+    return;
+  }
+
+  var fixed = 0;
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    // 빈 행 스킵
+    if (
+      row.every(function (c) {
+        return c === "" || c === null || c === undefined;
+      })
+    )
+      continue;
+    // member_id 없으면 UUID 부여
+    if (!row[midIdx] || String(row[midIdx]).trim() === "") {
+      var newId = uuid();
+      sh.getRange(i + 1, midIdx + 1).setValue(newId);
+      fixed++;
+      Logger.log("부여: " + row[h.indexOf("nickname")] + " → " + newId);
+    }
+  }
+  Logger.log("완료: " + fixed + "명 member_id 생성");
+  return fixed + "명 완료";
+}
+
+// ============================================================
+// 1회 실행 — plane_Warnings 시트에 room_id 컬럼 추가 (마이그레이션)
+// 이 함수를 배포 전 Apps Script 편집기에서 한 번 실행해야
+// 방 단위 중복경고 방지 로직이 정상 작동합니다.
+// ============================================================
+function ensureWarningsRoomIdColumn() {
+  var sh = SH.WARNINGS();
+  var headers = sh.getDataRange().getValues()[0];
+  if (headers.indexOf("room_id") === -1) {
+    var col = headers.length + 1;
+    sh.getRange(1, col).setValue("room_id");
+    sh.getRange(1, col).setFontWeight("bold").setBackground("#FFF3E0");
+    Logger.log("plane_Warnings에 room_id 컬럼 추가 완료 (열 " + col + ")");
+    return "room_id 컬럼 추가 완료";
+  }
+  Logger.log("이미 room_id 컬럼이 있습니다");
+  return "이미 존재함";
+}
+
+function setupSheets() {
+  // 헤더 정의
+  var MEMBERS_H = [
+    "member_id",
+    "nickname",
+    "insta_id",
+    "password_hash",
+    "status",
+    "grade",
+    "warning_count",
+    "locked_at",
+    "lock_expires",
+    "registered_at",
+    "last_login_at",
+    "memo",
+    "excellent_count",
+    "excellent_granted_at",
+    "honorary_count",
+    "honorary_granted_at",
+  ];
+  var ROOMS_H = [
+    "room_id",
+    "room_date",
+    "room_number",
+    "items",
+    "max_members",
+    "ticket_start",
+    "ticket_end",
+    "land_start",
+    "land_end",
+    "status",
+    "created_by",
+    "created_at",
+    "memo",
+    "preset_num",
+  ];
+  var PARTS_H = [
+    "part_id",
+    "room_id",
+    "room_date",
+    "room_number",
+    "member_id",
+    "nickname",
+    "insta_id",
+    "post_url",
+    "ticket_at",
+    "landed_at",
+    "status",
+    "ticket_type",
+    "created_at",
+    "link_at",
+    "preset_num",
+    "link_history",
+  ];
+  var WARN_H = [
+    "warn_id",
+    "member_id",
+    "nickname",
+    "insta_id",
+    "reason",
+    "warned_at",
+    "expires_at",
+    "status",
+    "room_id",
+  ];
+  var ADMINS_H = ["admin_id", "nickname", "insta_id", "status", "room_type"];
+
+  var sheets = [
+    {
+      name: "plane_Members",
+      headers: MEMBERS_H,
+      color: "#E8F0FE",
+      clearOnly: true,
+    }, // 기존 멤버 데이터 유지
+    {
+      name: "plane_Rooms",
+      headers: ROOMS_H,
+      color: "#E8F0FE",
+      clearOnly: true,
+    }, // 기존 룸 데이터 유지
+    {
+      name: "plane_Participations",
+      headers: PARTS_H,
+      color: "#E8F0FE",
+      clearOnly: false,
+    }, // 새로 초기화
+    {
+      name: "plane_Warnings",
+      headers: WARN_H,
+      color: "#FFF3E0",
+      clearOnly: false,
+    }, // 새로 초기화
+    { name: "Admins", headers: ADMINS_H, color: "#F3E5F5", clearOnly: true }, // 기존 관리자 유지
+  ];
+
+  sheets.forEach(function (s) {
+    var sh = SS.getSheetByName(s.name);
+    if (!sh) {
+      // 시트 없으면 새로 생성
+      sh = SS.insertSheet(s.name);
+      sh.getRange(1, 1, 1, s.headers.length).setValues([s.headers]);
+      sh.setFrozenRows(1);
+      sh.getRange(1, 1, 1, s.headers.length)
+        .setFontWeight("bold")
+        .setBackground(s.color);
+      Logger.log(s.name + " 생성 완료");
+    } else if (!s.clearOnly) {
+      // clearOnly=false면 헤더만 새로 씀 (데이터는 유지하되 헤더 정합성 확보)
+      sh.clearContents();
+      sh.getRange(1, 1, 1, s.headers.length).setValues([s.headers]);
+      sh.setFrozenRows(1);
+      sh.getRange(1, 1, 1, s.headers.length)
+        .setFontWeight("bold")
+        .setBackground(s.color);
+      Logger.log(s.name + " 초기화 완료");
+    } else {
+      Logger.log(s.name + " 기존 시트 유지 (헤더 확인만)");
+    }
+  });
+
+  Logger.log(
+    "전체 시트 설정 완료! 탭 확인: plane_Members / plane_Rooms / plane_Participations / plane_Warnings / Admins",
+  );
+}
