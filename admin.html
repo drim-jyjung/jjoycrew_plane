@@ -197,6 +197,7 @@ select.input{cursor:pointer}
           <div class="ch" style="flex-wrap:wrap">
             <span class="ct" id="roomsListTitle">오늘의 비행기</span>
             <div style="display:flex;gap:5px">
+              <button class="btn bo bsm" id="btnRoomsCopyAll">📋 전체 현황 복사</button>
               <button class="btn bp bsm" id="btnOpenCR">+ 직접 생성</button>
               <button class="btn bo bsm" id="btn-preset-all">⚡ 프리셋 6종</button>
             </div>
@@ -405,7 +406,10 @@ select.input{cursor:pointer}
   <div class="modal" style="width:600px">
     <div class="mt" id="rhTitle">룸 상세</div>
     <div id="rhBody"><div class="empty"><span class="sp spd"></span></div></div>
-    <div style="margin-top:14px"><button class="btn bo bfl" id="btnRHClose">닫기</button></div>
+    <div style="margin-top:14px;display:flex;gap:8px">
+      <button class="btn bo" style="flex:1" id="btnRHCopy">📋 복사</button>
+      <button class="btn bo" style="flex:1" id="btnRHClose">닫기</button>
+    </div>
   </div>
 </div>
 
@@ -690,6 +694,7 @@ let roomsView = { mode: 'today', label: '' }; // mode: 'today' | 'search'
 
 document.getElementById('btnARRefresh').addEventListener('click',()=>loadRoomsView());
 document.getElementById('btnRFToday').addEventListener('click',()=>{
+  if(rfwDebounceTimer) clearTimeout(rfwDebounceTimer);
   document.getElementById('rfw').value='';
   document.getElementById('rfd').value='';
   roomsView.mode='today';
@@ -701,13 +706,19 @@ document.getElementById('rfd').addEventListener('input',()=>{
   roomsView.mode = v ? 'search' : 'today';
   loadRoomsView();
 });
+// 주차 입력은 자유 텍스트라 타이핑 중 매 글자마다 요청이 나가면 안 됨(그동안 이게 "말도안되게 느림"의 원인이었음) → 디바운스 적용
+let rfwDebounceTimer=null;
 document.getElementById('rfw').addEventListener('input',()=>{
   document.getElementById('rfd').value='';
-  const v=document.getElementById('rfw').value.trim();
-  roomsView.mode = v ? 'search' : 'today';
-  loadRoomsView();
+  if(rfwDebounceTimer) clearTimeout(rfwDebounceTimer);
+  rfwDebounceTimer=setTimeout(()=>{
+    const v=document.getElementById('rfw').value.trim();
+    roomsView.mode = v ? 'search' : 'today';
+    loadRoomsView();
+  }, 500);
 });
 document.getElementById('btnRFWThis').addEventListener('click',()=>{
+  if(rfwDebounceTimer) clearTimeout(rfwDebounceTimer);
   document.getElementById('rfw').value=thisWeekKey();
   document.getElementById('rfd').value='';
   roomsView.mode='search';
@@ -751,6 +762,38 @@ async function loadRoomsView(){
     +roomCache.map(r=>`<tr><td style="font-weight:600">${r.room_date}</td><td>#${r.room_number}</td><td>${(r.items||'').split(',').map(t=>`<span class="tag">${t.trim()}</span>`).join('')}</td><td style="font-size:11px;white-space:nowrap">${r.ticket_start_fmt||''} ~ ${r.ticket_end_fmt||''}</td><td style="font-size:11px;white-space:nowrap">${r.land_start_fmt||''} ~ ${r.land_end_fmt||''}</td><td>${r.joined}/${Number(r.max_members)>=9999?"무제한":r.max_members}(+${(r.total_joined||r.joined)-r.joined}운영진)</td><td>${r.status==='open'?'<span class="badge bdk">open</span>':'<span class="badge bdg">closed</span>'}</td><td><div class="act-cell"><button class="btn bo bsm" data-action="mon" data-rid="${r.room_id}">현황</button><button class="btn bo bsm" data-action="edit" data-rid="${r.room_id}">수정</button><button class="btn bsm btn-danger" data-action="del" data-rid="${r.room_id}" data-date="${r.room_date}" data-num="${r.room_number}">삭제</button></div></td></tr>`).join('')+'</tbody></table>';
 }
 
+// 현재 목록에 떠 있는 방들 전체를 한 번에 복사 (방마다 참여자+링크까지 포함)
+// 방 개수가 적어서(보통 하루 6~7개) 병렬조회 부담 적음
+document.getElementById('btnRoomsCopyAll').addEventListener('click', async e=>{
+  const btn=e.currentTarget;
+  if(!roomCache.length){ showBnr('rerr','복사할 룸이 없습니다'); setTimeout(()=>hideBnr('rerr'),2000); return; }
+  const orig=btn.innerHTML;
+  btn.disabled=true; btn.innerHTML='<span class="sp"></span> 취합 중...';
+  try{
+    const details = await Promise.all(roomCache.map(r=>api('get_room_detail',{room_id:r.room_id})));
+    const lines=[`[${document.getElementById('roomsListTitle').textContent}]`];
+    details.forEach((d,i)=>{
+      if(!d.ok) return;
+      const room=d.room, parts=d.participants||[];
+      const landed=parts.filter(p=>p.status==='landed'), notLanded=parts.filter(p=>p.status!=='landed');
+      lines.push(''); lines.push(`📍 ${room.room_date} #${room.room_number} — 착륙 ${landed.length}/${parts.length}`);
+      landed.forEach(p=>lines.push(`- ${p.nickname} @${p.insta_id}${p.post_url?' '+p.post_url:' (링크없음)'}`));
+      if(notLanded.length){
+        lines.push(`  ⚠ 미착륙 ${notLanded.length}명`);
+        notLanded.forEach(p=>lines.push(`  - ${p.nickname} @${p.insta_id}${p.post_url?' '+p.post_url:' (링크없음)'}`));
+      }
+    });
+    copyText(lines.join('\n'), null);
+    btn.innerHTML='✓ 복사됨!';
+  }catch(err){
+    showBnr('rerr','복사 중 오류 발생'); setTimeout(()=>hideBnr('rerr'),2000);
+    btn.innerHTML=orig;
+  }finally{
+    setTimeout(()=>{ btn.disabled=false; btn.innerHTML=orig; }, 1500);
+  }
+});
+
+
 ['rooms-list'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{
     const btn=e.target.closest('[data-action]');if(!btn)return;
@@ -764,13 +807,29 @@ async function loadRoomsView(){
 // 룸 히스토리 상세보기 — 오늘 방이든 몇 달 전 방이든 날짜 구분 없이 동작
 // (get_room_detail은 시간/날짜 제약이 없어서 마감된 옛날 방도 그대로 조회됨)
 document.getElementById('btnRHClose').addEventListener('click',()=>closeModal('mrh'));
+let rhCurrent=null; // 현재 모달에 열려있는 방 데이터 (복사 버튼용)
+document.getElementById('btnRHCopy').addEventListener('click',e=>{
+  if(!rhCurrent){ return; }
+  const {room, parts} = rhCurrent;
+  const landed=parts.filter(p=>p.status==='landed'), notLanded=parts.filter(p=>p.status!=='landed');
+  const lines=[`[${room.room_date} #${room.room_number} 참여현황]`];
+  lines.push(`✓ 착륙 완료 (${landed.length}명)`);
+  landed.forEach(p=>lines.push(`- ${p.nickname} @${p.insta_id}${p.post_url?' '+p.post_url:' (링크없음)'}`));
+  if(notLanded.length){
+    lines.push(''); lines.push(`⚠ 미착륙 (${notLanded.length}명)`);
+    notLanded.forEach(p=>lines.push(`- ${p.nickname} @${p.insta_id}${p.post_url?' '+p.post_url:' (링크없음)'}`));
+  }
+  copyText(lines.join('\n'), e.currentTarget);
+});
 async function openRoomHistory(rid){
+  rhCurrent=null;
   document.getElementById('rhTitle').textContent='룸 상세';
   document.getElementById('rhBody').innerHTML='<div class="empty"><span class="sp spd"></span></div>';
   openModal('mrh');
   const d=await api('get_room_detail',{room_id:rid});
   if(!d.ok){document.getElementById('rhBody').innerHTML=`<div class="empty">${d.error||'불러오기 실패'}</div>`;return;}
   const room=d.room, parts=d.participants||[];
+  rhCurrent={room, parts};
   document.getElementById('rhTitle').textContent=`${room.room_date} #${room.room_number} 상세`;
   const icon={normal:'',excellent:'⭐',honorary:'🏅',staff:'🎖'};
   const landed=parts.filter(p=>p.status==='landed'), notLanded=parts.filter(p=>p.status!=='landed');
