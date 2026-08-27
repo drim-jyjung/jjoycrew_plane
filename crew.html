@@ -432,6 +432,38 @@ function _renderTopBadges() {
   bdg.innerHTML=badges.join('');
 }
 
+// 경고 배너 렌더 — 클릭하면 "언제 어느 방 때문에" 받은 경고인지 펼쳐서 보여줌.
+// 각 항목을 누르면 그 방(마감된 옛날 방이라도)의 참여자·링크를 그대로 볼 수 있어서,
+// 미착륙 페널티 해제를 위해 뒤늦게라도 그 방 사람들 게시물에 좋아요/댓글을 해줄 수 있음.
+let warnListOpen = false;
+function _renderWarnBanner() {
+  const wb = document.getElementById('warn-top-rooms');
+  if (!wb) return;
+  if (!me?.is_warned) { wb.className='warn-top'; wb.innerHTML=''; warnListOpen=false; return; }
+  wb.className='warn-top show';
+  const warnings = me.warnings || [];
+  const summary = `⚠️ 경고 ${me.warning_count||1}회 보유 · 만료: ${me.warn_expires||'익일 10:00'} · 경고 보유 시 탑승 불가${warnings.length?' <span style="text-decoration:underline">(내역 보기)</span>':''}`;
+  const listHtml = (warnListOpen && warnings.length) ? `
+    <div style="margin-top:8px;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #FFD580">
+      ${warnings.map(w=>`
+        <div class="warn-item" data-rid="${w.room_id||''}" style="padding:8px 10px;border-bottom:1px solid #FFF3D6;font-weight:400;${w.room_id?'cursor:pointer':''}">
+          <div style="font-size:12px;font-weight:700;color:var(--text)">${w.room_date?`${w.room_date} #${w.room_number}`:'(방 정보 없음 — 관리자 수동경고)'}</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">${w.reason||''}</div>
+          ${w.room_id?'<div style="font-size:11px;color:var(--primary);margin-top:2px">👉 눌러서 참여자·링크 보기</div>':''}
+        </div>`).join('')}
+    </div>` : '';
+  wb.innerHTML = `<div id="warn-summary">${summary}</div>${listHtml}`;
+}
+document.getElementById('warn-top-rooms').addEventListener('click', e=>{
+  const item = e.target.closest('.warn-item');
+  if (item) {
+    if (item.dataset.rid) goTicket(item.dataset.rid);
+    return;
+  }
+  warnListOpen = !warnListOpen;
+  _renderWarnBanner();
+});
+
 async function goRooms() {
   showPage('page-rooms');
 
@@ -444,12 +476,7 @@ async function goRooms() {
           me = fresh.member;
           saveS(me);
           _renderTopBadges();
-          // 경고 배너도 갱신
-          const wb = document.getElementById('warn-top-rooms');
-          if (me?.is_warned) {
-            wb.className='warn-top show';
-            wb.innerHTML=`⚠️ 경고 ${me.warning_count||1}회 보유 · 만료: ${me.warn_expires||'익일 10:00'} · 경고 보유 시 탑승 불가`;
-          } else wb.className='warn-top';
+          _renderWarnBanner();
         }
       }).catch(function(){});
     }, 1500); // 룸 목록 로드 후 1.5초 뒤 갱신
@@ -457,13 +484,7 @@ async function goRooms() {
 
   document.getElementById('rooms-user').textContent = me?`@${me.insta_id}`:'';
   _renderTopBadges();
-
-  // 경고 배너
-  const wb = document.getElementById('warn-top-rooms');
-  if (me?.is_warned) {
-    wb.className='warn-top show';
-    wb.innerHTML=`⚠️ 경고 ${me.warning_count||1}회 보유 · 만료: ${me.warn_expires||'익일 10:00'} · 경고 보유 시 탑승 불가`;
-  } else wb.className='warn-top';
+  _renderWarnBanner();
 
   // ticket-info-bar 제거 (탑바 배지로 통합)
   const ib=document.getElementById('ticket-info-bar');
