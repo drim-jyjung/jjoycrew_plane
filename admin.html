@@ -770,10 +770,11 @@ document.getElementById('btnRoomsCopyAll').addEventListener('click', async e=>{
   const orig=btn.innerHTML;
   btn.disabled=true; btn.innerHTML='<span class="sp"></span> 취합 중...';
   try{
-    const details = await Promise.all(roomCache.map(r=>api('get_room_detail',{room_id:r.room_id})));
+    const batch = await api('get_room_details_batch',{room_ids: roomCache.map(r=>r.room_id)});
+    if(!batch.ok) throw new Error(batch.error||'조회 실패');
+    const details = batch.rooms||[];
     const lines=[`[${document.getElementById('roomsListTitle').textContent}]`];
-    details.forEach((d,i)=>{
-      if(!d.ok) return;
+    details.forEach(d=>{
       const room=d.room, parts=d.participants||[];
       const landed=parts.filter(p=>p.status==='landed'), notLanded=parts.filter(p=>p.status!=='landed');
       lines.push(''); lines.push(`📍 ${room.room_date} #${room.room_number} — 착륙 ${landed.length}/${parts.length}`);
