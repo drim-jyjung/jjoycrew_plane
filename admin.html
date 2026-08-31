@@ -180,7 +180,7 @@ select.input{cursor:pointer}
         <div class="dv"></div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
           <div style="font-size:13px;font-weight:700">📆 주간 현황 <span id="dwrange" style="font-size:11px;font-weight:400;color:var(--text3)"></span></div>
-          <button class="btn bp bsm" id="btn-weekly-d">주간 정산</button>
+          <button class="btn bo bsm" id="btn-weekfail-copy">📋 미달자 복사</button>
         </div>
         <div class="sg sg3" style="margin-bottom:12px">
           <div class="sc"><div class="sn" id="ds-wp" style="color:var(--green)">-</div><div class="sl">필참 달성</div></div>
@@ -608,10 +608,22 @@ window.addEventListener('load',()=>{
 // ══════════════════════════════════════════════
 document.getElementById('btnDashRefresh').addEventListener('click',loadDash);
 document.getElementById('btn-daily-d').addEventListener('click',doDailyD);
-document.getElementById('btn-weekly-d').addEventListener('click',doWeeklyD);
 document.getElementById('btn-wt-copy').addEventListener('click',e=>copyWarnTargets(e.currentTarget));
 
 let dashWarnTargets=[];
+let dashWeekStats=[];
+
+document.getElementById('btn-weekfail-copy').addEventListener('click', e=>{
+  const btn=e.currentTarget;
+  // 이번주 아직 2회 미달인 사람만 (정산 실행 여부와 무관하게 지금 시점 기준 실시간 계산된 값)
+  const failList = dashWeekStats.filter(m=>!m.is_pass);
+  if(!failList.length){ copyText('', null); showBnr('dok','현재 미달자가 없습니다','ok'); return; }
+  const lines=[`[${document.getElementById('dwrange').textContent} 주2회 미달자]`];
+  failList.forEach(m=>{
+    lines.push(`- ${m.nickname} @${m.insta_id} (${m.week_land}회${m.is_warned?' · 경고중':''})`);
+  });
+  copyText(lines.join('\n'), btn);
+});
 
 function copyWarnTargets(btn){
   if(!dashWarnTargets.length){ showBnr('dok','복사할 미착륙자가 없습니다'); return; }
@@ -635,6 +647,7 @@ async function loadDash(){
   const d=await api('get_daily'); if(!d.ok)return;
   const rs=d.room_stats||[],wt=d.warn_targets||[],ws=d.week_stats||[];
   dashWarnTargets=wt;
+  dashWeekStats=ws;
   document.getElementById('ddate').textContent=d.date||'';
   document.getElementById('dwrange').textContent=d.week_range||'';
   document.getElementById('ds-r').textContent=rs.length;
@@ -677,15 +690,6 @@ async function doDailyD(){
   if(d.ok){showBnr('dok','일간 정산 완료 — 경고 '+d.warned+'명'+(d.skipped?` · 중복스킵 ${d.skipped}명`:''),'ok');loadDash();}
   else showBnr('derr',d.error||'실패');
 }
-async function doWeeklyD(){
-  if(!await iconfirm('주간 정산 실행할까요?'))return;
-  btnLoad('btn-weekly-d',true);
-  const d=await api('run_weekly',{admin_id:adminInfo.admin_id});
-  btnLoad('btn-weekly-d',false,'주간 정산');
-  if(d.ok){showBnr('dok',`완료 — 통과 ${d.passed}명 · 경고 ${d.warned}명${d.already_warned?` · 이미처리 ${d.already_warned}명`:''}`,'ok');loadDash();}
-  else showBnr('derr',d.error||'실패');
-}
-
 // ══════════════════════════════════════════════
 // 룸 관리 — 화면엔 항상 "1개의 날짜" 목록만 노출.
 // 기본은 오늘, 날짜/주차 검색하면 그 결과로 화면이 통째로 전환됨 (두 목록 동시노출 X)
@@ -1225,7 +1229,14 @@ async function doWeeklyS(){
   btnLoad('btn-weekly-s',false,'주간 정산 실행');
   if(!d.ok){showBnr('serr',d.error||'실패');return;}
   showBnr('skok',`완료 — 통과 ${d.passed}명 · 경고 ${d.warned}명${d.already_warned?` · 이미처리 ${d.already_warned}명`:''} · 우수초기화 ${d.reset_excellent||0} · 명예초기화 ${d.reset_honorary||0}`,'ok');
-  document.getElementById('sresult').innerHTML=`<div class="card"><div class="ch"><span class="ct">${d.week_key} 결과</span></div><div class="cb"><div style="font-size:12px;color:var(--text2)">경고 이월: ${d.carry_over_warns}건</div></div></div>`;
+  const list = d.warned_list||[];
+  document.getElementById('sresult').innerHTML=`<div class="card"><div class="ch"><span class="ct">${d.week_key} 결과</span>${list.length?'<button class="btn bo bsm" id="btn-weeklys-copy">📋 미달자 복사</button>':''}</div><div class="cb"><div style="font-size:12px;color:var(--text2);margin-bottom:8px">경고 이월: ${d.carry_over_warns}건</div>${list.length?`<div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:4px">⚠ 주 2회 미달 경고 (${list.length}명)</div><div style="font-size:12px;color:var(--text2)">${list.join(', ')}</div>`:'<div style="font-size:12px;color:var(--green)">✅ 이번 정산에서 미달자 없음</div>'}</div></div>`;
+  if(list.length){
+    document.getElementById('btn-weeklys-copy').addEventListener('click', e=>{
+      const lines=[`[${d.week_key||''} 주2회 미달 경고자]`, ...list.map(n=>`- ${n}`)];
+      copyText(lines.join('\n'), e.currentTarget);
+    });
+  }
 }
 async function doInitWeek(){
   if(!await iconfirm('이번주 시트를 초기화할까요?\n기존 기록이 삭제됩니다.',true))return;
