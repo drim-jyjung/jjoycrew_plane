@@ -27,10 +27,8 @@ body{font-family:Pretendard,-apple-system,sans-serif;background:var(--bg);color:
 .sidebar{width:175px;background:var(--surface);border-right:1px solid var(--border);padding:12px 8px;flex-shrink:0;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto}
 .main{flex:1;padding:20px;min-height:0;overflow-y:auto}
 .panel{display:none}.panel.active{display:block}
-/* 사이드바 */
 .ni{display:flex;align-items:center;gap:7px;padding:8px 10px;border-radius:var(--rsm);font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;margin-bottom:2px;user-select:none}
 .ni:hover{background:var(--bg)}.ni.on{background:var(--primary-light);color:var(--primary);font-weight:600}
-/* 공통 */
 .card{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);margin-bottom:14px;overflow:hidden}
 .ch{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
 .ct{font-size:13px;font-weight:700}.cb{padding:16px}
@@ -39,7 +37,6 @@ body{font-family:Pretendard,-apple-system,sans-serif;background:var(--bg);color:
 .sg4{grid-template-columns:repeat(4,1fr)}.sg3{grid-template-columns:repeat(3,1fr)}.sg2{grid-template-columns:1fr 1fr}
 .sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px}
 .sn{font-size:23px;font-weight:700}.sl{font-size:11px;color:var(--text2);margin-top:2px}
-/* 입력 */
 .field{margin-bottom:11px}.field:last-child{margin-bottom:0}
 .fl{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:4px;display:block}
 .input{width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--rsm);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);outline:none;transition:border-color .15s}
@@ -47,7 +44,6 @@ body{font-family:Pretendard,-apple-system,sans-serif;background:var(--bg);color:
 select.input{cursor:pointer}
 .r2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-/* 버튼 */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;font-family:inherit;font-size:13px;font-weight:600;padding:7px 14px;border-radius:var(--rsm);border:none;cursor:pointer;transition:opacity .15s;white-space:nowrap}
 .btn:disabled{opacity:.4;cursor:not-allowed}
 .bp{background:var(--primary);color:#fff}.bo{background:transparent;color:var(--text);border:1px solid var(--border2)}
@@ -55,34 +51,28 @@ select.input{cursor:pointer}
 .bfl{width:100%}.bsm{padding:4px 10px;font-size:12px;border-radius:6px}
 .btn-danger{color:var(--red);border:1px solid var(--red);background:transparent}
 .btn-success{background:var(--green);color:#fff;border:none}
-/* 배지/태그 */
 .badge{display:inline-flex;align-items:center;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap}
 .bdk{background:var(--green-bg);color:var(--green)}.bdm{background:var(--amber-bg);color:var(--amber)}
 .bdr{background:var(--red-bg);color:var(--red)}.bdb{background:var(--primary-light);color:var(--primary)}
 .bdg{background:var(--bg);color:var(--text2)}.bdp{background:var(--purple-bg);color:var(--purple)}
 .tag{display:inline-flex;font-size:10px;padding:2px 6px;border-radius:4px;background:var(--primary-light);color:var(--primary);margin:1px}
-/* 배너 */
 .bnr{padding:10px 12px;border-radius:var(--rsm);font-size:12px;margin-bottom:10px;display:none}
 .bnr.show{display:block}
 .bnr-e{background:var(--red-bg);color:var(--red);border:1px solid #FECACA}
 .bnr-o{background:var(--green-bg);color:var(--green);border:1px solid #A7F3D0}
 .bnr-w{background:var(--amber-bg);color:var(--amber);border:1px solid #FDE68A}
-/* 스피너 */
 .sp{width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;vertical-align:middle}
 .spd{border-color:var(--border);border-top-color:var(--primary)}
 @keyframes spin{to{transform:rotate(360deg)}}
-/* 테이블 */
 .tbl{width:100%;border-collapse:collapse}
 .tbl th{text-align:left;font-size:11px;font-weight:700;color:var(--text3);padding:7px 10px;border-bottom:2px solid var(--border);white-space:nowrap}
 .tbl td{padding:8px 10px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle}
 .tbl tr:last-child td{border-bottom:none}.tbl tr:hover td{background:#fafafa}
-/* 멤버 버튼 */
 .cbtn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:5px;border:1px solid var(--border2);font-size:15px;font-weight:700;cursor:pointer;background:var(--surface);color:var(--text);font-family:inherit}
 .cbtn:hover:not(:disabled){border-color:var(--primary);color:var(--primary)}
 .cbtn:disabled{opacity:.3;cursor:not-allowed}
 .cv{font-size:13px;font-weight:700;min-width:22px;text-align:center;display:inline-block}
 .act-cell{display:flex;gap:3px;align-items:center}
-/* 참여현황 */
 .rca{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
 .rcah{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;background:var(--bg)}
 .pr{display:flex;align-items:center;padding:8px 14px;border-bottom:1px solid var(--border)}
@@ -90,16 +80,13 @@ select.input{cursor:pointer}
 .av{width:28px;height:28px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
 .wb{flex:1;height:5px;background:var(--bg);border-radius:3px;overflow:hidden;min-width:50px}
 .wbi{height:100%;border-radius:3px}
-/* 모달 */
 .ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center}
 .ov.show{display:flex}
 .modal{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);box-shadow:0 20px 60px rgba(0,0,0,.15);width:460px;max-width:95vw;max-height:90vh;overflow-y:auto;padding:22px}
 .mt{font-size:15px;font-weight:700;margin-bottom:14px}
-/* 칩 */
 .chip-wrap{display:flex;flex-wrap:wrap;gap:5px}
 .chip{font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;transition:all .15s}
 .chip.on{background:var(--primary);color:#fff;border-color:var(--primary)}
-/* 토스트 */
 .iconf{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1e2330;color:#fff;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.3);z-index:9999;font-size:13px;white-space:nowrap;animation:slideUp .15s ease}
 @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 .iconf-yes{padding:5px 14px;border-radius:6px;font-size:12px;font-weight:700;border:none;cursor:pointer;background:var(--primary);color:#fff}
@@ -107,7 +94,6 @@ select.input{cursor:pointer}
 .iconf-no{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,.25);cursor:pointer;background:transparent;color:#fff}
 .dv{height:1px;background:var(--border);margin:12px 0}
 .empty{text-align:center;padding:28px;color:var(--text3);font-size:13px}
-/* 주차 시트 테이블 */
 .week-tbl-wrap{overflow-x:auto}
 .week-tbl{border-collapse:collapse;white-space:nowrap;font-size:12px}
 .week-tbl th,.week-tbl td{padding:6px 10px;border:1px solid var(--border);text-align:center}
@@ -123,7 +109,6 @@ select.input{cursor:pointer}
 </head>
 <body>
 
-<!-- 로그인 -->
 <div id="pg-login">
   <div style="background:var(--surface);border-radius:var(--r);border:1px solid var(--border);padding:32px;width:340px">
     <div style="text-align:center;margin-bottom:24px"><div style="font-size:36px">✈️</div><div style="font-size:18px;font-weight:800;margin-top:6px">비행기방 <span style="color:var(--primary)">관리자</span></div></div>
@@ -134,7 +119,6 @@ select.input{cursor:pointer}
   </div>
 </div>
 
-<!-- 대시 -->
 <div id="pg-dash">
   <div class="topbar">
     <div style="font-size:14px;font-weight:800">✈ 비행기방 <span style="color:var(--primary)">관리자</span></div>
@@ -155,7 +139,6 @@ select.input{cursor:pointer}
     </div>
     <div class="main">
 
-      <!-- 대시보드 -->
       <div class="panel active" id="panel-dashboard">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
           <div class="pt" style="margin:0">대시보드 <span id="ddate" style="font-size:12px;font-weight:400;color:var(--text3)"></span></div>
@@ -190,7 +173,6 @@ select.input{cursor:pointer}
         <div class="card"><div id="wkl"><div class="empty"><span class="sp spd"></span></div></div></div>
       </div>
 
-      <!-- 룸 관리 -->
       <div class="panel" id="panel-rooms">
         <div id="rok" class="bnr bnr-o"></div><div id="rerr" class="bnr bnr-e"></div>
         <div class="card">
@@ -216,7 +198,6 @@ select.input{cursor:pointer}
         </div>
       </div>
 
-      <!-- 참여 현황 -->
       <div class="panel" id="panel-monitor">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
           <div class="pt" style="margin:0">참여 현황</div>
@@ -229,7 +210,6 @@ select.input{cursor:pointer}
         <div id="mon-content"><div class="empty"><span class="sp spd"></span></div></div>
       </div>
 
-      <!-- 정산 -->
       <div class="panel" id="panel-settle">
         <div class="pt">정산</div>
         <div id="skok" class="bnr bnr-o"></div><div id="serr" class="bnr bnr-e"></div>
@@ -243,7 +223,6 @@ select.input{cursor:pointer}
           <div style="margin-top:6px;font-size:11px;color:var(--text3)">일간: 착륙 마감 룸 미착륙자 경고 · 주간: 착륙 2회 미달 경고 + 우수/명예 초기화<br>※ 정산 기록은 "정산이 실행된 날짜"가 아니라 <strong>방이 열렸던 날짜</strong> 기준으로 저장됩니다.</div>
         </div>
         <div id="sresult"></div>
-        <!-- 일간 정산 히스토리 -->
         <div style="margin-top:14px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
             <div style="font-size:13px;font-weight:700">📋 일간 정산 히스토리</div>
@@ -256,7 +235,6 @@ select.input{cursor:pointer}
         </div>
       </div>
 
-      <!-- 주간 시트 -->
       <div class="panel" id="panel-weekly">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
           <div class="pt" style="margin:0">📅 주간 시트</div>
@@ -268,7 +246,6 @@ select.input{cursor:pointer}
         <div class="card"><div id="week-sheet-content"><div class="empty">주차를 입력하고 조회하세요<br><span style="font-size:11px;margin-top:4px;display:block">예: 2025_W21</span></div></div></div>
       </div>
 
-      <!-- 멤버 관리 -->
       <div class="panel" id="panel-members">
         <div class="card">
           <div class="ch">
@@ -287,7 +264,6 @@ select.input{cursor:pointer}
         </div>
       </div>
 
-      <!-- 활동 로그 -->
       <div class="panel" id="panel-logs">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
           <div class="pt" style="margin:0">📝 활동 로그</div>
@@ -316,7 +292,6 @@ select.input{cursor:pointer}
   </div>
 </div>
 
-<!-- 룸 생성 모달 -->
 <div class="ov" id="mcr">
   <div class="modal">
     <div class="mt">룸 생성</div>
@@ -353,7 +328,6 @@ select.input{cursor:pointer}
   </div>
 </div>
 
-<!-- 룸 수정 모달 -->
 <div class="ov" id="mer">
   <div class="modal">
     <div class="mt">룸 수정</div>
@@ -385,7 +359,6 @@ select.input{cursor:pointer}
   </div>
 </div>
 
-<!-- 멤버 모달 -->
 <div class="ov" id="mmb">
   <div class="modal">
     <div id="mmbt" class="mt">멤버 등록</div>
@@ -401,7 +374,6 @@ select.input{cursor:pointer}
   </div>
 </div>
 
-<!-- 룸 히스토리 상세보기 모달 (룸관리 탭에서 방 클릭 시 — 오늘 방/과거 방 구분 없이 동작) -->
 <div class="ov" id="mrh">
   <div class="modal" style="width:600px">
     <div class="mt" id="rhTitle">룸 상세</div>
@@ -424,7 +396,7 @@ const PRESETS=[
   {num:1,label:'[좋아요+리포스트] 20명',items:'좋아요,리포스트',max:20,ts:'12:00',te:'15:00',ls:'15:01',le:'18:00',nextDay:false},
   {num:2,label:'[좋아요+저장+공유] 20명',items:'좋아요,저장,공유하기',max:20,ts:'12:00',te:'15:00',ls:'15:01',le:'18:00',nextDay:false},
   {num:3,label:'[좋아요] 무제한',items:'좋아요',max:9999,ts:'11:00',te:'22:00',ls:'22:01',le:'10:00',nextDay:true},
-  {num:4,label:'[좋+댓] 30명',items:'좋아요,댓글',max:30,ts:'11:00',te:'22:00',ls:'22:01',le:'10:00',nextDay:true},
+  {num:4,label:'[좋+댓] 20명',items:'좋아요,댓글',max:20,ts:'11:00',te:'22:00',ls:'22:01',le:'10:00',nextDay:true},
   {num:5,label:'[좋+댓] 20명',items:'좋아요,댓글',max:20,ts:'19:00',te:'22:00',ls:'22:01',le:'10:00',nextDay:true},
   {num:6,label:'[무한공유] 무제한',items:'공유하기',max:9999,ts:'11:00',te:'20:00',ls:'20:01',le:'23:00',nextDay:false},
 ];
@@ -432,34 +404,43 @@ const PRESETS=[
 let adminInfo=null, memberList=[], roomCache=[], monStats=[], editMemberId=null;
 const loaded={dashboard:false,rooms:false,monitor:false,members:false};
 
-// ── 세션
 const saveS  = d=>{ try{sessionStorage.setItem(SK,JSON.stringify(d));}catch(e){} };
 const loadS  = ()=>{ try{return JSON.parse(sessionStorage.getItem(SK));}catch(e){return null;} };
 const clearS = ()=>{ try{sessionStorage.removeItem(SK);}catch(e){} };
 
-// ── API (오버레이 없음)
-async function api(action,body={}){
-  try{const r=await fetch(API,{method:'POST',body:JSON.stringify({...body,action})});return r.json();}
-  catch(e){return{ok:false,error:'네트워크 오류'};}
+// ── API — 조회(get_*)류만 실패 시 1회 자동 재시도.
+// 관리자의 증감/실행류 액션(adjust_warn, manual_warn, run_daily 등)은 서버에 중복방지
+// 체크가 없는 것들이 있어서, 응답만 유실된 상황에서 재시도하면 실제로 두 번 적용될
+// 위험이 있음 — 그래서 안전하게 "조회"만 재시도하고 나머지는 기존처럼 즉시 실패 처리.
+async function api(action,body={},_retry){
+  const isReadOnly = action.indexOf('get_')===0;
+  if (_retry===undefined) _retry = isReadOnly;
+  try{
+    const r=await fetch(API,{method:'POST',body:JSON.stringify({...body,action})});
+    return await r.json();
+  }
+  catch(e){
+    if (_retry) {
+      await new Promise(resolve => setTimeout(resolve, 700));
+      return api(action, body, false);
+    }
+    return{ok:false,error:'네트워크 오류'};
+  }
 }
 
-// ── 버튼 로딩
 function btnLoad(id,on,label=''){
   const el=typeof id==='string'?document.getElementById(id):id; if(!el)return;
   if(on){el._orig=el.innerHTML;el.disabled=true;el.innerHTML='<span class="sp"></span>';}
   else{el.disabled=false;el.innerHTML=label||el._orig||el.innerHTML;}
 }
 
-// ── 배너
 const showBnr=(id,msg,type='error')=>{const el=document.getElementById(id);if(!el)return;el.className=`bnr bnr-${type==='ok'?'o':type==='warn'?'w':'e'} show`;el.textContent=msg;if(type==='ok')setTimeout(()=>el.classList.remove('show'),3500);};
 const hideBnr=id=>document.getElementById(id)?.classList.remove('show');
 
-// ── 모달
 const openModal=id=>document.getElementById(id).classList.add('show');
 const closeModal=id=>document.getElementById(id).classList.remove('show');
 document.querySelectorAll('.ov').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov)closeModal(ov.id);}));
 
-// ── 토스트
 let _toast=null;
 function iconfirm(msg,danger=false){
   return new Promise(resolve=>{
@@ -474,24 +455,17 @@ function iconfirm(msg,danger=false){
   });
 }
 
-// ── 텍스트 어디에 있든 링크(http로 시작하는 부분)만 뽑아내기
-// 인스타그램 "공유하기"로 복사하면 앞뒤에 한글 설명이 붙어서 복사되는 경우가 많아,
-// 순수 링크만 입력해야 통과되던 기존 방식(사실상 한글 섞이면 실패) 대신
-// 붙여넣은 텍스트 아무데나 링크가 있으면 자동으로 찾아서 추출한다.
 function extractUrl(text){
   if(!text) return '';
   const m = String(text).match(/https?:\/\/[^\s]+/);
   if(!m) return '';
   let url = m[0];
-  // 공백 없이 바로 이어붙은 한글이 있으면 그 앞까지만 링크로 인정
   const koreanIdx = url.search(/[가-힣]/);
   if(koreanIdx > -1) url = url.substring(0, koreanIdx);
-  // 링크 뒤에 흔히 붙는 문장부호 제거
   url = url.replace(/[),.!?;:'"”’]+$/,'');
   return url;
 }
 
-// ── 클립보드 복사 공통 헬퍼 (버튼에 "✓ 복사됨!" 표시)
 function copyText(txt, btn){
   if(!txt){ showBnr('sok','복사할 내용이 없습니다'); return; }
   const orig=btn?btn.innerHTML:null;
@@ -503,22 +477,16 @@ function copyText(txt, btn){
   });
 }
 
-// ── 날짜
-// KST 기준 오늘 날짜 (UTC 기준 사용 시 9시간 차이로 전날이 될 수 있음)
 const td=()=>{const d=new Date();return new Date(d.getTime()+9*60*60*1000).toISOString().slice(0,10);};
 const nd=d=>{const x=new Date(d);x.setDate(x.getDate()+1);return x.toISOString().slice(0,10);};
 const lt=n=>n?n[0]:'?';
 
-// ── 이번 주 키
-// ── KST 날짜 안전 연산 헬퍼 (gs의 동일 로직과 완전히 통일 — 서버/클라 주차키 불일치 방지)
-// new Date(str).getDay() 같은 로컬 타임존 암묵의존 방식 대신 UTC 기반으로만 계산해서
-// 관리자 기기의 타임존 설정과 무관하게 항상 서버와 동일한 결과가 나오도록 함
 function kstDateParts_(dateStr){ const m=String(dateStr).match(/^(\d{4})-(\d{2})-(\d{2})/); return m?{y:+m[1],mo:+m[2],d:+m[3]}:null; }
 function utcMidnightOfKstDate_(dateStr){ const p=kstDateParts_(dateStr); return new Date(Date.UTC(p.y,p.mo-1,p.d)); }
 function weekdayOfKstDate_(dateStr){ return utcMidnightOfKstDate_(dateStr).getUTCDay(); }
 function addDaysToKstDate_(dateStr,n){ const d=utcMidnightOfKstDate_(dateStr); d.setUTCDate(d.getUTCDate()+n); return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0'); }
 function weekKeyOf(dateStr){
-  const day=weekdayOfKstDate_(dateStr); // 0=일...6=토
+  const day=weekdayOfKstDate_(dateStr);
   const thuStr=addDaysToKstDate_(dateStr, 4-(day||7));
   const thuParts=kstDateParts_(thuStr);
   const thuUTC=utcMidnightOfKstDate_(thuStr).getTime();
@@ -530,7 +498,6 @@ function thisWeekKey(){
   return weekKeyOf(td());
 }
 
-// ── 네비게이션
 document.querySelector('.sidebar').addEventListener('click',e=>{
   const ni=e.target.closest('.ni'); if(!ni)return;
   switchPanel(ni.dataset.panel);
@@ -541,7 +508,7 @@ function switchPanel(name){
   document.getElementById('panel-'+name).classList.add('active');
   document.querySelector(`.ni[data-panel="${name}"]`).classList.add('on');
   if(name==='dashboard') loadDash();
-  if(name==='rooms') { roomsView.mode='today'; document.getElementById('rfd').value=''; document.getElementById('rfw').value=''; loadRoomsView(); } // 탭 재진입 시 항상 오늘로 리셋
+  if(name==='rooms') { roomsView.mode='today'; document.getElementById('rfd').value=''; document.getElementById('rfw').value=''; loadRoomsView(); }
   if(name==='monitor'&&!loaded.monitor) loadMon();
   if(name==='members'&&!loaded.members) loadM();
   if(name==='settle') { loadSI(); document.getElementById('log-date').value=td(); }
@@ -549,7 +516,6 @@ function switchPanel(name){
   if(name==='logs') initLogs();
 }
 
-// ── 로그인
 document.getElementById('btnLogin').addEventListener('click',doLogin);
 document.getElementById('apw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 document.getElementById('btnLogout').addEventListener('click',doLogout);
@@ -564,7 +530,6 @@ async function doLogin(){
   const d=await api('admin_login',{nickname:nick,insta_id:insta});
   btnLoad('btnLogin',false,'로그인');
   if(!d.ok){showBnr('lerr',d.error||'로그인 실패');return;}
-  // 자격증명 저장
   try { localStorage.setItem(ADMIN_CRED, JSON.stringify({nickname:nick, insta_id:insta})); } catch(e){}
   adminInfo=d.admin; saveS(adminInfo);
   document.getElementById('admbdg').textContent='👤 '+adminInfo.nickname;
@@ -574,7 +539,6 @@ async function doLogin(){
 }
 function doLogout(){
   adminInfo=null;memberList=[];roomCache=[];clearS();
-  // 자격증명 삭제
   try { localStorage.removeItem(ADMIN_CRED); } catch(e){}
   Object.keys(loaded).forEach(k=>loaded[k]=false);
   document.getElementById('pg-login').classList.remove('hide');
@@ -592,7 +556,6 @@ window.addEventListener('load',()=>{
     loadDash();
     return;
   }
-  // 세션 없으면 저장된 자격증명으로 자동 로그인 시도
   try {
     const cred=JSON.parse(localStorage.getItem(ADMIN_CRED)||'null');
     if(cred?.nickname && cred?.insta_id){
@@ -603,9 +566,6 @@ window.addEventListener('load',()=>{
   } catch(e){}
 });
 
-// ══════════════════════════════════════════════
-// 대시보드
-// ══════════════════════════════════════════════
 document.getElementById('btnDashRefresh').addEventListener('click',loadDash);
 document.getElementById('btn-daily-d').addEventListener('click',doDailyD);
 document.getElementById('btn-wt-copy').addEventListener('click',e=>copyWarnTargets(e.currentTarget));
@@ -615,19 +575,24 @@ let dashWeekStats=[];
 
 document.getElementById('btn-weekfail-copy').addEventListener('click', e=>{
   const btn=e.currentTarget;
-  // 이번주 아직 2회 미달인 사람만 (정산 실행 여부와 무관하게 지금 시점 기준 실시간 계산된 값)
   const failList = dashWeekStats.filter(m=>!m.is_pass);
   if(!failList.length){ copyText('', null); showBnr('dok','현재 미달자가 없습니다','ok'); return; }
+  const partial = failList.filter(m=>m.week_participate>0);
+  const none = failList.filter(m=>m.week_participate===0);
   const lines=[`[${document.getElementById('dwrange').textContent} 주2회 미달자]`];
-  failList.forEach(m=>{
-    lines.push(`- ${m.nickname} @${m.insta_id} (${m.week_land}회${m.is_warned?' · 경고중':''})`);
-  });
+  if(partial.length){
+    lines.push(''); lines.push(`📌 참여했지만 미달 (${partial.length}명)`);
+    partial.forEach(m=>lines.push(`- ${m.nickname} @${m.insta_id} (${m.week_land}회${m.is_warned?' · 경고중':''})`));
+  }
+  if(none.length){
+    lines.push(''); lines.push(`📌 아예 미참여 (${none.length}명)`);
+    none.forEach(m=>lines.push(`- ${m.nickname} @${m.insta_id} (0회${m.is_warned?' · 경고중':''})`));
+  }
   copyText(lines.join('\n'), btn);
 });
 
 function copyWarnTargets(btn){
   if(!dashWarnTargets.length){ showBnr('dok','복사할 미착륙자가 없습니다'); return; }
-  // 방별로 그룹핑해서 톡방 공유하기 좋은 형태로 구성
   const byRoom={};
   dashWarnTargets.forEach(p=>{
     const key=`#${p.room_number}`;
@@ -653,7 +618,6 @@ async function loadDash(){
   document.getElementById('ds-r').textContent=rs.length;
   document.getElementById('ds-j').textContent=rs.reduce((s,r)=>s+r.total,0);
   document.getElementById('ds-l').textContent=rs.reduce((s,r)=>s+r.landed_count,0);
-  // 헤드라인 숫자는 "아직 처리 안 된" 대상만 카운트 — 이미 경고 처리된 사람은 제외
   const pendingWt=wt.filter(p=>!p.already_warned);
   document.getElementById('ds-w').textContent=pendingWt.length;
   const wtc=document.getElementById('wt-card');
@@ -693,11 +657,8 @@ async function doDailyD(){
   if(d.ok){showBnr('dok','일간 정산 완료 — 경고 '+d.warned+'명'+(d.skipped?` · 중복스킵 ${d.skipped}명`:''),'ok');loadDash();}
   else showBnr('derr',d.error||'실패');
 }
-// ══════════════════════════════════════════════
-// 룸 관리 — 화면엔 항상 "1개의 날짜" 목록만 노출.
-// 기본은 오늘, 날짜/주차 검색하면 그 결과로 화면이 통째로 전환됨 (두 목록 동시노출 X)
-// ══════════════════════════════════════════════
-let roomsView = { mode: 'today', label: '' }; // mode: 'today' | 'search'
+
+let roomsView = { mode: 'today', label: '' };
 
 document.getElementById('btnARRefresh').addEventListener('click',()=>loadRoomsView());
 document.getElementById('btnRFToday').addEventListener('click',()=>{
@@ -713,7 +674,6 @@ document.getElementById('rfd').addEventListener('input',()=>{
   roomsView.mode = v ? 'search' : 'today';
   loadRoomsView();
 });
-// 주차 입력은 자유 텍스트라 타이핑 중 매 글자마다 요청이 나가면 안 됨(그동안 이게 "말도안되게 느림"의 원인이었음) → 디바운스 적용
 let rfwDebounceTimer=null;
 document.getElementById('rfw').addEventListener('input',()=>{
   document.getElementById('rfd').value='';
@@ -742,7 +702,6 @@ document.getElementById('echips').addEventListener('click',e=>{const c=e.target.
 
 const stBadge=s=>s==='locked'?'<span class="badge bdr">잠금</span>':s==='warned'?'<span class="badge bdm">경고</span>':s==='inactive'?'<span class="badge bdg">비활성</span>':'<span class="badge bdk">활성</span>';
 
-// 룸관리 탭 진입 시 항상 이 함수 하나만 호출 — 오늘/검색 상태에 맞춰 1개의 목록만 그림
 async function loadRoomsView(){
   const el=document.getElementById('rooms-list');
   const titleEl=document.getElementById('roomsListTitle');
@@ -756,7 +715,7 @@ async function loadRoomsView(){
   } else {
     const wf=document.getElementById('rfw')?.value.trim()||'';
     const df=document.getElementById('rfd')?.value||'';
-    if(!wf && !df){ roomsView.mode='today'; return loadRoomsView(); } // 검색조건 없으면 오늘로 폴백
+    if(!wf && !df){ roomsView.mode='today'; return loadRoomsView(); }
     body = wf ? {week_key:wf} : {room_date:df};
     titleEl.textContent = wf ? `${wf} 주차 룸 목록` : `${df} 룸 목록`;
     emptyLabel = `${wf?wf+' 주차':df}에 생성된 룸 없음`;
@@ -769,8 +728,6 @@ async function loadRoomsView(){
     +roomCache.map(r=>`<tr><td style="font-weight:600">${r.room_date}</td><td>#${r.room_number}</td><td>${(r.items||'').split(',').map(t=>`<span class="tag">${t.trim()}</span>`).join('')}</td><td style="font-size:11px;white-space:nowrap">${r.ticket_start_fmt||''} ~ ${r.ticket_end_fmt||''}</td><td style="font-size:11px;white-space:nowrap">${r.land_start_fmt||''} ~ ${r.land_end_fmt||''}</td><td>${r.joined}/${Number(r.max_members)>=9999?"무제한":r.max_members}(+${(r.total_joined||r.joined)-r.joined}운영진)</td><td>${r.status==='open'?'<span class="badge bdk">open</span>':'<span class="badge bdg">closed</span>'}</td><td><div class="act-cell"><button class="btn bo bsm" data-action="mon" data-rid="${r.room_id}">현황</button><button class="btn bo bsm" data-action="edit" data-rid="${r.room_id}">수정</button><button class="btn bsm btn-danger" data-action="del" data-rid="${r.room_id}" data-date="${r.room_date}" data-num="${r.room_number}">삭제</button></div></td></tr>`).join('')+'</tbody></table>';
 }
 
-// 현재 목록에 떠 있는 방들 전체를 한 번에 복사 (방마다 참여자+링크까지 포함)
-// 방 개수가 적어서(보통 하루 6~7개) 병렬조회 부담 적음
 document.getElementById('btnRoomsCopyAll').addEventListener('click', async e=>{
   const btn=e.currentTarget;
   if(!roomCache.length){ showBnr('rerr','복사할 룸이 없습니다'); setTimeout(()=>hideBnr('rerr'),2000); return; }
@@ -812,10 +769,8 @@ document.getElementById('btnRoomsCopyAll').addEventListener('click', async e=>{
   });
 });
 
-// 룸 히스토리 상세보기 — 오늘 방이든 몇 달 전 방이든 날짜 구분 없이 동작
-// (get_room_detail은 시간/날짜 제약이 없어서 마감된 옛날 방도 그대로 조회됨)
 document.getElementById('btnRHClose').addEventListener('click',()=>closeModal('mrh'));
-let rhCurrent=null; // 현재 모달에 열려있는 방 데이터 (복사 버튼용)
+let rhCurrent=null;
 document.getElementById('btnRHCopy').addEventListener('click',e=>{
   if(!rhCurrent){ return; }
   const {room, parts} = rhCurrent;
@@ -868,7 +823,6 @@ async function openRoomHistory(rid){
 
 async function openCR(){
   document.getElementById('crd').value=td();
-  // roomCache가 지금 "오늘" 화면이 아닐 수 있으므로(다른 날짜 검색 중일 때), 방번호는 항상 오늘 기준으로 새로 조회
   const todayRooms = roomsView.mode==='today' ? roomCache : (await api('get_all_rooms',{room_date:td()})).rooms||[];
   document.getElementById('crn').value=todayRooms.length+1;
   document.querySelectorAll('#ichips .chip').forEach(c=>c.classList.remove('on'));
@@ -933,7 +887,6 @@ async function doAllPresets(){
   btn.disabled=true;
   let ok=0,skip=0,fail=[];
   for(const p of PRESETS){
-    // 진행 중 표시 (몇 번째 생성 중인지)
     btn.innerHTML=`<span class="sp"></span> ${ok+skip+fail.length+1}/6 생성 중...`;
     const d=await api('create_preset',{admin_id:adminInfo.admin_id,preset_num:p.num,room_date:td()});
     if(d.ok)ok++;else if(d.error?.includes('이미'))skip++;else fail.push(p.num+'번');
@@ -944,9 +897,6 @@ async function doAllPresets(){
   loadRoomsView();
 }
 
-// ══════════════════════════════════════════════
-// 참여 현황 — 오늘 전체 룸, 미착륙자 복사/경고
-// ══════════════════════════════════════════════
 document.getElementById('btnMonRefresh').addEventListener('click',()=>loadMon());
 document.getElementById('btnMonCopyAll').addEventListener('click',e=>copyAllNoLand(e.currentTarget));
 
@@ -980,17 +930,14 @@ async function loadMon(){
     const notLanded=parts.filter(p=>p.status!=='landed');
     const isClosed=r.is_land_closed;
     const isSettled=r.is_settled;
-    // 상태 배지: 진행중(초록) / 착륙마감·정산대기(빨강) / 정산완료(회색)
     const stateBadge = isSettled
       ? '<span class="badge bdg" style="margin-left:4px">✓ 정산완료</span>'
       : isClosed
         ? '<span class="badge bdr" style="margin-left:4px">착륙마감 · 정산대기</span>'
         : '<span class="badge bdk" style="margin-left:4px">진행중</span>';
-    // 정산 이미 끝난 방은 중복 클릭 방지를 위해 일괄 경고 버튼 문구를 다르게
     const bulkWarnLabel = isSettled ? '⚠ 경고 재부여(예외처리)' : `⚠ 경고 부여 (${notLanded.length}명)`;
 
     return `<div class="rca">
-      <!-- 룸 헤더 -->
       <div class="rcah">
         <div>
           <div style="font-size:14px;font-weight:700">
@@ -1008,7 +955,6 @@ async function loadMon(){
         </div>
       </div>
 
-      <!-- 미착륙자 섹션 (착륙 마감 후 강조) -->
       ${notLanded.length?`
       <div style="background:${isClosed?'var(--red-bg)':'var(--amber-bg)'};border-bottom:1px solid ${isClosed?'#FECACA':'#FDE68A'};padding:8px 14px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
@@ -1039,7 +985,6 @@ async function loadMon(){
         </div>
       </div>`:''}
 
-      <!-- 착륙 완료자 -->
       ${landed.length?`
       <div style="padding:6px 14px;border-bottom:${notLanded.length?'0':'1px solid var(--border)'}">
         <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:4px">✓ 착륙 완료 (${landed.length}명)</div>
@@ -1073,7 +1018,7 @@ document.getElementById('mon-content').addEventListener('click',async e=>{
     if(!mid){showBnr('sok','member_id 없음');return;}
     const curUrl=btn.dataset.url||'';
     const input=prompt(`${nick}님의 링크를 수정합니다.\n(카톡 등에서 복사한 텍스트를 통째로 붙여넣어도 링크만 자동으로 추출됩니다)`, curUrl);
-    if(input===null) return; // 취소
+    if(input===null) return;
     const url=extractUrl(input);
     if(!url){ showBnr('sok','올바른 링크(http로 시작)를 찾을 수 없습니다'); return; }
     btn.disabled=true;
@@ -1134,9 +1079,6 @@ function cpNoLand(ri){
   copyText(txt, btn);
 }
 
-// ══════════════════════════════════════════════
-// 정산
-// ══════════════════════════════════════════════
 document.getElementById('btn-daily-s').addEventListener('click',doDailyS);
 document.getElementById('btn-weekly-s').addEventListener('click',doWeeklyS);
 document.getElementById('btn-init-week').addEventListener('click',doInitWeek);
@@ -1149,8 +1091,6 @@ async function loadLogHistory(){
   if(!dateVal) return;
   const el = document.getElementById('log-history');
   el.innerHTML = '<div class="empty"><span class="sp spd"></span></div>';
-  // 정산 로그와 함께, 그 날짜에 실제로 방이 있었는지도 같이 조회
-  // → "정산이 안 된 것"과 "애초에 방이 없어서 정산할 게 없는 것"을 구분하기 위함
   const [d, roomsD] = await Promise.all([
     api('get_logs', {log_date: dateVal}),
     api('get_all_rooms', {room_date: dateVal}),
@@ -1176,7 +1116,6 @@ async function loadLogHistory(){
     }
     return;
   }
-  // settle 로그와 warn 로그 분리
   const settles = logs.filter(l=>l.log_type==='daily_settle');
   const warns   = logs.filter(l=>l.log_type==='daily_warn');
   const skips   = logs.filter(l=>l.log_type==='daily_settle_skip');
@@ -1249,9 +1188,6 @@ async function doInitWeek(){
   if(d.ok)showBnr('skok',d.message,'ok');else showBnr('serr',d.error||'실패');
 }
 
-// ══════════════════════════════════════════════
-// 주간 시트 조회
-// ══════════════════════════════════════════════
 document.getElementById('btn-wk-load').addEventListener('click',loadWeekSheet);
 document.getElementById('wk-input').addEventListener('keydown',e=>{if(e.key==='Enter')loadWeekSheet();});
 
@@ -1266,7 +1202,6 @@ async function loadWeekSheet(){
   }
 
   const headers=d.headers, rows=d.rows;
-  // gs에서 이미 member_id 제외됨
   const sumIdx=headers.indexOf('주간합계');
 
   const markHtml=v=>{
@@ -1276,7 +1211,6 @@ async function loadWeekSheet(){
     return v||'';
   };
 
-  // 헤더 렌더
   el.innerHTML=`
     <div style="padding:10px 14px;display:flex;justify-content:flex-end">
       <button class="btn bo bsm" id="btn-wk-download">⬇ 엑셀 다운로드</button>
@@ -1288,10 +1222,8 @@ async function loadWeekSheet(){
       </table>
     </div>`;
 
-  // 다운로드 버튼 이벤트
   document.getElementById('btn-wk-download').onclick=()=>downloadWeekSheet(wk, headers, rows);
 
-  // requestAnimationFrame으로 50행씩 렌더링 (브라우저 블록 방지)
   const tbody=document.getElementById('week-tbl-body');
   const CHUNK=50; let idx=0;
   function renderChunk(){
@@ -1300,7 +1232,6 @@ async function loadWeekSheet(){
     for(;idx<end;idx++){
       const r=rows[idx];
       const tr=document.createElement('tr');
-      // 미착륙 경고 있는 행 배경 표시
       const hasWarn=r.some(v=>v==='⚠');
       if(hasWarn) tr.style.background='#FFF8F8';
       tr.innerHTML=r.map((v,i)=>{
@@ -1315,9 +1246,8 @@ async function loadWeekSheet(){
   requestAnimationFrame(renderChunk);
 }
 
-// 엑셀 다운로드 (CSV 방식 — 별도 라이브러리 불필요)
 function downloadWeekSheet(wk, headers, rows){
-  const BOM='\uFEFF'; // 한글 깨짐 방지
+  const BOM='\uFEFF';
   const esc=v=>'"'+String(v||'').replace(/"/g,'""')+'"';
   const lines=[headers.map(esc).join(',')];
   rows.forEach(r=>lines.push(r.map(esc).join(',')));
@@ -1329,9 +1259,6 @@ function downloadWeekSheet(wk, headers, rows){
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 
-// ══════════════════════════════════════════════
-// 멤버 관리
-// ══════════════════════════════════════════════
 document.getElementById('msrch').addEventListener('input',filterM);
 document.getElementById('msf').addEventListener('change',filterM);
 document.getElementById('btnOpenAM').addEventListener('click',openAM);
@@ -1354,14 +1281,12 @@ function renderM(list){
   const el=document.getElementById('mtbl');
   if(!list.length){el.innerHTML='<div class="empty">멤버 없음</div>';return;}
 
-  // 테이블 헤더 먼저 그리기
   el.innerHTML=`<table class="tbl">
     <thead><tr><th>#</th><th>닉네임</th><th>아이디</th><th>상태</th><th>경고</th><th>우수⭐</th><th>명예🏅</th><th>마지막 로그인</th><th></th></tr></thead>
     <tbody id="mtbl-body"></tbody>
   </table>`;
   const tbody=document.getElementById('mtbl-body');
 
-  // requestAnimationFrame으로 30명씩 나눠 그리기 — UI 블록 없음
   const CHUNK=30;
   let idx=0;
   function renderChunk(){
@@ -1405,27 +1330,22 @@ function renderM(list){
   requestAnimationFrame(renderChunk);
 }
 
-// 행 단위 업데이트 — innerHTML reflow 없이 셀만 직접 수정
 function updateRow(mid){
   const m=memberList.find(x=>x.member_id===mid); if(!m)return;
   const tr=document.querySelector(`#mtbl-body tr[data-mid="${mid}"]`); if(!tr)return;
   const wc=Number(m.warning_count)||0,ec=Number(m.excellent_count)||0,hc=Number(m.honorary_count)||0;
 
-  // 상태 배지만 교체
   const td4=tr.children[3];
   if(td4) td4.innerHTML=stBadge(m.status);
 
-  // 수치 텍스트만 변경 (innerHTML X)
   const wcEl=tr.querySelector('[data-f="wc"]'); if(wcEl){wcEl.textContent=wc;wcEl.style.color=wc>0?'var(--red)':'';}
   const ecEl=tr.querySelector('[data-f="ec"]'); if(ecEl){ecEl.textContent='⭐'+ec;ecEl.style.color=ec>0?'var(--primary)':'';}
   const hcEl=tr.querySelector('[data-f="hc"]'); if(hcEl){hcEl.textContent='🏅'+hc;hcEl.style.color=hc>0?'var(--purple)':'';}
 
-  // - 버튼 disabled만 토글
   const wb=tr.querySelector('[data-a="w-"]'); if(wb)wb.disabled=wc<=0;
   const eb=tr.querySelector('[data-a="e-"]'); if(eb)eb.disabled=ec<=0;
   const hb=tr.querySelector('[data-a="h-"]'); if(hb)hb.disabled=hc<=0;
 
-  // 잠금/비활성 버튼 — 잠금만 남김
   const lockBtn=tr.querySelector('[data-a="lock"],[data-a="unlock"]');
   if(lockBtn){
     if(m.status==='locked'){lockBtn.dataset.a='unlock';lockBtn.textContent='잠금해제';lockBtn.className='btn bsm btn-success';}
@@ -1433,7 +1353,6 @@ function updateRow(mid){
   }
 }
 
-// 이벤트 위임
 document.getElementById('mtbl').addEventListener('click',e=>{
   const btn=e.target.closest('[data-a]');if(!btn||btn.disabled)return;
   const{a:action,mid}=btn.dataset;if(!mid)return;
@@ -1444,13 +1363,11 @@ document.getElementById('mtbl').addEventListener('click',e=>{
   if(action==='unlock') doLock(mid,'unlock',btn);
 });
 
-// +/- : 낙관적 업데이트 — 즉시 반영, API 백그라운드, 실패 시 롤백만
 function doCount(action,mid,m,btn){
   if(!m)return;
   const delta=action.endsWith('+')?1:-1,type=action[0];
   const prev={wc:m.warning_count,ec:m.excellent_count,hc:m.honorary_count,st:m.status};
 
-  // 즉시 캐시 업데이트
   if(type==='w'){
     const cur=Number(m.warning_count)||0;
     if(delta<0&&cur<=0)return;
@@ -1467,13 +1384,10 @@ function doCount(action,mid,m,btn){
     m.honorary_count=Math.max(0,cur+delta);
   }
 
-  // 즉시 화면 반영 + 로딩 표시
   updateRow(mid);
-  // 같은 행의 +/-버튼 전부 비활성 (API 응답까지)
   const tr=btn.closest('tr');
   const rowBtns=tr?tr.querySelectorAll('.cbtn'):[];
   rowBtns.forEach(b=>b.disabled=true);
-  // 수치 옆에 로딩 스피너 표시
   const fieldMap={w:'wc',e:'ec',h:'hc'};
   const valEl=tr?.querySelector(`[data-f="${fieldMap[type]}"]`);
   const origText=valEl?.textContent;
@@ -1489,15 +1403,12 @@ function doCount(action,mid,m,btn){
 
   call.then(d=>{
     if(!d.ok){
-      // 실패 시 롤백
       m.warning_count=prev.wc;m.excellent_count=prev.ec;
       m.honorary_count=prev.hc;m.status=prev.st;
       showBnr('merr',d.error||'실패');
     }
-    // 성공/실패 모두 화면 갱신 후 버튼 복원
     updateRow(mid);
     rowBtns.forEach(b=>{
-      // -버튼은 값이 0이면 disabled 유지
       const f=b.dataset.a;
       if(f==='w-') b.disabled=(Number(m.warning_count)||0)<=0;
       else if(f==='e-') b.disabled=(Number(m.excellent_count)||0)<=0;
@@ -1513,21 +1424,19 @@ function doCount(action,mid,m,btn){
   });
 }
 
-// 잠금/해제 : 낙관적 업데이트
 async function doLock(mid,lockAction,btn){
   if(!await iconfirm(lockAction==='lock'?'잠금 처리할까요?':'잠금 해제할까요?',lockAction==='lock'))return;
   const m=memberList.find(x=>x.member_id===mid);
   const prev=m?.status;
   if(m) m.status=lockAction==='lock'?'locked':(Number(m.warning_count)>0?'warned':'active');
-  updateRow(mid); // 즉시 반영
+  updateRow(mid);
   btn.disabled=true;
   api('toggle_lock',{member_id:mid,lock_action:lockAction}).then(d=>{
     if(!d.ok){
       if(m)m.status=prev;
-      updateRow(mid); // 실패 시만 롤백
+      updateRow(mid);
       showBnr('merr',d.error||'실패');
     }
-    // 성공 시 updateRow 호출 안 함
     btn.disabled=false;
   }).catch(()=>{
     if(m)m.status=prev;
@@ -1537,21 +1446,19 @@ async function doLock(mid,lockAction,btn){
   });
 }
 
-// 비활성/활성 : 낙관적 업데이트
 async function doStatus(mid,newStatus,btn){
   if(!await iconfirm(newStatus==='inactive'?'비활성 처리할까요?':'활성화할까요?',newStatus==='inactive'))return;
   const m=memberList.find(x=>x.member_id===mid);
   const prev=m?.status;
   if(m) m.status=newStatus;
-  updateRow(mid); // 즉시 반영
+  updateRow(mid);
   btn.disabled=true;
   api('update_member',{member_id:mid,status:newStatus}).then(d=>{
     if(!d.ok){
       if(m)m.status=prev;
-      updateRow(mid); // 실패 시만 롤백
+      updateRow(mid);
       showBnr('merr',d.error||'실패');
     }
-    // 성공 시 updateRow 호출 안 함
     btn.disabled=false;
   }).catch(()=>{
     if(m)m.status=prev;
@@ -1561,14 +1468,10 @@ async function doStatus(mid,newStatus,btn){
   });
 }
 
-// ══════════════════════════════════════════════
-// 활동 로그
-// ══════════════════════════════════════════════
 document.getElementById('btnLogRefresh').addEventListener('click', loadLogs);
 document.getElementById('btnLogSearch').addEventListener('click', loadLogs);
 
 function initLogs() {
-  // 멤버 셀렉트 채우기
   const sel = document.getElementById('logm');
   if (sel && sel.options.length <= 1 && memberList.length > 0) {
     memberList.forEach(m => {
@@ -1586,9 +1489,6 @@ async function loadLogs() {
   const mid = document.getElementById('logm')?.value || '';
   const act = document.getElementById('loga')?.value || '';
 
-  // get_room_detail 로 참여 기록 조회 대신 plane_Participations에서 멤버별 필터
-  // API: get_member_parts (새로 추가 필요) 대신 get_daily로 오늘치 조회
-  // 현재 gs에 로그 API가 없으므로 plane_Participations 전체를 get_all_parts로 조회
   const d = await api('get_parts', {member_id: mid, action: act});
   if (!d.ok) {
     el.innerHTML = '<div class="empty">불러오기 실패 — gs에 get_parts 액션을 추가해주세요</div>';
